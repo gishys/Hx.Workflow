@@ -1,0 +1,71 @@
+﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Domain;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Hx.Workflow.Application
+{
+    public static class WorkflowAppServiceExtensions
+    {
+        public static List<WkNode> ToWkNodes(this ICollection<WkNodeCreateDto> nodes)
+        {
+            var nodeEntitys = new List<WkNode>();
+            foreach (var node in nodes.OrderBy(d => d.SortNumber))
+            {
+                var nodeEntity = new WkNode(
+                        node.Name,
+                        node.DisplayName,
+                        node.StepNodeType,
+                        node.Version,
+                        node.NodeFormType);
+                if (node.NextNodes?.Count > 0)
+                {
+                    foreach (var condition in node.NextNodes)
+                    {
+                        if (condition.NextNodeName.Length > 0)
+                        {
+                            var conditionEntity = new WkConditionNode(condition.NextNodeName);
+                            if (condition.WkConNodeConditions?.Count > 0)
+                            {
+                                foreach (var conCondition in condition.WkConNodeConditions)
+                                {
+                                    conditionEntity.AddConNodeCondition(
+                                        new WkConNodeCondition(
+                                            conCondition.Field,
+                                            conCondition.Operator,
+                                            conCondition.Value
+                                            ));
+                                }
+                            }
+                            nodeEntity.AddNextNode(conditionEntity);
+                        }
+                    }
+                }
+                if (node.Position?.Count > 0)
+                {
+                    foreach (var point in node.Position)
+                    {
+                        nodeEntity.AddPoint(
+                            new WkPoint(
+                                point.Left,
+                                point.Right,
+                                point.Top,
+                                point.Bottom));
+                    }
+                }
+                if (node.OutcomeSteps?.Count > 0)
+                {
+                    foreach (var outcomp in node.OutcomeSteps)
+                    {
+                        nodeEntity.AddOutcomeSteps(
+                            new WkNodePara(
+                                outcomp.Key,
+                                outcomp.Value));
+                    }
+                }
+                nodeEntitys.Add(nodeEntity);
+            }
+            return nodeEntitys;
+        }
+    }
+}

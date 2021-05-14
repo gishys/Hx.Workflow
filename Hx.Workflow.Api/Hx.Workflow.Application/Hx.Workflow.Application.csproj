@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace></RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.AutoMapper" Version="4.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hx.Workflow.Application.Contracts\Hx.Workflow.Application.Contracts.csproj" />
+    <ProjectReference Include="..\Hx.Workflow.Domain\Hx.Workflow.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

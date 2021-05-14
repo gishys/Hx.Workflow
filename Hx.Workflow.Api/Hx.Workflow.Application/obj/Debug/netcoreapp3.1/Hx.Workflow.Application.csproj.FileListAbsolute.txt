@@ -1,0 +1,16 @@
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Application.deps.json
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Application.dll
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Application.pdb
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Application.Contracts.dll
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Domain.dll
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Domain.Shared.dll
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Application.Contracts.pdb
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Domain.pdb
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\bin\Debug\netcoreapp3.1\Hx.Workflow.Domain.Shared.pdb
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\obj\Debug\netcoreapp3.1\Hx.Workflow.Application.csprojAssemblyReference.cache
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\obj\Debug\netcoreapp3.1\Hx.Workflow.Application.AssemblyInfoInputs.cache
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\obj\Debug\netcoreapp3.1\Hx.Workflow.Application.AssemblyInfo.cs
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\obj\Debug\netcoreapp3.1\Hx.Workflow.Application.csproj.CoreCompileInputs.cache
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\obj\Debug\netcoreapp3.1\Hx.Workflow.Application.csproj.CopyComplete
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\obj\Debug\netcoreapp3.1\Hx.Workflow.Application.dll
+D:\2021\Code\Hx.Workflow.Api\Hx.Workflow.Application\obj\Debug\netcoreapp3.1\Hx.Workflow.Application.pdb

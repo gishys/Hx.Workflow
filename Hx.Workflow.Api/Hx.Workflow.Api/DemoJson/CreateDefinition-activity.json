@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "title": "外网申请审核",
+  "icon": "icon.jpg",
+  "color": "red",
+  "discription": "外网申请审核",
+  "nodes": [
+    {
+      "name": "ReceiveActivity",
+      "displayName": "收件活动",
+      "stepNodeType": 1,
+      "version": 1,
+      "wkStepBodyId": "d069cd7c-dcc4-3e7e-6c0c-39fc24887034",
+      "position": [
+        {
+          "left": 10,
+          "right": 30,
+          "top": 10,
+          "bottom": 30
+        }
+      ],
+      "nodeFormType": 1,
+      "nextNodes": [
+        {
+          "nextNodeName": "Receive",
+          "wkConNodeConditions": [
+            {
+              "field": "NextValue",
+              "operator": "==",
+              "value": "Pass"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Receive",
+      "displayName": "收件受理",
+      "stepNodeType": 2,
+      "version": 1,
+      "wkStepBodyId": "4208fea2-8700-92d2-b369-39fc246cca16",
+      "position": [
+        {
+          "left": 10,
+          "right": 30,
+          "top": 10,
+          "bottom": 30
+        }
+      ],
+      "nodeFormType": 1,
+      "nextNodes": [
+        {
+          "nextNodeName": "AuditActivity",
+          "wkConNodeConditions": [
+            {
+              "field": "NextValue",
+              "operator": "==",
+              "value": "Pass"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AuditActivity",
+      "displayName": "收件活动",
+      "stepNodeType": 2,
+      "version": 1,
+      "wkStepBodyId": "d069cd7c-dcc4-3e7e-6c0c-39fc24887034",
+      "position": [
+        {
+          "left": 10,
+          "right": 30,
+          "top": 10,
+          "bottom": 30
+        }
+      ],
+      "nodeFormType": 1,
+      "nextNodes": [
+        {
+          "nextNodeName": "PrimaryAudit",
+          "wkConNodeConditions": [
+            {
+              "field": "NextValue",
+              "operator": "==",
+              "value": "Audit"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PrimaryAudit",
+      "displayName": "审核",
+      "stepNodeType": 3,
+      "version": 1,
+      "wkStepBodyId": "fc6d83e0-1637-75c0-5901-39fc246bbb36",
+      "position": [
+        {
+          "left": 10,
+          "right": 30,
+          "top": 10,
+          "bottom": 30
+        }
+      ],
+      "nodeFormType": 1
+    }
+  ]
+}

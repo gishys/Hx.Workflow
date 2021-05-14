@@ -1,0 +1,15 @@
+{
+  "id": "803fdf77-bd51-95cf-72a8-39fc6bb4a582",
+  "version": 1,
+  "inputs": {
+    "UserId": "e3a824ed-e27f-1335-ac16-39fc677255bf",
+    "DecideBranching": ""
+  }
+}
+
+
+{
+  "activityName": "GeneralAuditActivity",
+  "workflowId": "91d6148e-6174-d7ab-9ac0-39fc68312f10",
+  "data": "End"
+}

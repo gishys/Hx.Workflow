@@ -1,0 +1,28 @@
+{
+  "Id": "DecisionWorkflow",
+  "Version": 1,
+  "DataType": "MyApp.MyData, MyApp",
+  "Steps": [
+    {
+      "Id": "decide",
+      "StepType": "WorkflowCore.Primitives.Decide, WorkflowCore",
+      "Inputs": { "Expression": "\"1 > 2\"" },
+      "SelectNextStep": {
+        "True_Branch": true,
+        "False_Branch": false
+      }
+    },
+    {
+      "Id": "True_Branch",
+      "StepType": "MyApp.PrintMessage",
+      "Inputs": {
+        "Message": "\"Result is true\""
+      }
+    },
+    {
+      "Id": "False_Branch",
+      "StepType": "MyApp.PrintMessage, MyApp",
+      "Inputs": { "Message": "\"Result is false\"" }
+    }
+  ]
+}
