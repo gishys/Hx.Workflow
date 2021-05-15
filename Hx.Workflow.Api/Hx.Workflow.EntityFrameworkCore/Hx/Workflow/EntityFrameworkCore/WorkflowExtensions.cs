@@ -36,7 +36,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(x => x.ExecutionPointers)
                 .ThenInclude(x => x.ExtensionAttributes)
                 .Include(x => x.ExecutionPointers)
-                .ThenInclude(x => x.WkSubscriptions);
+                .ThenInclude(x => x.WkSubscriptions)
+                .Include(x => x.WkDefinition);
         }
     }
 }

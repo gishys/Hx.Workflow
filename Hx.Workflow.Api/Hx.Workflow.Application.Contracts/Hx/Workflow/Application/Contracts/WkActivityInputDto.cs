@@ -8,6 +8,6 @@ namespace Hx.Workflow.Application.Contracts
     {
         public string ActivityName { get; set; }
         public string WorkflowId { get; set; }
-        public object Data { get; set; }
+        public Dictionary<string, object> Data { get; set; }
     }
 }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "dj9fGqcIyIS46eKPEknFj7kP7XECl1wNjezNWVqjEr3PaDiJXz3Jho1p53MN4yH7+R6Fqo6kjA7CGAYlnk+ZkQ==",
+  "dgSpecHash": "zlmWXKetltnzNuwAMMoDlB/SJqJxdSCGmlTtRVYsfmUGsqiPmCcYViKQneMCcFgH0Wk0wVMTcKarrKewZ0H59g==",
   "success": true,
-  "projectFilePath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Api\\Hx.Workflow.Api.csproj",
+  "projectFilePath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Api\\Hx.Workflow.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\P52\\.nuget\\packages\\autofac\\6.0.0\\autofac.6.0.0.nupkg.sha512",
     "C:\\Users\\P52\\.nuget\\packages\\autofac.extensions.dependencyinjection\\6.0.0\\autofac.extensions.dependencyinjection.6.0.0.nupkg.sha512",

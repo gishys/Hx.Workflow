@@ -11,7 +11,7 @@ namespace Hx.Workflow.Application
         Task CreateAsync(WkDefinitionCreateDto input);
         Task<WkDefinitionDto> GetDefinitionAsync(string name);
         Task StartAsync(StartWorkflowInput input);
-        Task StartActivityAsync(string actName, string workflowId, object data = null);
+        Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
         Task<List<WkInstancesDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
             ICollection<Guid> userIds = null,

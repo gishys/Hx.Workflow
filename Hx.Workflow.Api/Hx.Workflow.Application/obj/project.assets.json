@@ -4908,11 +4908,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application\\Hx.Workflow.Application.csproj",
+      "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application\\Hx.Workflow.Application.csproj",
       "projectName": "Hx.Workflow.Application",
-      "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application\\Hx.Workflow.Application.csproj",
+      "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application\\Hx.Workflow.Application.csproj",
       "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-      "outputPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application\\obj\\",
+      "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -4933,11 +4933,11 @@
         "netcoreapp3.1": {
           "targetAlias": "netcoreapp3.1",
           "projectReferences": {
-            "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj": {
-              "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj"
+            "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj": {
+              "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj"
             },
-            "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
-              "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj"
+            "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
+              "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj"
             }
           }
         }

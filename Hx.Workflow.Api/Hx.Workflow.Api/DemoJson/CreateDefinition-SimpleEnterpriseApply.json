@@ -72,7 +72,7 @@
             {
               "field": "DecideBranching",
               "operator": "==",
-              "value": "Receive"
+              "value": "BackOff"
             }
           ]
         },
@@ -82,7 +82,7 @@
             {
               "field": "DecideBranching",
               "operator": "==",
-              "value": "End"
+              "value": "Submit"
             }
           ]
         }

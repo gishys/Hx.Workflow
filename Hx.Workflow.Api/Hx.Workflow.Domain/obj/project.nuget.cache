@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MV1Cftnjyn6UNef0YosdFBHoe4J6LPJL8xrHSv/Q+RG/4HYUAmCLtm6rFSrcOF0/d8lyoxLhCYcZJ7G4vA9f4A==",
+  "dgSpecHash": "++A6ODfh4X2jd3wcVf4AKnFnXkaiKaKKTiF6QAUDv9r1tw5V+i1BhJGLyM8epe4mGQNwMKDmGNaOOZnwZ9erCw==",
   "success": true,
-  "projectFilePath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
+  "projectFilePath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\P52\\.nuget\\packages\\automapper\\10.1.1\\automapper.10.1.1.nupkg.sha512",
     "C:\\Users\\P52\\.nuget\\packages\\concurrenthashset\\1.1.0\\concurrenthashset.1.1.0.nupkg.sha512",

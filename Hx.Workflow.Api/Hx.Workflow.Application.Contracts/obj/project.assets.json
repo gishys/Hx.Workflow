@@ -3899,11 +3899,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
+      "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
       "projectName": "Hx.Workflow.Application.Contracts",
-      "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
+      "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
       "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-      "outputPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\obj\\",
+      "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -3924,8 +3924,8 @@
         "netcoreapp3.1": {
           "targetAlias": "netcoreapp3.1",
           "projectReferences": {
-            "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
-              "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
+            "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
+              "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
             }
           }
         }

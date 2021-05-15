@@ -76,7 +76,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             int skipCount,
             int maxResultCount)
         {
-            var queryable = (await GetDbSetAsync()).AsQueryable();
+            var queryable = (await GetDbSetAsync()).IncludeDetials(true);
             if (ids?.Count > 0)
                 queryable.Where(d => ids.Any(p => p == d.Id));
             if (status != null)

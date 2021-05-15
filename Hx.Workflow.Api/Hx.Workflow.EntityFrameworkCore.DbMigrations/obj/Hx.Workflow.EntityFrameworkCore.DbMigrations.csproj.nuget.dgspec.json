@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {}
+    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {}
   },
   "projects": {
-    "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
+    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
         "projectName": "Hx.Workflow.Domain.Shared",
-        "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
+        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -62,14 +62,14 @@
         }
       }
     },
-    "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
+    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
+        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
         "projectName": "Hx.Workflow.Domain",
-        "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
+        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\obj\\",
+        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -90,8 +90,8 @@
           "netcoreapp3.1": {
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
-                "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
+              "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
+                "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
               }
             }
           }
@@ -146,14 +146,14 @@
         }
       }
     },
-    "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {
+    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
+        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
         "projectName": "Hx.Workflow.EntityFrameworkCore.DbMigrations",
-        "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
+        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\obj\\",
+        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -174,8 +174,8 @@
           "netcoreapp3.1": {
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
-                "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj"
+              "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
+                "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj"
               }
             }
           }
@@ -216,14 +216,14 @@
         }
       }
     },
-    "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
+    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
+        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
         "projectName": "Hx.Workflow.EntityFrameworkCore",
-        "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
+        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\obj\\",
+        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -244,8 +244,8 @@
           "netcoreapp3.1": {
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
-                "projectPath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj"
+              "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
+                "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj"
               }
             }
           }

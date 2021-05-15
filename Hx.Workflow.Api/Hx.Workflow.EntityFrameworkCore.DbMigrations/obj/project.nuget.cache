@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "LTWCyLqOhOaT/86eNVPN/0lEAwaq4ZgtIh5hdGCIW6oBOxWmKq4Rp0FZWdf6EhFmok8Shtobf50SRk3C8MoH7w==",
+  "dgSpecHash": "VBuY4Dol5yAbe9lmWu9TwxpcnKbx4ZDK0tQpV75FuACNFvVUzAvTsF+2RSKikIexSOMO8d8AUuCuYT/AXTz/Zg==",
   "success": true,
-  "projectFilePath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
+  "projectFilePath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\P52\\.nuget\\packages\\automapper\\10.1.1\\automapper.10.1.1.nupkg.sha512",
     "C:\\Users\\P52\\.nuget\\packages\\concurrenthashset\\1.1.0\\concurrenthashset.1.1.0.nupkg.sha512",

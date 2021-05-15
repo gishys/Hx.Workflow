@@ -1,6 +1,8 @@
 ﻿using Hx.Workflow.Application;
 using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -60,6 +62,31 @@ namespace Hx.Workflow.Api
         public Task StartActivity(WkActivityInputDto input)
         {
             return _workflowAppService.StartActivityAsync(input.ActivityName, input.WorkflowId, input.Data);
+        }
+        [HttpPut]
+        [Route("workflow/terminate")]
+        public Task<bool> TerminateWorkflowAsync(string workflowId)
+        {
+            return _workflowAppService.TerminateWorkflowAsync(workflowId);
+        }
+        [HttpPut]
+        [Route("workflow/suspend")]
+        public Task<bool> SuspendWorkflowAsync(string workflowId)
+        {
+            return _workflowAppService.SuspendWorkflowAsync(workflowId);
+        }
+        [HttpPut]
+        [Route("workflow/resume")]
+        public Task<bool> ResumeWorkflowAsync(string workflowId)
+        {
+            return _workflowAppService.ResumeWorkflowAsync(workflowId);
+        }
+        [HttpGet]
+        [Route("workflow/mywkinstances")]
+        public Task<List<WkInstancesDto>> GetMyWkInstanceAsync(Guid userId)
+        {
+            return _workflowAppService.GetMyWkInstanceAsync(
+                userIds: new Guid[] { userId });
         }
     }
 }

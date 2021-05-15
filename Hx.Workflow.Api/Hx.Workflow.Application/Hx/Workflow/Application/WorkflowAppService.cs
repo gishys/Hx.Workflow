@@ -15,12 +15,15 @@ namespace Hx.Workflow.Application
     {
         private readonly IWkStepBodyRespository _wkStepBody;
         private readonly HxWorkflowManager _hxWorkflowManager;
+        private readonly IWkAuditorRespository _wkAuditor;
         public WorkflowAppService(
             IWkStepBodyRespository wkStepBody,
-            HxWorkflowManager hxWorkflowManager)
+            HxWorkflowManager hxWorkflowManager,
+            IWkAuditorRespository wkAuditor)
         {
             _wkStepBody = wkStepBody;
             _hxWorkflowManager = hxWorkflowManager;
+            _wkAuditor = wkAuditor;
         }
         public virtual async Task CreateAsync(WkDefinitionCreateDto input)
         {
@@ -56,7 +59,7 @@ namespace Hx.Workflow.Application
         {
             await _hxWorkflowManager.StartWorlflowAsync(input.Id, input.Version, input.Inputs);
         }
-        public virtual async Task StartActivityAsync(string actName, string workflowId, object data = null)
+        public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null)
         {
             await _hxWorkflowManager.StartActivityAsync(actName, workflowId, data);
         }
@@ -74,18 +77,23 @@ namespace Hx.Workflow.Application
             int skipCount = 0,
             int maxResultCount = 20)
         {
-            if (userIds?.Count <= 0 & CurrentUser?.Id != null)
+            if (userIds?.Count <= 0 && CurrentUser?.Id != null)
             {
                 userIds = new List<Guid>();
                 userIds.Add((Guid)CurrentUser.Id);
             }
-            var instances =
-                await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
-                    userIds,
-                    status,
-                    skipCount,
-                    maxResultCount);
-            return ObjectMapper.Map<List<WkInstance>, List<WkInstancesDto>>(instances);
+            var wkinstanceIds = await _wkAuditor.GetWkInstanceIdsAsync(userIds);
+            if (wkinstanceIds?.Count > 0)
+            {
+                var instances =
+                    await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
+                        wkinstanceIds,
+                        status,
+                        skipCount,
+                        maxResultCount);
+                return ObjectMapper.Map<List<WkInstance>, List<WkInstancesDto>>(instances);
+            }
+            return null;
         }
         /// <summary>
         /// terminate workflow

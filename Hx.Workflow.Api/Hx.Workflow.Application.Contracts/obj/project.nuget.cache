@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "OYBKJhoH4i00WQ0k+SjeKYaA45fc6OzjaQXhHy3OLpYhSNY16Yz96fJdPiCXC1bcARkcYWZDOmg/HIRO4Tux2Q==",
+  "dgSpecHash": "rd1uki4mW7A4LNm0mfyt/O7nWQ9elQDECi8uApu1yQDfmSDug4fcADxC2vgJLc6GpqG1Qbuh9RWKbgMlRlx1Sg==",
   "success": true,
-  "projectFilePath": "D:\\2021\\Code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
+  "projectFilePath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\P52\\.nuget\\packages\\jetbrains.annotations\\2020.3.0\\jetbrains.annotations.2020.3.0.nupkg.sha512",
     "C:\\Users\\P52\\.nuget\\packages\\microsoft.aspnetcore.authorization\\5.0.3\\microsoft.aspnetcore.authorization.5.0.3.nupkg.sha512",

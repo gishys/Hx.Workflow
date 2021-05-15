@@ -28,24 +28,23 @@ namespace Hx.Workflow.Application.StepBodys
         /// <summary>
         /// 分支判断
         /// </summary>
-        public string DecideBranching { get; set; }
+        public string DecideBranching { get; set; } = null;
         public override ExecutionResult Run(IStepExecutionContext context)
         {
             Guid.TryParse(UserId, out Guid userId);
+            var instance = _wkInstance.FindAsync(new Guid(context.Workflow.Id)).Result;
+            var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             if (!context.ExecutionPointer.EventPublished)
             {
-                var instance = _wkInstance.FindAsync(new Guid(context.Workflow.Id)).Result;
-                var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
                 var auditorInstance =
                     new WkAuditor(
                     instance.Id,
                     executionPointer.Id,
                     userId,
-                    "");
+                    "",
+                    status: Domain.Shared.EnumAuditStatus.UnAudited);
                 var rAuditorEntity = _wkAuditor.InsertAsync(auditorInstance).Result;
                 var effectiveData = DateTime.MinValue;
-                IDictionary<string, object> subscriptionData = new Dictionary<string, object>();
-                subscriptionData.Add("DecideBranching", "step.Result");
                 var executionResult = ExecutionResult.WaitForActivity(
                     ActivityName,
                     null,
@@ -54,11 +53,46 @@ namespace Hx.Workflow.Application.StepBodys
             }
             var eventData = context.ExecutionPointer.EventData as ActivityResult;
             if (eventData != null)
-            {
-                if (eventData.Data?.ToString().Length > 0)
-                    DecideBranching = eventData.Data.ToString();
-            }
+                Audit(eventData.Data, executionPointer.Id);
             return ExecutionResult.Next();
+        }
+        private void AnalysisEventData(ref string Remark, object eventData)
+        {
+            if (eventData is IDictionary<string, object>)
+            {
+                var dataDic = eventData as IDictionary<string, object>;
+                foreach (var kv in dataDic)
+                {
+                    switch (kv.Key)
+                    {
+                        case "DecideBranching":
+                            DecideBranching = kv.Value.ToString();
+                            break;
+                        case "Remark":
+                            Remark = kv.Value.ToString();
+                            break;
+                    }
+                }
+            }
+        }
+        private void Audit(object data,Guid executionId)
+        {
+            string Remark = null;
+            if (data != null)
+                AnalysisEventData(ref Remark, data);
+            var auditorQueryEntity = _wkAuditor.GetAuditorAsync(executionId).Result;
+            if (auditorQueryEntity != null)
+            {
+                if (DecideBranching == "BackOff")
+                    auditorQueryEntity.Audit(
+                        Domain.Shared.EnumAuditStatus.Unapprove,
+                        DateTime.Now, Remark);
+                else
+                    auditorQueryEntity.Audit(
+                        Domain.Shared.EnumAuditStatus.Pass,
+                        DateTime.Now, Remark);
+                _wkAuditor.UpdateAsync(auditorQueryEntity);
+            }
         }
     }
 }
