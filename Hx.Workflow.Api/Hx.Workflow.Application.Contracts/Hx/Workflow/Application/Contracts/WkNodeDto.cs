@@ -1,7 +1,6 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -55,5 +54,9 @@ namespace Hx.Workflow.Application.Contracts
         /// 节点条件
         /// </summary>
         public virtual ICollection<WkConditionNodeDto> NextNodes { get; set; }
+        /// <summary>
+        /// 节点执行者集合
+        /// </summary>
+        public virtual ICollection<WkCandidateDto> WkCandidates { get; protected set; }
     }
 }

@@ -67,5 +67,14 @@ namespace Hx.Workflow.Application
             }
             return nodeEntitys;
         }
+        public static ICollection<WkCandidate> ToWkCandidate(this ICollection<WkCandidateUpdateDto> inputs)
+        {
+            var resultEntity = new List<WkCandidate>();
+            foreach(var entity in inputs)
+            {
+                resultEntity.Add(new WkCandidate(entity.CandidateId, entity.UserName, entity.DisplayUserName));
+            }
+            return resultEntity;
+        }
     }
 }

@@ -1,8 +1,9 @@
 {
   "activityName": "GeneralAuditActivity",
-  "workflowId": "1ef67c1f-3c99-e075-df7a-39fc80bcd074",
+  "workflowId": "31897ae1-f912-7245-3e9b-39fce3a6fa43",
   "data": {
     "DecideBranching": "Submit",
-    "Remark": "审核通过"
+    "Remark": "审核通过",
+    "Candidates": "fa20498b-863f-4877-8379-39fc7d7ebb55"
   }
 }

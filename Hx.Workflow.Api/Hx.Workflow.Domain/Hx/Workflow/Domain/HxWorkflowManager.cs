@@ -2,6 +2,7 @@
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -148,13 +149,13 @@ namespace Hx.Workflow.Domain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual async Task StartWorlflowAsync(string id, int version, Dictionary<string, object> inputs)
+        public virtual async Task<string> StartWorlflowAsync(string id, int version, Dictionary<string, object> inputs)
         {
             if (!_registry.IsRegistered(id, version))
             {
                 throw new UserFriendlyException("the workflow  has not been defined!");
             }
-            await _workflowHost.StartWorkflow(id, version, inputs?.Count > 0 ? inputs : null);
+            return await _workflowHost.StartWorkflow(id, version, inputs?.Count > 0 ? inputs : null);
         }
         public virtual async Task StartActivityAsync(
             string actName, string workflowId, object data = null)
@@ -178,7 +179,7 @@ namespace Hx.Workflow.Domain
             definitionSource.Description = input.Title;
             definitionSource.DataType = $"{typeof(Dictionary<string, object>).FullName}, {typeof(Dictionary<string, object>).Assembly.FullName}";
             BuildWorkflowStep(input.Nodes, definitionSource);
-            string json = JsonSerializer.Serialize(definitionSource);
+            string json = System.Text.Json.JsonSerializer.Serialize(definitionSource);
             return _definitionLoader.LoadDefinition(json, Deserializers.Json);
         }
 

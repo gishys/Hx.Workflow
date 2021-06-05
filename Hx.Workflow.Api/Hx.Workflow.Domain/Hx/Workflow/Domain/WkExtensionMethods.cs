@@ -252,5 +252,27 @@ namespace Hx.Workflow.Domain
                 exe.Status,
                 string.Join(';', exe.Scope));
         }
+        public static ICollection<WkCandidate> ToCandidates(
+            this ICollection<WkCandidate> entity,
+            ICollection<WkCandidate> sourceEntitys)
+        {
+            foreach (var candidate in sourceEntitys)
+            {
+                WkCandidate updateCandidate = entity.FirstOrDefault(
+                    d => d.CandidateId == candidate.CandidateId);
+                if (updateCandidate != null)
+                    continue;
+                else
+                {
+                    updateCandidate = new WkCandidate(
+                        candidate.CandidateId,
+                        candidate.UserName,
+                        candidate.DisplayUserName);
+                    entity.Add(updateCandidate);
+                }
+                updateCandidate.SetSelection(true);
+            }
+            return entity;
+        }
     }
 }

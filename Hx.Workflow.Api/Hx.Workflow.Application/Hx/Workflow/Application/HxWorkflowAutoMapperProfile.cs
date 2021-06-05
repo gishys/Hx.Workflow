@@ -30,6 +30,7 @@ namespace Hx.Workflow.Application
             CreateMap<ApplicationForm, ApplicationFormDto>(MemberList.Destination);
             CreateMap<WkConditionNode, WkConditionNodeDto>(MemberList.Destination);
             CreateMap<WkConNodeCondition, WkConNodeConditionDto>(MemberList.Destination);
+            CreateMap<WkCandidate, WkCandidateDto>(MemberList.Destination);
         }
     }
 }

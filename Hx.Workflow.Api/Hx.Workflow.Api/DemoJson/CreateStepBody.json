@@ -3,11 +3,11 @@
   "displayName": "指定用户审核",
   "inputs": [
     {
-      "key": "UserId",
+      "key": "Candidates",
       "stepBodyParaType": 0,
-      "name": "UserId",
+      "name": "Candidates",
       "displayName": "审核人",
-      "value": "data.UserId"
+      "value": "data.Candidates"
     },
     {
       "key": "DecideBranching",

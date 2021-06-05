@@ -46,7 +46,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     EVENTNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
                     EVENTKEY = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
                     EVENTDATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    EVENTTIME = table.Column<DateTime>(type: "DATE", nullable: false),
+                    EVENTTIME = table.Column<DateTime>(type: "datetime", nullable: false),
                     ISPROCESSED = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     TENANTID = table.Column<Guid>(type: "char(36)", nullable: true),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -65,7 +65,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     ID = table.Column<Guid>(type: "char(36)", nullable: false),
                     WKINSTANCEID = table.Column<Guid>(type: "char(36)", nullable: false),
                     WKEXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    ERRORTIME = table.Column<DateTime>(type: "DATE", nullable: false),
+                    ERRORTIME = table.Column<DateTime>(type: "datetime", nullable: false),
                     MESSAGE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
                     TENANTID = table.Column<Guid>(type: "char(36)", nullable: true)
                 },
@@ -110,8 +110,8 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     NEXTEXECUTION = table.Column<long>(type: "bigint", nullable: true),
                     STATUS = table.Column<int>(type: "int", precision: 1, nullable: false),
                     DATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    CREATETIME = table.Column<DateTime>(type: "DATE", nullable: false),
-                    COMPLETETIME = table.Column<DateTime>(type: "DATE", nullable: true),
+                    CREATETIME = table.Column<DateTime>(type: "datetime", nullable: false),
+                    COMPLETETIME = table.Column<DateTime>(type: "datetime", nullable: true),
                     TENANTID = table.Column<Guid>(type: "char(36)", nullable: true),
                     ExtraProperties = table.Column<string>(type: "longtext CHARACTER SET utf8mb4", nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "varchar(40) CHARACTER SET utf8mb4", maxLength: 40, nullable: true),
@@ -199,10 +199,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     WKINSTANCEID = table.Column<Guid>(type: "char(36)", nullable: false),
                     STEPID = table.Column<int>(type: "int", nullable: false),
                     ACTIVE = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    SLEEPUNTIL = table.Column<DateTime>(type: "DATE", nullable: true),
+                    SLEEPUNTIL = table.Column<DateTime>(type: "datetime", nullable: true),
                     PERSISTENCEDATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    STARTTIME = table.Column<DateTime>(type: "DATE", nullable: true),
-                    ENDTIME = table.Column<DateTime>(type: "DATE", nullable: true),
+                    STARTTIME = table.Column<DateTime>(type: "datetime", nullable: true),
+                    ENDTIME = table.Column<DateTime>(type: "datetime", nullable: true),
                     EVENTNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
                     EVENTKEY = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
                     EVENTPUBLISHED = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -259,30 +259,6 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         onDelete: ReferentialAction.Cascade);
                 },
                 comment: "流程表单");
-
-            migrationBuilder.CreateTable(
-                name: "HXWKCANDIDATES",
-                columns: table => new
-                {
-                    NODEID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    CANDIDATEID = table.Column<Guid>(type: "char(36)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HXWKCANDIDATES", x => new { x.NODEID, x.CANDIDATEID });
-                    table.ForeignKey(
-                        name: "Pk_WkDef_Candidate",
-                        column: x => x.NODEID,
-                        principalTable: "HXWKDEFINITIONS",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "Pk_WkNode_Candidate",
-                        column: x => x.NODEID,
-                        principalTable: "HXWKNODES",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                });
 
             migrationBuilder.CreateTable(
                 name: "HXWKCONDITIONNODES",
@@ -356,9 +332,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     WORKFLOWID = table.Column<Guid>(type: "char(36)", nullable: false),
                     EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false),
                     STATUS = table.Column<int>(type: "int", precision: 1, nullable: false),
-                    AUDITTIME = table.Column<DateTime>(type: "DATE", nullable: true),
+                    AUDITTIME = table.Column<DateTime>(type: "datetime", nullable: true),
                     REMARK = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    USERID = table.Column<Guid>(type: "char(36)", nullable: false),
+                    USERID = table.Column<Guid>(type: "char(36)", nullable: true),
                     USERNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
                     TENANTID = table.Column<Guid>(type: "char(36)", nullable: true),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -382,6 +358,39 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         name: "Pk_WkAuditor_WkInstance",
                         column: x => x.WORKFLOWID,
                         principalTable: "HXWKINSTANCES",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HXWKCANDIDATES",
+                columns: table => new
+                {
+                    NODEID = table.Column<Guid>(type: "char(36)", nullable: false),
+                    CANDIDATEID = table.Column<Guid>(type: "char(36)", nullable: false),
+                    USERNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
+                    DISPLAYUSERNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    DEFAULTSELECTION = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HXWKCANDIDATES", x => new { x.NODEID, x.CANDIDATEID });
+                    table.ForeignKey(
+                        name: "Pk_Pointer_Candidate",
+                        column: x => x.NODEID,
+                        principalTable: "HXWKEXECUTIONPOINTER",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "Pk_WkDef_Candidate",
+                        column: x => x.NODEID,
+                        principalTable: "HXWKDEFINITIONS",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "Pk_WkNode_Candidate",
+                        column: x => x.NODEID,
+                        principalTable: "HXWKNODES",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -418,11 +427,11 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false),
                     EVENTNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
                     EVENTKEY = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    SUBSCRIBEASOF = table.Column<DateTime>(type: "DATE", nullable: false),
+                    SUBSCRIBEASOF = table.Column<DateTime>(type: "datetime", nullable: false),
                     SUBSCRIPTIONDATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
                     EXTERNALTOKEN = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
                     EXTERNALWORKERID = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    EXTERNALTOKENEXPIRY = table.Column<DateTime>(type: "DATE", nullable: true),
+                    EXTERNALTOKENEXPIRY = table.Column<DateTime>(type: "datetime", nullable: true),
                     TENANTID = table.Column<Guid>(type: "char(36)", nullable: true)
                 },
                 constraints: table =>

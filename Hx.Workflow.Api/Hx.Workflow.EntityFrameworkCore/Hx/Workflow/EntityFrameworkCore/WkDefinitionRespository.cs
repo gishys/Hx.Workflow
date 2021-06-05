@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Domain.Persistence;
+﻿using Hx.Workflow.Domain;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -45,7 +46,40 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             return await (await GetDbSetAsync())
                 .IncludeDetials(includeDetails)
-                .FirstOrDefaultAsync(d => d.Title == name, GetCancellationToken(cancellationToken));
+                .FirstOrDefaultAsync(d => d.Title == name,
+                GetCancellationToken(cancellationToken));
+        }
+        public virtual async Task<WkDefinition> UpdateCandidatesAsync(
+            Guid wkDefinitionId,
+            Guid userId,
+            ICollection<WkCandidate> wkCandidates)
+        {
+            var entity = await (await GetDbSetAsync()).FirstOrDefaultAsync(d => d.Id == wkDefinitionId);
+            if (entity?.WkCandidates != null)
+            {
+                var updateCnadidates = entity.WkCandidates.Where(d => d.CandidateId == userId).ToList();
+                if (updateCnadidates.Count() > 0)
+                {
+                    foreach (var candidate in updateCnadidates.ToList())
+                    {
+                        WkCandidate updateCandidate = wkCandidates.FirstOrDefault(
+                            d => d.CandidateId == candidate.CandidateId);
+                        if (updateCandidate != null)
+                            continue;
+                        else
+                        {
+                            updateCandidate = new WkCandidate(
+                                candidate.CandidateId,
+                                candidate.UserName,
+                                candidate.DisplayUserName);
+                            updateCnadidates.Add(updateCandidate);
+                        }
+                        await updateCandidate.SetSelection(true);
+                    }
+                    return await UpdateAsync(entity);
+                }
+            }
+            return null;
         }
     }
 }

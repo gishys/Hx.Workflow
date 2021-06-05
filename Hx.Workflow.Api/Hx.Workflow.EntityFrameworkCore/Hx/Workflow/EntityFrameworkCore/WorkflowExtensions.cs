@@ -1,10 +1,6 @@
-﻿using Hx.Workflow.Domain;
-using Hx.Workflow.Domain.Persistence;
+﻿using Hx.Workflow.Domain.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
@@ -24,7 +20,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(d => d.Inputs)
                 .Include(d => d.Nodes)
                 .ThenInclude(d => d.NextNodes)
-                .ThenInclude(d => d.WkConNodeConditions);
+                .ThenInclude(d => d.WkConNodeConditions)
+                .Include(d=>d.Nodes)
+                .ThenInclude(d=>d.WkCandidates)
+                .Include(d=>d.Nodes)
+                .ThenInclude(d=>d.ApplicationForms);
         }
         public static IQueryable<WkInstance> IncludeDetials(
             this IQueryable<WkInstance> query,
@@ -37,7 +37,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(x => x.ExtensionAttributes)
                 .Include(x => x.ExecutionPointers)
                 .ThenInclude(x => x.WkSubscriptions)
-                .Include(x => x.WkDefinition);
+                .Include(x => x.WkDefinition)
+                .Include(x=>x.WkAuditors);
         }
     }
 }

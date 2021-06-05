@@ -1,8 +1,8 @@
 {
-  "id": "eaf5ca35-db54-4f9e-1e6a-39fc80bc6e0f",
+  "id": "b0e8c180-c536-4828-2344-39fce340c989",
   "version": 1,
   "inputs": {
-    "UserId": "e3a824ed-e27f-1335-ac16-39fc677255bf",
+    "Candidates": "fa20498b-863f-4877-8379-39fc7d7ebb55",
     "DecideBranching": ""
   }
 }

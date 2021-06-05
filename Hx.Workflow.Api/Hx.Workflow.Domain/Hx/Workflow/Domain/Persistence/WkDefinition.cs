@@ -113,5 +113,15 @@ namespace Hx.Workflow.Domain.Persistence
             Nodes.Add(node);
             return Task.CompletedTask;
         }
+        public Task AddCandidate(WkCandidate input)
+        {
+            WkCandidates.Add(input);
+            return Task.CompletedTask;
+        }
+        public Task AddCandidates(ICollection<WkCandidate> inputs)
+        {
+            WkCandidates = inputs;
+            return Task.CompletedTask;
+        }
     }
 }

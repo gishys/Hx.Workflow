@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hx.Workflow.Domain.StepBodys;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Entities.Auditing;
@@ -22,6 +23,7 @@ namespace Hx.Workflow.Domain.Persistence
         public DateTime? CompleteTime { get; protected set; }
         public Guid? TenantId { get; protected set; }
         //public byte[] RowVersion { get; protected set; }
+        public ICollection<WkAuditor> WkAuditors { get; protected set; }
         public WkInstance()
         { }
         public WkInstance(

@@ -45,15 +45,27 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.CreateAsync(input);
         }
+        [HttpPut]
+        [Route("definition")]
+        public Task<WkDefinitionDto> UpdateDefinition(WkDefinitionUpdateDto entity)
+        {
+            return _workflowAppService.UpdateDefinitionAsync(entity);
+        }
         [HttpGet]
         [Route("definition/{name}")]
         public Task<WkDefinitionDto> GetDefinition(string name)
         {
             return _workflowAppService.GetDefinitionAsync(name);
         }
+        [HttpGet]
+        [Route("definition")]
+        public Task<List<WkDefinitionDto>> GetDefinitionsAsync()
+        {
+            return _workflowAppService.GetDefinitionsAsync();
+        }
         [HttpPost]
         [Route("workflow")]
-        public Task StartWorkflowAsync([FromBody] StartWorkflowInput input)
+        public Task<string> StartWorkflowAsync([FromBody] StartWorkflowInput input)
         {
             return _workflowAppService.StartAsync(input);
         }
@@ -87,6 +99,12 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.GetMyWkInstanceAsync(
                 userIds: new Guid[] { userId });
+        }
+        [HttpGet]
+        [Route("workflow/candidate/{wkInstanceId}")]
+        public Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId)
+        {
+            return _workflowAppService.GetCandidatesAsync(wkInstanceId);
         }
     }
 }

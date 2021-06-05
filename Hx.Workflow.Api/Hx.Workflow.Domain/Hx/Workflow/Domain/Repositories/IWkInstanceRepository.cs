@@ -20,5 +20,8 @@ namespace Hx.Workflow.Domain.Repositories
             WorkflowStatus? status,
             int skipCount,
             int maxResultCount);
+        Task<ICollection<WkCandidate>> GetCandidatesAsync(Guid wkInstanceId);
+        Task<WkInstance> UpdateCandidateAsync(
+            Guid wkinstanceId, Guid executionPointerId, ICollection<WkCandidate> wkCandidates);
     }
 }

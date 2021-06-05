@@ -14,24 +14,26 @@ namespace Hx.Workflow.Application.StepBodys
         private const string ActivityName = "GeneralAuditActivity";
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkInstanceRepository _wkInstance;
+        private readonly IWkDefinitionRespository _wkDefinition;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
-            IWkInstanceRepository wkInstance)
+            IWkInstanceRepository wkInstance,
+            IWkDefinitionRespository wkDefinition)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
+            _wkDefinition = wkDefinition;
         }
         /// <summary>
         /// 审核人
         /// </summary>
-        public string UserId { get; set; }
+        public string Candidates { get; set; }
         /// <summary>
         /// 分支判断
         /// </summary>
         public string DecideBranching { get; set; } = null;
         public override ExecutionResult Run(IStepExecutionContext context)
         {
-            Guid.TryParse(UserId, out Guid userId);
             var instance = _wkInstance.FindAsync(new Guid(context.Workflow.Id)).Result;
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             if (!context.ExecutionPointer.EventPublished)
@@ -40,10 +42,21 @@ namespace Hx.Workflow.Application.StepBodys
                     new WkAuditor(
                     instance.Id,
                     executionPointer.Id,
-                    userId,
-                    "",
+                    null,
+                    userId: null,
                     status: Domain.Shared.EnumAuditStatus.UnAudited);
                 var rAuditorEntity = _wkAuditor.InsertAsync(auditorInstance).Result;
+                var tempCandidates = Candidates.Split(',');
+                if (tempCandidates?.Length > 0)
+                {
+                    var definition = _wkDefinition.FindAsync(instance.WkDifinitionId).Result;
+                    if (definition.WkCandidates?.Count > 0)
+                    {
+                        var dcandidate = definition.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
+                        if (dcandidate?.Count > 0)
+                            _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, dcandidate);
+                    }
+                }
                 var effectiveData = DateTime.MinValue;
                 var executionResult = ExecutionResult.WaitForActivity(
                     ActivityName,

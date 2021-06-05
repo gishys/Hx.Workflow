@@ -16,14 +16,20 @@ namespace Hx.Workflow.Application
         private readonly IWkStepBodyRespository _wkStepBody;
         private readonly HxWorkflowManager _hxWorkflowManager;
         private readonly IWkAuditorRespository _wkAuditor;
+        private readonly IWkDefinitionRespository _wkDefinition;
+        private readonly IWkInstanceRepository _wkInstanceRepository;
         public WorkflowAppService(
             IWkStepBodyRespository wkStepBody,
             HxWorkflowManager hxWorkflowManager,
-            IWkAuditorRespository wkAuditor)
+            IWkAuditorRespository wkAuditor,
+            IWkDefinitionRespository wkDefinition,
+            IWkInstanceRepository wkInstanceRepository)
         {
             _wkStepBody = wkStepBody;
             _hxWorkflowManager = hxWorkflowManager;
             _wkAuditor = wkAuditor;
+            _wkDefinition = wkDefinition;
+            _wkInstanceRepository = wkInstanceRepository;
         }
         public virtual async Task CreateAsync(WkDefinitionCreateDto input)
         {
@@ -55,9 +61,14 @@ namespace Hx.Workflow.Application
             var entity = await _hxWorkflowManager.GetDefinitionAsync(name);
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
-        public virtual async Task StartAsync(StartWorkflowInput input)
+        public virtual async Task<List<WkDefinitionDto>> GetDefinitionsAsync()
         {
-            await _hxWorkflowManager.StartWorlflowAsync(input.Id, input.Version, input.Inputs);
+            var entitys = await _wkDefinition.GetListAsync(true);
+            return ObjectMapper.Map<List<WkDefinition>, List<WkDefinitionDto>>(entitys);
+        }
+        public virtual async Task<string> StartAsync(StartWorkflowInput input)
+        {
+            return await _hxWorkflowManager.StartWorlflowAsync(input.Id, input.Version, input.Inputs);
         }
         public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null)
         {
@@ -121,6 +132,41 @@ namespace Hx.Workflow.Application
         public virtual async Task<bool> ResumeWorkflowAsync(string workflowId)
         {
             return await _hxWorkflowManager.ResumeWorkflowAsync(workflowId);
+        }
+        /// <summary>
+        /// 更新模板定义候选人
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public virtual async Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateDto entity)
+        {
+            var wkCandidates = entity.WkCandidates.ToWkCandidate();
+            var resultEntity = await _wkDefinition.UpdateCandidatesAsync(entity.Id, entity.UserId, wkCandidates);
+            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(resultEntity);
+        }
+        /// <summary>
+        /// 更新实例候选人
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public virtual async Task<WkInstancesDto> UpdateInstanceAsync(WkInstanceUpdateDto entity)
+        {
+            var wkCandidates = entity.WkCandidates.ToWkCandidate();
+            var resultEntity = await _wkInstanceRepository.UpdateCandidateAsync(
+                entity.WkInstanceId,
+                entity.WkExecutionPointerId,
+                wkCandidates);
+            return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
+        }
+        /// <summary>
+        /// 通过实例Id获取可选择的人员
+        /// </summary>
+        /// <param name="wkInstanceId"></param>
+        /// <returns></returns>
+        public virtual async Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId)
+        {
+            var entitys = await _wkInstanceRepository.GetCandidatesAsync(wkInstanceId);
+            return ObjectMapper.Map<ICollection<WkCandidate>, ICollection<WkCandidateDto>>(entitys);
         }
     }
 }

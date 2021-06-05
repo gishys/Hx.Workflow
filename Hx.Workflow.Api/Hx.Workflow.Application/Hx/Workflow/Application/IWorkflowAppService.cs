@@ -10,7 +10,7 @@ namespace Hx.Workflow.Application
     {
         Task CreateAsync(WkDefinitionCreateDto input);
         Task<WkDefinitionDto> GetDefinitionAsync(string name);
-        Task StartAsync(StartWorkflowInput input);
+        Task<string> StartAsync(StartWorkflowInput input);
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
         Task<List<WkInstancesDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
@@ -20,5 +20,8 @@ namespace Hx.Workflow.Application
         Task<bool> ResumeWorkflowAsync(string workflowId);
         Task<bool> SuspendWorkflowAsync(string workflowId);
         Task<bool> TerminateWorkflowAsync(string workflowId);
+        Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateDto entity);
+        Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId);
+        Task<List<WkDefinitionDto>> GetDefinitionsAsync();
     }
 }

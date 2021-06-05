@@ -16,7 +16,7 @@ namespace Hx.Workflow.Domain.StepBodys
         public EnumAuditStatus Status { get; protected set; }
         public DateTime? AuditTime { get; protected set; }
         public string Remark { get; protected set; }
-        public Guid UserId { get; protected set; }
+        public Guid? UserId { get; protected set; }
         public string UserName { get; protected set; }
         public Guid? TenantId { get; protected set; }
         public WkAuditor()
@@ -24,8 +24,8 @@ namespace Hx.Workflow.Domain.StepBodys
         public WkAuditor(
             Guid workflowId,
             Guid executionPointerId,
-            Guid userId,
             string userName,
+                        Guid? userId = null,
             EnumAuditStatus status = EnumAuditStatus.UnAudited,
             Guid? tenantId = null)
         {

@@ -32,6 +32,7 @@ namespace Hx.Workflow.Domain.Persistence
         public string Scope { get; protected set; }
         public Guid? TenantId { get; protected set; }
         public ICollection<WkSubscription> WkSubscriptions { get; protected set; }
+        public ICollection<WkCandidate> WkCandidates { get; protected set; }
         public WkExecutionPointer()
         { }
         public WkExecutionPointer(
@@ -175,6 +176,11 @@ namespace Hx.Workflow.Domain.Persistence
         public Task SetExtensionAttributes(WkExtensionAttribute extensionAttribute)
         {
             ExtensionAttributes.Add(extensionAttribute);
+            return Task.CompletedTask;
+        }
+        public Task AddCandidates(ICollection<WkCandidate> wkCandidates)
+        {
+            WkCandidates = wkCandidates;
             return Task.CompletedTask;
         }
     }

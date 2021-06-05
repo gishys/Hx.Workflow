@@ -59,7 +59,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.WorkflowId).HasColumnName("WORKFLOWID");
                 d.Property(d => d.ExecutionPointerId).HasColumnName("EXECUTIONPOINTERID");
                 d.Property(d => d.Status).HasColumnName("STATUS").HasPrecision(1);
-                d.Property(d => d.AuditTime).HasColumnName("AUDITTIME").HasColumnType("smalldatetime");
+                d.Property(d => d.AuditTime).HasColumnName("AUDITTIME").HasColumnType("datetime");
                 d.Property(d => d.Remark).HasColumnName("REMARK").HasMaxLength(WkAuditorConsts.MaxRemarkLength);
 
                 d.Property(d => d.UserId).HasColumnName("USERID");
@@ -67,7 +67,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.TenantId).HasColumnName("TENANTID");
 
                 d.HasOne(d => d.Workflow)
-                .WithMany()
+                .WithMany(d=>d.WkAuditors)
                 .HasForeignKey(d => d.WorkflowId)
                 .HasConstraintName("Pk_WkAuditor_WkInstance");
 
@@ -82,6 +82,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.HasKey(d => new { d.NodeId, d.CandidateId });
                 d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
                 d.Property(d => d.NodeId).HasColumnName("NODEID");
+                d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
+                d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
+                d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
             });
             builder.Entity<WkNode>(t =>
             {
@@ -211,7 +214,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Name).HasColumnName("EVENTNAME").HasMaxLength(WkEventConsts.MaxName);
                 t.Property(d => d.Key).HasColumnName("EVENTKEY").HasMaxLength(WkEventConsts.MaxKey);
                 t.Property(d => d.Data).HasColumnName("EVENTDATA").HasMaxLength(WkEventConsts.MaxData);
-                t.Property(d => d.Time).HasColumnName("EVENTTIME").HasColumnType("smalldatetime");
+                t.Property(d => d.Time).HasColumnName("EVENTTIME").HasColumnType("datetime");
                 t.Property(d => d.IsProcessed).HasColumnName("ISPROCESSED");
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
             });
@@ -221,7 +224,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkInstanceId).HasColumnName("WKINSTANCEID");
                 t.Property(d => d.WkExecutionPointerId).HasColumnName("WKEXECUTIONPOINTERID");
-                t.Property(d => d.ErrorTime).HasColumnName("ERRORTIME").HasColumnType("smalldatetime");
+                t.Property(d => d.ErrorTime).HasColumnName("ERRORTIME").HasColumnType("datetime");
                 t.Property(d => d.Message).HasColumnName("MESSAGE").HasMaxLength(WkExecutionErrorConsts.MaxMessage);
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
             });
@@ -242,11 +245,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.WkInstanceId).HasColumnName("WKINSTANCEID");
                 t.Property(d => d.StepId).HasColumnName("STEPID");
                 t.Property(d => d.Active).HasColumnName("ACTIVE");
-                t.Property(d => d.SleepUntil).HasColumnName("SLEEPUNTIL").HasColumnType("smalldatetime");
+                t.Property(d => d.SleepUntil).HasColumnName("SLEEPUNTIL").HasColumnType("datetime");
 
                 t.Property(d => d.PersistenceData).HasColumnName("PERSISTENCEDATA").HasMaxLength(WkExecutionPointerConsts.MaxPersistenceData);
-                t.Property(d => d.StartTime).HasColumnName("STARTTIME").HasColumnType("smalldatetime");
-                t.Property(d => d.EndTime).HasColumnName("ENDTIME").HasColumnType("smalldatetime");
+                t.Property(d => d.StartTime).HasColumnName("STARTTIME").HasColumnType("datetime");
+                t.Property(d => d.EndTime).HasColumnName("ENDTIME").HasColumnType("datetime");
                 t.Property(d => d.EventName).HasColumnName("EVENTNAME").HasMaxLength(WkExecutionPointerConsts.MaxEventName);
                 t.Property(d => d.EventKey).HasColumnName("EVENTKEY").HasMaxLength(WkExecutionPointerConsts.MaxEventKey);
 
@@ -270,6 +273,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .HasConstraintName("Pk_Pointer_Attribute")
                 .OnDelete(DeleteBehavior.Cascade);
 
+                t.HasMany(d => d.WkCandidates)
+                .WithOne()
+                .HasForeignKey(d => d.NodeId)
+                .HasConstraintName("Pk_Pointer_Candidate")
+                .OnDelete(DeleteBehavior.Cascade);
+
                 t.HasMany(d => d.WkSubscriptions)
                 .WithOne()
                 .HasForeignKey(d => d.ExecutionPointerId)
@@ -288,8 +297,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.NextExecution).HasColumnName("NEXTEXECUTION");
                 t.Property(d => d.Status).HasColumnName("STATUS").HasPrecision(1);
                 t.Property(d => d.Data).HasColumnName("DATA").HasMaxLength(WkInstanceConsts.Data);
-                t.Property(d => d.CreateTime).HasColumnName("CREATETIME").HasColumnType("smalldatetime");
-                t.Property(d => d.CompleteTime).HasColumnName("COMPLETETIME").HasColumnType("smalldatetime");
+                t.Property(d => d.CreateTime).HasColumnName("CREATETIME").HasColumnType("datetime");
+                t.Property(d => d.CompleteTime).HasColumnName("COMPLETETIME").HasColumnType("datetime");
 
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
 
@@ -315,12 +324,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.EventName).HasColumnName("EVENTNAME").HasMaxLength(WkSubscriptionConsts.EventName);
 
                 t.Property(d => d.EventKey).HasColumnName("EVENTKEY").HasMaxLength(WkSubscriptionConsts.EventKey);
-                t.Property(d => d.SubscribeAsOf).HasColumnName("SUBSCRIBEASOF").HasColumnType("smalldatetime");
+                t.Property(d => d.SubscribeAsOf).HasColumnName("SUBSCRIBEASOF").HasColumnType("datetime");
                 t.Property(d => d.SubscriptionData).HasColumnName("SUBSCRIPTIONDATA").HasMaxLength(WkSubscriptionConsts.SubscriptionData);
                 t.Property(d => d.ExternalToken).HasColumnName("EXTERNALTOKEN").HasMaxLength(WkSubscriptionConsts.ExternalToken);
                 t.Property(d => d.ExternalWorkerId).HasColumnName("EXTERNALWORKERID").HasMaxLength(WkSubscriptionConsts.ExternalWorkerId);
 
-                t.Property(d => d.ExternalTokenExpiry).HasColumnName("EXTERNALTOKENEXPIRY").HasColumnType("smalldatetime");
+                t.Property(d => d.ExternalTokenExpiry).HasColumnName("EXTERNALTOKENEXPIRY").HasColumnType("datetime");
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
             });
         }

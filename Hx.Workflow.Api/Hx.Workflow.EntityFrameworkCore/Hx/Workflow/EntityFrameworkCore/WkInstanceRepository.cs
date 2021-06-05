@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Domain.Persistence;
+﻿using Hx.Workflow.Domain;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -7,10 +8,8 @@ using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading;
 using System.Threading.Tasks;
-using Volo.Abp.Data;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.Uow;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.EntityFrameworkCore
@@ -77,11 +76,41 @@ namespace Hx.Workflow.EntityFrameworkCore
             int maxResultCount)
         {
             var queryable = (await GetDbSetAsync()).IncludeDetials(true);
-            if (ids?.Count > 0)
-                queryable.Where(d => ids.Any(p => p == d.Id));
             if (status != null)
+            {
                 queryable = queryable.Where(d => d.Status == status);
+                if (ids?.Count > 0)
+                    queryable = queryable.Where(d => ids.Any(p =>
+                      d.WkAuditors.Any(d => d.UserId == p)));
+            }
+            else
+            {
+                if (ids?.Count > 0)
+                    queryable = queryable.Where(d => ids.Any(p =>
+                      d.WkDefinition.WkCandidates != null ?
+                      d.WkDefinition.WkCandidates.Any(f => f.CandidateId == p)
+                      : false));
+            }
             return await queryable.Skip(skipCount).Take(maxResultCount).ToListAsync();
+        }
+        public virtual async Task<ICollection<WkCandidate>> GetCandidatesAsync(Guid wkInstanceId)
+        {
+            var queryable = (await GetDbSetAsync()).IncludeDetials(true);
+            return (await queryable.FirstOrDefaultAsync(d => d.Id == wkInstanceId))
+                ?.WkDefinition.WkCandidates.ToList();
+        }
+        public virtual async Task<WkInstance> UpdateCandidateAsync(
+            Guid wkinstanceId, Guid executionPointerId, ICollection<WkCandidate> wkCandidates)
+        {
+            var dbSet = await GetDbSetAsync();
+            var updateEntity = await dbSet.IncludeDetials(true).FirstOrDefaultAsync(d => d.Id == wkinstanceId);
+            if (updateEntity != null)
+            {
+                var executionPointer = updateEntity.ExecutionPointers.FirstOrDefault(d => d.Id == executionPointerId);
+                if (executionPointer != null)
+                    await executionPointer.AddCandidates(wkCandidates.ToCandidates(executionPointer.WkCandidates));
+            }
+            return await UpdateAsync(updateEntity);
         }
     }
 }

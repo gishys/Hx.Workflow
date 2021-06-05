@@ -214,7 +214,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("TENANTID");
 
                     b.Property<DateTime>("Time")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("EVENTTIME");
 
                     b.HasKey("Id");
@@ -233,7 +233,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("ID");
 
                     b.Property<DateTime>("ErrorTime")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("ERRORTIME");
 
                     b.Property<string>("Message")
@@ -299,7 +299,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("DeletionTime");
 
                     b.Property<DateTime?>("EndTime")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("ENDTIME");
 
                     b.Property<string>("EventData")
@@ -360,11 +360,11 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("SCOPE");
 
                     b.Property<DateTime?>("SleepUntil")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("SLEEPUNTIL");
 
                     b.Property<DateTime?>("StartTime")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("STARTTIME");
 
                     b.Property<int>("Status")
@@ -442,7 +442,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("ID");
 
                     b.Property<DateTime?>("CompleteTime")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("COMPLETETIME");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -452,7 +452,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreateTime")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("CREATETIME");
 
                     b.Property<DateTime>("CreationTime")
@@ -562,7 +562,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("EXTERNALTOKEN");
 
                     b.Property<DateTime?>("ExternalTokenExpiry")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("EXTERNALTOKENEXPIRY");
 
                     b.Property<string>("ExternalWorkerId")
@@ -575,7 +575,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnName("STEPID");
 
                     b.Property<DateTime>("SubscribeAsOf")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("SUBSCRIBEASOF");
 
                     b.Property<string>("SubscriptionData")
@@ -608,7 +608,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime?>("AuditTime")
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime")
                         .HasColumnName("AUDITTIME");
 
                     b.Property<DateTime>("CreationTime")
@@ -650,7 +650,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("TENANTID");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("char(36)")
                         .HasColumnName("USERID");
 
@@ -681,6 +681,22 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.Property<Guid>("CandidateId")
                         .HasColumnType("char(36)")
                         .HasColumnName("CANDIDATEID");
+
+                    b.Property<bool>("DefaultSelection")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("DEFAULTSELECTION");
+
+                    b.Property<string>("DisplayUserName")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnName("DISPLAYUSERNAME");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnName("USERNAME");
 
                     b.HasKey("NodeId", "CandidateId");
 
@@ -1045,7 +1061,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .IsRequired();
 
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkInstance", "Workflow")
-                        .WithMany()
+                        .WithMany("WkAuditors")
                         .HasForeignKey("WorkflowId")
                         .HasConstraintName("Pk_WkAuditor_WkInstance")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1062,6 +1078,13 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         .WithMany("WkCandidates")
                         .HasForeignKey("NodeId")
                         .HasConstraintName("Pk_WkDef_Candidate")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hx.Workflow.Domain.Persistence.WkExecutionPointer", null)
+                        .WithMany("WkCandidates")
+                        .HasForeignKey("NodeId")
+                        .HasConstraintName("Pk_Pointer_Candidate")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1153,12 +1176,16 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                 {
                     b.Navigation("ExtensionAttributes");
 
+                    b.Navigation("WkCandidates");
+
                     b.Navigation("WkSubscriptions");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkInstance", b =>
                 {
                     b.Navigation("ExecutionPointers");
+
+                    b.Navigation("WkAuditors");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkConditionNode", b =>
