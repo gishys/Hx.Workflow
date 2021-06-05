@@ -10,8 +10,8 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 {
     [DbContext(typeof(WkDbMigrationsContext))]
-    [Migration("20210605023450_init1")]
-    partial class init1
+    [Migration("20210605102244_init11")]
+    partial class init11
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -702,6 +702,8 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasKey("NodeId", "CandidateId");
 
+                    b.HasIndex("CandidateId");
+
                     b.ToTable("HXWKCANDIDATES");
                 });
 
@@ -1076,17 +1078,17 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkCandidate", b =>
                 {
+                    b.HasOne("Hx.Workflow.Domain.Persistence.WkExecutionPointer", null)
+                        .WithMany("WkCandidates")
+                        .HasForeignKey("CandidateId")
+                        .HasConstraintName("Pk_Pointer_Candidate")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkDefinition", null)
                         .WithMany("WkCandidates")
                         .HasForeignKey("NodeId")
                         .HasConstraintName("Pk_WkDef_Candidate")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Hx.Workflow.Domain.Persistence.WkExecutionPointer", null)
-                        .WithMany("WkCandidates")
-                        .HasForeignKey("NodeId")
-                        .HasConstraintName("Pk_Pointer_Candidate")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

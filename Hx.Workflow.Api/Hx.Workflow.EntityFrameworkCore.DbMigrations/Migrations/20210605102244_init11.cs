@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 {
-    public partial class init1 : Migration
+    public partial class init11 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -377,7 +377,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     table.PrimaryKey("PK_HXWKCANDIDATES", x => new { x.NODEID, x.CANDIDATEID });
                     table.ForeignKey(
                         name: "Pk_Pointer_Candidate",
-                        column: x => x.NODEID,
+                        column: x => x.CANDIDATEID,
                         principalTable: "HXWKEXECUTIONPOINTER",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
@@ -482,6 +482,11 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                 name: "IX_HXWKAUDITORS_WORKFLOWID",
                 table: "HXWKAUDITORS",
                 column: "WORKFLOWID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HXWKCANDIDATES_CANDIDATEID",
+                table: "HXWKCANDIDATES",
+                column: "CANDIDATEID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_HXWKCONDITIONNODES_WKNODEID",
