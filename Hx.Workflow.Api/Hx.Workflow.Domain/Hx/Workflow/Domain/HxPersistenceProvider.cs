@@ -3,6 +3,7 @@ using Hx.Workflow.Domain.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Guids;
@@ -41,7 +42,10 @@ namespace Hx.Workflow.Domain
             _guidGenerator = guidGenerator;
             _currentUser = currentUser;
         }
-        public virtual async Task ClearSubscriptionToken(string eventSubscriptionId, string token)
+
+        public bool SupportsScheduledCommands => throw new NotImplementedException();
+
+        public virtual async Task ClearSubscriptionToken(string eventSubscriptionId, string token, CancellationToken cancellationToken = default)
         {
             var uid = new Guid(eventSubscriptionId);
             var existingEntity = await _wkSubscriptionRepository.FindAsync(uid, true);
@@ -52,7 +56,7 @@ namespace Hx.Workflow.Domain
             await existingEntity.SetExternalTokenExpiry(null);
             await _wkSubscriptionRepository.UpdateAsync(existingEntity);
         }
-        public async Task<string> CreateEvent(Event newEvent)
+        public async Task<string> CreateEvent(Event newEvent, CancellationToken cancellationToken = default)
         {
             using (var uow = _unitOfWorkManager.Begin())
             {
@@ -63,13 +67,13 @@ namespace Hx.Workflow.Domain
                 return entity.Id.ToString();
             }
         }
-        public async Task<string> CreateEventSubscription(EventSubscription subscription)
+        public async Task<string> CreateEventSubscription(EventSubscription subscription, CancellationToken cancellationToken = default)
         {
             subscription.Id = _guidGenerator.Create().ToString();
             var persistable = subscription.ToPersistable();
             return (await _wkSubscriptionRepository.InsertAsync(persistable)).Id.ToString();
         }
-        public async Task<string> CreateNewWorkflow(WorkflowInstance workflow)
+        public async Task<string> CreateNewWorkflow(WorkflowInstance workflow, CancellationToken cancellationToken = default)
         {
             workflow.Id = _guidGenerator.Create().ToString();
             var wkInstance = await workflow.ToPersistable();
@@ -83,7 +87,7 @@ namespace Hx.Workflow.Domain
         {
             return await _wkInstanceRepository.GetInstancesAsync(definitionId, version);
         }
-        public async Task<Event> GetEvent(string id)
+        public async Task<Event> GetEvent(string id, CancellationToken cancellationToken = default)
         {
             Guid uid = new Guid(id);
             var raw = await _wkEventRepository.FindAsync(uid);
@@ -91,7 +95,7 @@ namespace Hx.Workflow.Domain
                 return null;
             return raw.ToEvent();
         }
-        public async Task<IEnumerable<string>> GetEvents(string eventName, string eventKey, DateTime asOf)
+        public async Task<IEnumerable<string>> GetEvents(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
             var raw = await _wkEventRepository
                 .GetEventsAsync(eventName, eventKey, asOf);
@@ -100,7 +104,7 @@ namespace Hx.Workflow.Domain
                 result.Add(s.Id.ToString());
             return result;
         }
-        public async Task<EventSubscription> GetFirstOpenSubscription(string eventName, string eventKey, DateTime asOf)
+        public async Task<EventSubscription> GetFirstOpenSubscription(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
             var raw = await _wkSubscriptionRepository
                 .GetSubcriptionAsync(eventName, eventKey, asOf);
@@ -118,29 +122,29 @@ namespace Hx.Workflow.Domain
         {
             return await _wkDefinitionRespository.GetDefinitionAsync(new Guid(id), version);
         }
-        public async Task<IEnumerable<string>> GetRunnableEvents(DateTime asAt)
+        public async Task<IEnumerable<string>> GetRunnableEvents(DateTime asAt, CancellationToken cancellationToken = default)
         {
             return from p in await
                    _wkEventRepository.GetRunnableEventsAsync(asAt)
                    select p.ToString();
         }
-        public async Task<IEnumerable<string>> GetRunnableInstances(DateTime asAt)
+        public async Task<IEnumerable<string>> GetRunnableInstances(DateTime asAt, CancellationToken cancellationToken = default)
         {
             return from p in await
                    _wkInstanceRepository.GetRunnableInstancesAsync(asAt)
                    select p.ToString();
         }
-        public async Task<EventSubscription> GetSubscription(string eventSubscriptionId)
+        public async Task<EventSubscription> GetSubscription(string eventSubscriptionId, CancellationToken cancellationToken = default)
         {
             var raw = await _wkSubscriptionRepository.FindAsync(new Guid(eventSubscriptionId));
             return raw?.ToEventSubscription();
         }
-        public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf)
+        public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
             var subs = await _wkSubscriptionRepository.GetSubcriptionAsync(eventName, eventKey, asOf);
             return from x in subs select x.ToEventSubscription();
         }
-        public async Task<WorkflowInstance> GetWorkflowInstance(string Id)
+        public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)
         {
             var entity = await _wkInstanceRepository.FindAsync(new Guid(Id));
             if (entity == null)
@@ -167,7 +171,7 @@ namespace Hx.Workflow.Domain
                 result.Add(item.ToWorkflowInstance());
             return result;
         }
-        public async Task<IEnumerable<WorkflowInstance>> GetWorkflowInstances(IEnumerable<string> ids)
+        public async Task<IEnumerable<WorkflowInstance>> GetWorkflowInstances(IEnumerable<string> ids, CancellationToken cancellationToken = default)
         {
             if (ids == null)
             {
@@ -177,21 +181,21 @@ namespace Hx.Workflow.Domain
             var raws = await _wkInstanceRepository.GetDetails(uids);
             return raws.Select(i => i.ToWorkflowInstance());
         }
-        public async Task MarkEventProcessed(string id)
+        public async Task MarkEventProcessed(string id, CancellationToken cancellationToken = default)
         {
             var uid = new Guid(id);
             var existingEntity = await _wkEventRepository.FindAsync(uid);
             await existingEntity.SetProcessed(true);
             await _wkEventRepository.UpdateAsync(existingEntity);
         }
-        public async Task MarkEventUnprocessed(string id)
+        public async Task MarkEventUnprocessed(string id, CancellationToken cancellationToken = default)
         {
             var uid = new Guid(id);
             var existingEntity = await _wkEventRepository.FindAsync(uid);
             await existingEntity.SetProcessed(false);
             await _wkEventRepository.UpdateAsync(existingEntity);
         }
-        public async Task PersistErrors(IEnumerable<ExecutionError> errors)
+        public async Task PersistErrors(IEnumerable<ExecutionError> errors, CancellationToken cancellationToken = default)
         {
             var executionErrors = errors as ExecutionError[] ?? errors.ToArray();
             if (executionErrors.Any())
@@ -202,7 +206,7 @@ namespace Hx.Workflow.Domain
                 }
             }
         }
-        public async Task PersistWorkflow(WorkflowInstance workflow)
+        public async Task PersistWorkflow(WorkflowInstance workflow, CancellationToken cancellationToken = default)
         {
             using (var uow = _unitOfWorkManager.Begin())
             {
@@ -215,7 +219,46 @@ namespace Hx.Workflow.Domain
                 await uow.CompleteAsync();
             }
         }
-        public async Task<bool> SetSubscriptionToken(string eventSubscriptionId, string token, string workerId, DateTime expiry)
+        public async Task PersistWorkflow(WorkflowInstance workflow, List<EventSubscription> subscriptions, CancellationToken cancellationToken = default)
+        {
+            using (var uow = _unitOfWorkManager.Begin())
+            {
+                var uid = new Guid(workflow.Id);
+                var existingEntity = await _wkInstanceRepository.FindAsync(uid);
+                if (existingEntity == null)
+                    return;
+                var persistable = await workflow.ToPersistable(existingEntity);
+                await _wkInstanceRepository.UpdateAsync(persistable);
+                //需要确认
+                foreach (var subscription in subscriptions)
+                {
+                    var subscriptionEntity = await _wkSubscriptionRepository.FindAsync(new Guid(subscription.Id));
+                    if (subscriptionEntity != null)
+                    {
+                        //这部分需要测试
+                    }
+                    else
+                    {
+                        subscription.Id = _guidGenerator.Create().ToString();
+                        var scription = subscription.ToPersistable();
+                        await _wkSubscriptionRepository.InsertAsync(scription);
+                    }
+                }
+                await uow.CompleteAsync();
+            }
+        }
+        //未实现
+        public Task ProcessCommands(DateTimeOffset asOf, Func<ScheduledCommand, Task> action, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+        //未实现
+        public Task ScheduleCommand(ScheduledCommand command)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> SetSubscriptionToken(string eventSubscriptionId, string token, string workerId, DateTime expiry, CancellationToken cancellationToken = default)
         {
             var uid = new Guid(eventSubscriptionId);
             var existingEntity = await _wkSubscriptionRepository.FindAsync(uid);
@@ -228,7 +271,7 @@ namespace Hx.Workflow.Domain
             await _wkSubscriptionRepository.UpdateAsync(existingEntity);
             return true;
         }
-        public async Task TerminateSubscription(string eventSubscriptionId)
+        public async Task TerminateSubscription(string eventSubscriptionId, CancellationToken cancellationToken = default)
         {
             var uid = new Guid(eventSubscriptionId);
             await _wkSubscriptionRepository.DeleteAsync(uid);

@@ -1,20 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.5">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.13">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.3" />
-    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="4.2.2" />
-    <PackageReference Include="Volo.Abp.Autofac" Version="4.2.2" />
-    <PackageReference Include="Volo.Abp.MultiTenancy" Version="4.2.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="7.4.1" />
+    <PackageReference Include="Volo.Abp.Autofac" Version="7.4.1" />
+    <PackageReference Include="Volo.Abp.MultiTenancy" Version="7.4.1" />
   </ItemGroup>
 
   <ItemGroup>

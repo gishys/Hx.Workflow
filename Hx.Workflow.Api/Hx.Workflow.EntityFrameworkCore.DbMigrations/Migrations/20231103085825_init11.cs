@@ -1,126 +1,156 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
+#nullable disable
+
+namespace Migrations
 {
+    /// <inheritdoc />
     public partial class init11 : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateTable(
                 name: "HXWKDEFINITIONS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false, comment: "主键"),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, comment: "主键", collation: "ascii_general_ci"),
                     VERSION = table.Column<int>(type: "int", precision: 9, nullable: false, comment: "版本号"),
-                    TITLE = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true, comment: "标题"),
+                    TITLE = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true, comment: "标题")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     LIMITTIME = table.Column<int>(type: "int", nullable: true, comment: "限制时间"),
                     WKDEFINITIONSTATE = table.Column<int>(type: "int", precision: 1, nullable: false, comment: "是否开启"),
-                    ICON = table.Column<string>(type: "varchar(300) CHARACTER SET utf8mb4", maxLength: 300, nullable: true, comment: "图标路径"),
-                    COLOR = table.Column<string>(type: "varchar(10) CHARACTER SET utf8mb4", maxLength: 10, nullable: true, comment: "显示颜色"),
-                    GROUPID = table.Column<Guid>(type: "char(36)", nullable: true, comment: "属于组"),
-                    DISCRIPTION = table.Column<string>(type: "varchar(1000) CHARACTER SET utf8mb4", maxLength: 1000, nullable: true, comment: "定义描述"),
+                    ICON = table.Column<string>(type: "varchar(300)", maxLength: 300, nullable: true, comment: "图标路径")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    COLOR = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true, comment: "显示颜色")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    GROUPID = table.Column<Guid>(type: "char(36)", nullable: true, comment: "属于组", collation: "ascii_general_ci"),
+                    DISCRIPTION = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true, comment: "定义描述")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     SORTNUMBER = table.Column<int>(type: "int", nullable: false, comment: "排序"),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, comment: "租户Id"),
-                    ExtraProperties = table.Column<string>(type: "longtext CHARACTER SET utf8mb4", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "varchar(40) CHARACTER SET utf8mb4", maxLength: 40, nullable: true),
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, comment: "租户Id", collation: "ascii_general_ci"),
+                    ExtraProperties = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ConcurrencyStamp = table.Column<string>(type: "varchar(40)", maxLength: 40, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     LastModificationTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     DeletionTime = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("Pk_WkDefinition", x => x.ID);
                 },
-                comment: "工作流定义");
+                comment: "工作流定义")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKEVENTS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    EVENTNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    EVENTKEY = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    EVENTDATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    EVENTNAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EVENTKEY = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EVENTDATA = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     EVENTTIME = table.Column<DateTime>(type: "datetime", nullable: false),
                     ISPROCESSED = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true),
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true)
+                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_HXWKEVENTS", x => x.ID);
                 },
-                comment: "流程事件");
+                comment: "流程事件")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKEXECUTIONERRORS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKINSTANCEID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKEXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKINSTANCEID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKEXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ERRORTIME = table.Column<DateTime>(type: "datetime", nullable: false),
-                    MESSAGE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true)
+                    MESSAGE = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_HXWKEXECUTIONERRORS", x => x.ID);
                 },
-                comment: "执行错误");
+                comment: "执行错误")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKSTEPBODYS",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
-                    NAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    DISPLAYNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    TYPEFULLNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    ASSEMBLYFULLNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    NAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DISPLAYNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TYPEFULLNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ASSEMBLYFULLNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     LastModificationTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     DeletionTime = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_HXWKSTEPBODYS", x => x.Id);
                 },
-                comment: "节点实体");
+                comment: "节点实体")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKINSTANCES",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKDIFINITIONID = table.Column<Guid>(type: "char(36)", nullable: false),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKDIFINITIONID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     VERSION = table.Column<int>(type: "int", nullable: false),
-                    DESCRIPTION = table.Column<string>(type: "varchar(500) CHARACTER SET utf8mb4", maxLength: 500, nullable: true),
-                    REFERENCE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
+                    DESCRIPTION = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    REFERENCE = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     NEXTEXECUTION = table.Column<long>(type: "bigint", nullable: true),
                     STATUS = table.Column<int>(type: "int", precision: 1, nullable: false),
-                    DATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
+                    DATA = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CREATETIME = table.Column<DateTime>(type: "datetime", nullable: false),
                     COMPLETETIME = table.Column<DateTime>(type: "datetime", nullable: true),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true),
-                    ExtraProperties = table.Column<string>(type: "longtext CHARACTER SET utf8mb4", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "varchar(40) CHARACTER SET utf8mb4", maxLength: 40, nullable: true),
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    ExtraProperties = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ConcurrencyStamp = table.Column<string>(type: "varchar(40)", maxLength: 40, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     LastModificationTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     DeletionTime = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
@@ -133,17 +163,20 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "流程实例");
+                comment: "流程实例")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKNODES",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WkStepBodyId = table.Column<Guid>(type: "char(36)", nullable: true),
-                    WKDIFINITIONID = table.Column<Guid>(type: "char(36)", nullable: true),
-                    NAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    DISPLAYNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WkStepBodyId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    WKDIFINITIONID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    NAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DISPLAYNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     STEPNODETYPE = table.Column<int>(type: "int", precision: 1, nullable: false),
                     VERSION = table.Column<int>(type: "int", nullable: false),
                     LIMITTIME = table.Column<int>(type: "int", nullable: true),
@@ -165,19 +198,24 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "执行节点");
+                comment: "执行节点")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKSTEPBODYPARAMS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WkNodeId = table.Column<Guid>(type: "char(36)", nullable: false),
-                    KEY = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WkNodeId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    KEY = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     StepBodyParaType = table.Column<int>(type: "int", nullable: false),
-                    NAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    DISPLAYNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    VALUE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true)
+                    NAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DISPLAYNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VALUE = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -189,39 +227,50 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "节点参数");
+                comment: "节点参数")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKEXECUTIONPOINTER",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKINSTANCEID = table.Column<Guid>(type: "char(36)", nullable: false),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKINSTANCEID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     STEPID = table.Column<int>(type: "int", nullable: false),
                     ACTIVE = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     SLEEPUNTIL = table.Column<DateTime>(type: "datetime", nullable: true),
-                    PERSISTENCEDATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
+                    PERSISTENCEDATA = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     STARTTIME = table.Column<DateTime>(type: "datetime", nullable: true),
                     ENDTIME = table.Column<DateTime>(type: "datetime", nullable: true),
-                    EVENTNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    EVENTKEY = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    EVENTNAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EVENTKEY = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     EVENTPUBLISHED = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    EVENTDATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    STEPNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
+                    EVENTDATA = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    STEPNAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     RETRYCOUNT = table.Column<int>(type: "int", nullable: false),
-                    CHILDREN = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    CONTEXTITEM = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    PREDECESSORID = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    OUTCOME = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
+                    CHILDREN = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CONTEXTITEM = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PREDECESSORID = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OUTCOME = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     STATUS = table.Column<int>(type: "int", precision: 2, nullable: false),
-                    SCOPE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true),
+                    SCOPE = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     LastModificationTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     DeletionTime = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
@@ -234,18 +283,22 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "执行节点实例");
+                comment: "执行节点实例")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXAPPLICATIONFORMS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKNODEID = table.Column<Guid>(type: "char(36)", nullable: true),
-                    PARENTID = table.Column<Guid>(type: "char(36)", nullable: true),
-                    CODE = table.Column<string>(type: "varchar(50) CHARACTER SET utf8mb4", maxLength: 50, nullable: true),
-                    NAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    DISPALYNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKNODEID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    PARENTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    CODE = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DISPALYNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     APPLICATIONTYPE = table.Column<int>(type: "int", precision: 1, nullable: false)
                 },
                 constraints: table =>
@@ -258,16 +311,19 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "流程表单");
+                comment: "流程表单")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKCONDITIONNODES",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKNODEID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    LABEL = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    NEXTNODENAME = table.Column<string>(type: "longtext CHARACTER SET utf8mb4", nullable: true)
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKNODEID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    LABEL = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NEXTNODENAME = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -279,16 +335,19 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "节点条件");
+                comment: "节点条件")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKNODEPARAS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKNODEID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    KEY = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    VALUE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true)
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKNODEID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    KEY = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VALUE = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -300,14 +359,15 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "步骤参数");
+                comment: "步骤参数")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKPOINTS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WkNodeId = table.Column<Guid>(type: "char(36)", nullable: false),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WkNodeId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     LEFT = table.Column<int>(type: "int", nullable: false),
                     RIGHT = table.Column<int>(type: "int", nullable: false),
                     TOP = table.Column<int>(type: "int", nullable: false),
@@ -322,27 +382,30 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalTable: "HXWKNODES",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKAUDITORS",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WORKFLOWID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WORKFLOWID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     STATUS = table.Column<int>(type: "int", precision: 1, nullable: false),
                     AUDITTIME = table.Column<DateTime>(type: "datetime", nullable: true),
-                    REMARK = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    USERID = table.Column<Guid>(type: "char(36)", nullable: true),
-                    USERNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true),
+                    REMARK = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    USERID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    USERNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     LastModificationTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    DeleterId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     DeletionTime = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
@@ -360,16 +423,19 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalTable: "HXWKINSTANCES",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKCANDIDATES",
                 columns: table => new
                 {
-                    NODEID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    CANDIDATEID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    USERNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    DISPLAYUSERNAME = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    NODEID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    CANDIDATEID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    USERNAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DISPLAYUSERNAME = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     DEFAULTSELECTION = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -393,17 +459,20 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalTable: "HXWKNODES",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKEXTENSIONATTRIBUTES",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    ATTRIBUTEKEY = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    ATTRIBUTEVALUE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true)
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ATTRIBUTEKEY = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ATTRIBUTEVALUE = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
@@ -415,24 +484,30 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "执行节点属性");
+                comment: "执行节点属性")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKSUBSCRIPTIONS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WORKFLOWID = table.Column<Guid>(type: "char(36)", nullable: true),
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WORKFLOWID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     STEPID = table.Column<int>(type: "int", nullable: false),
-                    EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    EVENTNAME = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    EVENTKEY = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    EXECUTIONPOINTERID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    EVENTNAME = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EVENTKEY = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     SUBSCRIBEASOF = table.Column<DateTime>(type: "datetime", nullable: false),
-                    SUBSCRIPTIONDATA = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    EXTERNALTOKEN = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true),
-                    EXTERNALWORKERID = table.Column<string>(type: "varchar(200) CHARACTER SET utf8mb4", maxLength: 200, nullable: true),
+                    SUBSCRIPTIONDATA = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EXTERNALTOKEN = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EXTERNALWORKERID = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     EXTERNALTOKENEXPIRY = table.Column<DateTime>(type: "datetime", nullable: true),
-                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true)
+                    TENANTID = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
@@ -444,17 +519,21 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "发布");
+                comment: "发布")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "HXWKCONNODECONDITIONS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    WKCONDITIONNODEID = table.Column<Guid>(type: "char(36)", nullable: false),
-                    FIELD = table.Column<string>(type: "varchar(100) CHARACTER SET utf8mb4", maxLength: 100, nullable: true),
-                    OPERATOR = table.Column<string>(type: "varchar(10) CHARACTER SET utf8mb4", maxLength: 10, nullable: true),
-                    VALUE = table.Column<string>(type: "varchar(2000) CHARACTER SET utf8mb4", maxLength: 2000, nullable: true)
+                    ID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    WKCONDITIONNODEID = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    FIELD = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OPERATOR = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VALUE = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -466,7 +545,8 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                 },
-                comment: "条件集合");
+                comment: "条件集合")
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
                 name: "IX_HXAPPLICATIONFORMS_WKNODEID",
@@ -544,6 +624,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                 column: "EXECUTIONPOINTERID");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

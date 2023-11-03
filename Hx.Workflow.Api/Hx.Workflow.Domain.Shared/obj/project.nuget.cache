@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Xt2DOdXpc/TGoj9Cct5tbNG9t2l3sLVIDqK2yqBr46skQlry2UFKbZjP73xOx2j7Jl5WBow1a3zoGnWshxVs/g==",
+  "dgSpecHash": "byioHkpIBWBkQZoDA/vbJv8MFAnNMYvmS6+8CELMMlfBdG4C3quVpe/21GgmNfzlF/FhJ8JHor97ymeF5hx7tg==",
   "success": true,
-  "projectFilePath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+  "projectFilePath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

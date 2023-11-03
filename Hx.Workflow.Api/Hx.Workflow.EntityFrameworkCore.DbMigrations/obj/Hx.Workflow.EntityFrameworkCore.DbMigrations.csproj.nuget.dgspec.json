@@ -1,36 +1,37 @@
 {
   "format": 1,
   "restore": {
-    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {}
+    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {}
   },
   "projects": {
-    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
+    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+        "projectUniqueName": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
         "projectName": "Hx.Workflow.Domain.Shared",
-        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+        "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
+        "outputPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Microsoft\\Xamarin\\NuGet\\"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
           "C:\\Users\\P52\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp3.1"
+          "net7.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp3.1": {
-            "targetAlias": "netcoreapp3.1",
+          "net7.0": {
+            "targetAlias": "net7.0",
             "projectReferences": {}
           }
         },
@@ -41,15 +42,16 @@
         }
       },
       "frameworks": {
-        "netcoreapp3.1": {
-          "targetAlias": "netcoreapp3.1",
+        "net7.0": {
+          "targetAlias": "net7.0",
           "imports": [
             "net461",
             "net462",
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -58,40 +60,41 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.102\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
+    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
+        "projectUniqueName": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
         "projectName": "Hx.Workflow.Domain",
-        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
+        "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\obj\\",
+        "outputPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Microsoft\\Xamarin\\NuGet\\"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
           "C:\\Users\\P52\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp3.1"
+          "net7.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp3.1": {
-            "targetAlias": "netcoreapp3.1",
+          "net7.0": {
+            "targetAlias": "net7.0",
             "projectReferences": {
-              "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
-                "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
+              "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
+                "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
               }
             }
           }
@@ -103,28 +106,28 @@
         }
       },
       "frameworks": {
-        "netcoreapp3.1": {
-          "targetAlias": "netcoreapp3.1",
+        "net7.0": {
+          "targetAlias": "net7.0",
           "dependencies": {
             "Volo.Abp.Ddd.Domain": {
               "target": "Package",
-              "version": "[4.2.2, )"
+              "version": "[7.4.1, )"
             },
             "Volo.Abp.Identity.Domain": {
               "target": "Package",
-              "version": "[4.2.2, )"
+              "version": "[7.4.1, )"
             },
             "Volo.Abp.Users.Domain": {
               "target": "Package",
-              "version": "[4.2.2, )"
+              "version": "[7.4.1, )"
             },
             "WorkflowCore": {
               "target": "Package",
-              "version": "[3.4.0, )"
+              "version": "[3.9.0, )"
             },
             "WorkflowCore.DSL": {
               "target": "Package",
-              "version": "[3.3.1, )"
+              "version": "[3.9.0, )"
             }
           },
           "imports": [
@@ -133,7 +136,8 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -142,40 +146,41 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.102\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {
+    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
+        "projectUniqueName": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
         "projectName": "Hx.Workflow.EntityFrameworkCore.DbMigrations",
-        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
+        "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\obj\\",
+        "outputPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore.DbMigrations\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Microsoft\\Xamarin\\NuGet\\"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
           "C:\\Users\\P52\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp3.1"
+          "net7.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp3.1": {
-            "targetAlias": "netcoreapp3.1",
+          "net7.0": {
+            "targetAlias": "net7.0",
             "projectReferences": {
-              "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
-                "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj"
+              "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
+                "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj"
               }
             }
           }
@@ -187,14 +192,14 @@
         }
       },
       "frameworks": {
-        "netcoreapp3.1": {
-          "targetAlias": "netcoreapp3.1",
+        "net7.0": {
+          "targetAlias": "net7.0",
           "dependencies": {
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[5.0.5, )"
+              "version": "[7.0.13, )"
             }
           },
           "imports": [
@@ -203,7 +208,8 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -212,40 +218,41 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.102\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
+    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
+        "projectUniqueName": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
         "projectName": "Hx.Workflow.EntityFrameworkCore",
-        "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
+        "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\Hx.Workflow.EntityFrameworkCore.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\obj\\",
+        "outputPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.EntityFrameworkCore\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Microsoft\\Xamarin\\NuGet\\"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
           "C:\\Users\\P52\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp3.1"
+          "net7.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp3.1": {
-            "targetAlias": "netcoreapp3.1",
+          "net7.0": {
+            "targetAlias": "net7.0",
             "projectReferences": {
-              "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
-                "projectPath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj"
+              "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj": {
+                "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain\\Hx.Workflow.Domain.csproj"
               }
             }
           }
@@ -257,16 +264,16 @@
         }
       },
       "frameworks": {
-        "netcoreapp3.1": {
-          "targetAlias": "netcoreapp3.1",
+        "net7.0": {
+          "targetAlias": "net7.0",
           "dependencies": {
             "Volo.Abp.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[4.2.2, )"
+              "version": "[7.4.1, )"
             },
             "Volo.Abp.EntityFrameworkCore.MySQL": {
               "target": "Package",
-              "version": "[4.2.2, )"
+              "version": "[7.4.1, )"
             }
           },
           "imports": [
@@ -275,7 +282,8 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -284,7 +292,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.102\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
         }
       }
     }

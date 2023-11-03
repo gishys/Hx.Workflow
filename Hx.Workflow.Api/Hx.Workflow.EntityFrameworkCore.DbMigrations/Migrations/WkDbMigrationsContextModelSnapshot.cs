@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
-namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
+#nullable disable
+
+namespace Migrations
 {
     [DbContext(typeof(WkDbMigrationsContext))]
     partial class WkDbMigrationsContextModelSnapshot : ModelSnapshot
@@ -16,8 +18,8 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("_Abp_DatabaseProvider", EfCoreDatabaseProvider.MySql)
-                .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.5");
+                .HasAnnotation("ProductVersion", "7.0.13")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Hx.Workflow.Domain.ApplicationForm", b =>
                 {
@@ -33,17 +35,17 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("CODE");
 
                     b.Property<string>("DispalyName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("DISPALYNAME");
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("NAME");
 
                     b.Property<Guid?>("ParentId")
@@ -58,10 +60,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkNodeId");
 
-                    b.ToTable("HXAPPLICATIONFORMS");
-
-                    b
-                        .HasComment("流程表单");
+                    b.ToTable("HXAPPLICATIONFORMS", null, t =>
+                        {
+                            t.HasComment("流程表单");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinition", b =>
@@ -74,14 +76,15 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Color")
                         .HasMaxLength(10)
-                        .HasColumnType("varchar(10) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("COLOR")
                         .HasComment("显示颜色");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
+                        .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -102,12 +105,13 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Discription")
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(1000)")
                         .HasColumnName("DISCRIPTION")
                         .HasComment("定义描述");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .IsRequired()
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<Guid?>("GroupId")
@@ -117,7 +121,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Icon")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(300)")
                         .HasColumnName("ICON")
                         .HasComment("图标路径");
 
@@ -152,7 +156,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Title")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("TITLE")
                         .HasComment("标题");
 
@@ -171,10 +175,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasKey("Id")
                         .HasName("Pk_WkDefinition");
 
-                    b.ToTable("HXWKDEFINITIONS");
-
-                    b
-                        .HasComment("工作流定义");
+                    b.ToTable("HXWKDEFINITIONS", null, t =>
+                        {
+                            t.HasComment("工作流定义");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkEvent", b =>
@@ -192,7 +196,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Data")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("EVENTDATA");
 
                     b.Property<bool>("IsProcessed")
@@ -201,12 +205,12 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Key")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("EVENTKEY");
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("EVENTNAME");
 
                     b.Property<Guid?>("TenantId")
@@ -219,10 +223,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HXWKEVENTS");
-
-                    b
-                        .HasComment("流程事件");
+                    b.ToTable("HXWKEVENTS", null, t =>
+                        {
+                            t.HasComment("流程事件");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkExecutionError", b =>
@@ -238,7 +242,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Message")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("MESSAGE");
 
                     b.Property<Guid?>("TenantId")
@@ -255,10 +259,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HXWKEXECUTIONERRORS");
-
-                    b
-                        .HasComment("执行错误");
+                    b.ToTable("HXWKEXECUTIONERRORS", null, t =>
+                        {
+                            t.HasComment("执行错误");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkExecutionPointer", b =>
@@ -274,12 +278,12 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Children")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("CHILDREN");
 
                     b.Property<string>("ContextItem")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("CONTEXTITEM");
 
                     b.Property<DateTime>("CreationTime")
@@ -304,17 +308,17 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("EventData")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("EVENTDATA");
 
                     b.Property<string>("EventKey")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("EVENTKEY");
 
                     b.Property<string>("EventName")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("EVENTNAME");
 
                     b.Property<bool>("EventPublished")
@@ -337,17 +341,17 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Outcome")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("OUTCOME");
 
                     b.Property<string>("PersistenceData")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("PERSISTENCEDATA");
 
                     b.Property<string>("PredecessorId")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("PREDECESSORID");
 
                     b.Property<int>("RetryCount")
@@ -356,7 +360,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Scope")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("SCOPE");
 
                     b.Property<DateTime?>("SleepUntil")
@@ -378,7 +382,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("StepName")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("STEPNAME");
 
                     b.Property<Guid?>("TenantId")
@@ -393,10 +397,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkInstanceId");
 
-                    b.ToTable("HXWKEXECUTIONPOINTER");
-
-                    b
-                        .HasComment("执行节点实例");
+                    b.ToTable("HXWKEXECUTIONPOINTER", null, t =>
+                        {
+                            t.HasComment("执行节点实例");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkExtensionAttribute", b =>
@@ -408,12 +412,12 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("AttributeKey")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("ATTRIBUTEKEY");
 
                     b.Property<string>("AttributeValue")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("ATTRIBUTEVALUE");
 
                     b.Property<Guid>("ExecutionPointerId")
@@ -428,10 +432,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("ExecutionPointerId");
 
-                    b.ToTable("HXWKEXTENSIONATTRIBUTES");
-
-                    b
-                        .HasComment("执行节点属性");
+                    b.ToTable("HXWKEXTENSIONATTRIBUTES", null, t =>
+                        {
+                            t.HasComment("执行节点属性");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkInstance", b =>
@@ -447,8 +451,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
+                        .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreateTime")
@@ -465,7 +470,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Data")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("DATA");
 
                     b.Property<Guid?>("DeleterId")
@@ -478,11 +483,12 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("DESCRIPTION");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .IsRequired()
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDeleted")
@@ -505,7 +511,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Reference")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("REFERENCE");
 
                     b.Property<int>("Status")
@@ -529,10 +535,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkDifinitionId");
 
-                    b.ToTable("HXWKINSTANCES");
-
-                    b
-                        .HasComment("流程实例");
+                    b.ToTable("HXWKINSTANCES", null, t =>
+                        {
+                            t.HasComment("流程实例");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkSubscription", b =>
@@ -544,12 +550,12 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("EventKey")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("EVENTKEY");
 
                     b.Property<string>("EventName")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("EVENTNAME");
 
                     b.Property<Guid>("ExecutionPointerId")
@@ -558,7 +564,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("ExternalToken")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("EXTERNALTOKEN");
 
                     b.Property<DateTime?>("ExternalTokenExpiry")
@@ -567,7 +573,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("ExternalWorkerId")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("EXTERNALWORKERID");
 
                     b.Property<int>("StepId")
@@ -580,7 +586,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("SubscriptionData")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("SUBSCRIPTIONDATA");
 
                     b.Property<Guid?>("TenantId")
@@ -595,10 +601,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("ExecutionPointerId");
 
-                    b.ToTable("HXWKSUBSCRIPTIONS");
-
-                    b
-                        .HasComment("发布");
+                    b.ToTable("HXWKSUBSCRIPTIONS", null, t =>
+                        {
+                            t.HasComment("发布");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.StepBodys.WkAuditor", b =>
@@ -638,7 +644,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Remark")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("REMARK");
 
                     b.Property<int>("Status")
@@ -656,7 +662,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("UserName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("USERNAME");
 
                     b.Property<Guid>("WorkflowId")
@@ -669,7 +675,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WorkflowId");
 
-                    b.ToTable("HXWKAUDITORS");
+                    b.ToTable("HXWKAUDITORS", (string)null);
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkCandidate", b =>
@@ -690,19 +696,19 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("DisplayUserName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("DISPLAYUSERNAME");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("USERNAME");
 
                     b.HasKey("NodeId", "CandidateId");
 
                     b.HasIndex("CandidateId");
 
-                    b.ToTable("HXWKCANDIDATES");
+                    b.ToTable("HXWKCANDIDATES", (string)null);
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkConNodeCondition", b =>
@@ -714,17 +720,17 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Field")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("FIELD");
 
                     b.Property<string>("Operator")
                         .HasMaxLength(10)
-                        .HasColumnType("varchar(10) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("OPERATOR");
 
                     b.Property<string>("Value")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("VALUE");
 
                     b.Property<Guid>("WkConditionNodeId")
@@ -735,10 +741,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkConditionNodeId");
 
-                    b.ToTable("HXWKCONNODECONDITIONS");
-
-                    b
-                        .HasComment("条件集合");
+                    b.ToTable("HXWKCONNODECONDITIONS", null, t =>
+                        {
+                            t.HasComment("条件集合");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkConditionNode", b =>
@@ -750,11 +756,11 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Label")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("LABEL");
 
                     b.Property<string>("NextNodeName")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("NEXTNODENAME");
 
                     b.Property<Guid>("WkNodeId")
@@ -765,10 +771,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkNodeId");
 
-                    b.ToTable("HXWKCONDITIONNODES");
-
-                    b
-                        .HasComment("节点条件");
+                    b.ToTable("HXWKCONDITIONNODES", null, t =>
+                        {
+                            t.HasComment("节点条件");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkNode", b =>
@@ -780,7 +786,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("DISPLAYNAME");
 
                     b.Property<int?>("LimitTime")
@@ -789,7 +795,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("NAME");
 
                     b.Property<int>("NodeFormType")
@@ -819,10 +825,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkStepBodyId");
 
-                    b.ToTable("HXWKNODES");
-
-                    b
-                        .HasComment("执行节点");
+                    b.ToTable("HXWKNODES", null, t =>
+                        {
+                            t.HasComment("执行节点");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkNodePara", b =>
@@ -834,12 +840,12 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Key")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("KEY");
 
                     b.Property<string>("Value")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("VALUE");
 
                     b.Property<Guid>("WkNodeId")
@@ -850,10 +856,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkNodeId");
 
-                    b.ToTable("HXWKNODEPARAS");
-
-                    b
-                        .HasComment("步骤参数");
+                    b.ToTable("HXWKNODEPARAS", null, t =>
+                        {
+                            t.HasComment("步骤参数");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkPoint", b =>
@@ -886,7 +892,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkNodeId");
 
-                    b.ToTable("HXWKPOINTS");
+                    b.ToTable("HXWKPOINTS", (string)null);
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkStepBody", b =>
@@ -897,7 +903,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("AssemblyFullName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("ASSEMBLYFULLNAME");
 
                     b.Property<DateTime>("CreationTime")
@@ -918,7 +924,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("DISPLAYNAME");
 
                     b.Property<bool>("IsDeleted")
@@ -937,20 +943,20 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("NAME");
 
                     b.Property<string>("TypeFullName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("TYPEFULLNAME");
 
                     b.HasKey("Id");
 
-                    b.ToTable("HXWKSTEPBODYS");
-
-                    b
-                        .HasComment("节点实体");
+                    b.ToTable("HXWKSTEPBODYS", null, t =>
+                        {
+                            t.HasComment("节点实体");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkStepBodyParam", b =>
@@ -962,17 +968,17 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("DISPLAYNAME");
 
                     b.Property<string>("Key")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("KEY");
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("NAME");
 
                     b.Property<int>("StepBodyParaType")
@@ -980,7 +986,7 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.Property<string>("Value")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("VALUE");
 
                     b.Property<Guid>("WkNodeId")
@@ -990,10 +996,10 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
 
                     b.HasIndex("WkNodeId");
 
-                    b.ToTable("HXWKSTEPBODYPARAMS");
-
-                    b
-                        .HasComment("节点参数");
+                    b.ToTable("HXWKSTEPBODYPARAMS", null, t =>
+                        {
+                            t.HasComment("节点参数");
+                        });
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.ApplicationForm", b =>
@@ -1001,8 +1007,8 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.WkNode", "WkNode")
                         .WithMany("ApplicationForms")
                         .HasForeignKey("WkNodeId")
-                        .HasConstraintName("Pk_WkNode_App")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("Pk_WkNode_App");
 
                     b.Navigation("WkNode");
                 });
@@ -1012,9 +1018,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkInstance", "WkInstance")
                         .WithMany("ExecutionPointers")
                         .HasForeignKey("WkInstanceId")
-                        .HasConstraintName("Pk_Instance_Pointer")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_Instance_Pointer");
 
                     b.Navigation("WkInstance");
                 });
@@ -1024,9 +1030,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkExecutionPointer", "WkExecutionPointer")
                         .WithMany("ExtensionAttributes")
                         .HasForeignKey("ExecutionPointerId")
-                        .HasConstraintName("Pk_Pointer_Attribute")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_Pointer_Attribute");
 
                     b.Navigation("WkExecutionPointer");
                 });
@@ -1036,9 +1042,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkDefinition", "WkDefinition")
                         .WithMany()
                         .HasForeignKey("WkDifinitionId")
-                        .HasConstraintName("Pk_Instance_Definition")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_Instance_Definition");
 
                     b.Navigation("WkDefinition");
                 });
@@ -1048,9 +1054,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkExecutionPointer", null)
                         .WithMany("WkSubscriptions")
                         .HasForeignKey("ExecutionPointerId")
-                        .HasConstraintName("Pk_Pointer_Subscript")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_Pointer_Subscript");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.StepBodys.WkAuditor", b =>
@@ -1058,16 +1064,16 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkExecutionPointer", "ExecutionPointer")
                         .WithMany()
                         .HasForeignKey("ExecutionPointerId")
-                        .HasConstraintName("Pk_WkAuditor_ExecPointer")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkAuditor_ExecPointer");
 
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkInstance", "Workflow")
                         .WithMany("WkAuditors")
                         .HasForeignKey("WorkflowId")
-                        .HasConstraintName("Pk_WkAuditor_WkInstance")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkAuditor_WkInstance");
 
                     b.Navigation("ExecutionPointer");
 
@@ -1079,23 +1085,23 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkExecutionPointer", null)
                         .WithMany("WkCandidates")
                         .HasForeignKey("CandidateId")
-                        .HasConstraintName("Pk_Pointer_Candidate")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_Pointer_Candidate");
 
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkDefinition", null)
                         .WithMany("WkCandidates")
                         .HasForeignKey("NodeId")
-                        .HasConstraintName("Pk_WkDef_Candidate")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkDef_Candidate");
 
                     b.HasOne("Hx.Workflow.Domain.WkNode", null)
                         .WithMany("WkCandidates")
                         .HasForeignKey("NodeId")
-                        .HasConstraintName("Pk_WkNode_Candidate")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkNode_Candidate");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkConNodeCondition", b =>
@@ -1103,9 +1109,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.WkConditionNode", null)
                         .WithMany("WkConNodeConditions")
                         .HasForeignKey("WkConditionNodeId")
-                        .HasConstraintName("Pk_Candition_ConCondition")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_Candition_ConCondition");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkConditionNode", b =>
@@ -1113,9 +1119,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.WkNode", null)
                         .WithMany("NextNodes")
                         .HasForeignKey("WkNodeId")
-                        .HasConstraintName("Pk_WkNode_Candition")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkNode_Candition");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkNode", b =>
@@ -1123,14 +1129,14 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkDefinition", "WkDefinition")
                         .WithMany("Nodes")
                         .HasForeignKey("WkDefinitionId")
-                        .HasConstraintName("Pk_WkDef_WkNode")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("Pk_WkDef_WkNode");
 
                     b.HasOne("Hx.Workflow.Domain.WkStepBody", "StepBody")
                         .WithMany()
                         .HasForeignKey("WkStepBodyId")
-                        .HasConstraintName("Pk_WkNode_WkStepBody")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("Pk_WkNode_WkStepBody");
 
                     b.Navigation("StepBody");
 
@@ -1142,9 +1148,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.WkNode", null)
                         .WithMany("OutcomeSteps")
                         .HasForeignKey("WkNodeId")
-                        .HasConstraintName("Pk_WkNode_OutcomeSteps")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkNode_OutcomeSteps");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkPoint", b =>
@@ -1152,9 +1158,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.WkNode", null)
                         .WithMany("Position")
                         .HasForeignKey("WkNodeId")
-                        .HasConstraintName("Pk_WkNode_WkPoint")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkNode_WkPoint");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkStepBodyParam", b =>
@@ -1162,9 +1168,9 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations.Migrations
                     b.HasOne("Hx.Workflow.Domain.WkStepBody", null)
                         .WithMany("Inputs")
                         .HasForeignKey("WkNodeId")
-                        .HasConstraintName("Pk_WkStepBody_WkParam")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Pk_WkStepBody_WkParam");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinition", b =>
