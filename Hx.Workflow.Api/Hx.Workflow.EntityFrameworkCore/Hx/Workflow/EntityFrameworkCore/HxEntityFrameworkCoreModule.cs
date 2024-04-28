@@ -3,12 +3,14 @@ using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.StepBodys;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.PostgreSql;
 using Volo.Abp.Modularity;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
     [DependsOn(typeof(HxWorkflowDomainModule))]
     [DependsOn(typeof(AbpEntityFrameworkCoreModule))]
+    [DependsOn(typeof(AbpEntityFrameworkCorePostgreSqlModule))]
     public class HxEntityFrameworkCoreModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -23,7 +25,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 });
             Configure<AbpDbContextOptions>(options =>
             {
-                options.UseMySQL();
+                options.UseNpgsql();
             });
         }
     }

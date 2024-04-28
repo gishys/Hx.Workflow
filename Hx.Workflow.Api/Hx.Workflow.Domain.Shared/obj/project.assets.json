@@ -1,11 +1,11 @@
 {
   "version": 3,
   "targets": {
-    "net7.0": {}
+    "net8.0": {}
   },
   "libraries": {},
   "projectFileDependencyGroups": {
-    "net7.0": []
+    "net8.0": []
   },
   "packageFolders": {
     "C:\\Users\\P52\\.nuget\\packages\\": {},
@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+      "projectUniqueName": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
       "projectName": "Hx.Workflow.Domain.Shared",
-      "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+      "projectPath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
       "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-      "outputPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
+      "outputPath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -29,7 +29,7 @@
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "net7.0"
+        "net8.0"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
@@ -37,8 +37,8 @@
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net7.0": {
-          "targetAlias": "net7.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "projectReferences": {}
         }
       },
@@ -49,8 +49,8 @@
       }
     },
     "frameworks": {
-      "net7.0": {
-        "targetAlias": "net7.0",
+      "net8.0": {
+        "targetAlias": "net8.0",
         "imports": [
           "net461",
           "net462",
@@ -67,7 +67,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.104/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

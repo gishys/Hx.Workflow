@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj": {}
+    "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj": {}
   },
   "projects": {
-    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj": {
+    "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
+        "projectUniqueName": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
         "projectName": "Hx.Workflow.Application.Contracts",
-        "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
+        "projectPath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\Hx.Workflow.Application.Contracts.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\obj\\",
+        "outputPath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Application.Contracts\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -22,7 +22,7 @@
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "net7.0"
+          "net8.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
@@ -30,11 +30,11 @@
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net7.0": {
-            "targetAlias": "net7.0",
+          "net8.0": {
+            "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
-                "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
+              "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
+                "projectPath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj"
               }
             }
           }
@@ -46,12 +46,12 @@
         }
       },
       "frameworks": {
-        "net7.0": {
-          "targetAlias": "net7.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "dependencies": {
             "Volo.Abp.Ddd.Application": {
               "target": "Package",
-              "version": "[7.4.1, )"
+              "version": "[8.1.1, )"
             }
           },
           "imports": [
@@ -70,18 +70,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.104/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
+    "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+        "projectUniqueName": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
         "projectName": "Hx.Workflow.Domain.Shared",
-        "projectPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
+        "projectPath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\Hx.Workflow.Domain.Shared.csproj",
         "packagesPath": "C:\\Users\\P52\\.nuget\\packages\\",
-        "outputPath": "D:\\background\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
+        "outputPath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Domain.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -92,7 +92,7 @@
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "net7.0"
+          "net8.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
@@ -100,8 +100,8 @@
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net7.0": {
-            "targetAlias": "net7.0",
+          "net8.0": {
+            "targetAlias": "net8.0",
             "projectReferences": {}
           }
         },
@@ -112,8 +112,8 @@
         }
       },
       "frameworks": {
-        "net7.0": {
-          "targetAlias": "net7.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "imports": [
             "net461",
             "net462",
@@ -130,7 +130,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.104/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -14,9 +14,8 @@ namespace Hx.Workflow.EntityFrameworkCore.DbMigrations
             var configuration = BuildConfiguration();
             var builder =
                 new DbContextOptionsBuilder<WkDbMigrationsContext>()
-                .UseMySql(
-                configuration.GetConnectionString(WkDbProperties.ConnectionStringName),
-                new MySqlServerVersion(new Version(5, 7, 19)));
+                .UseNpgsql(
+                configuration.GetConnectionString(WkDbProperties.ConnectionStringName));
             return new WkDbMigrationsContext(builder.Options);
         }
         private static IConfigurationRoot BuildConfiguration()

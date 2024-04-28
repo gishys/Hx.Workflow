@@ -26,7 +26,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkDefinition>(t =>
             {
                 t.ConfigureFullAuditedAggregateRoot();
-                t.ToTable(model.TablePrefix + "WKDEFINITIONS", model.Schema).HasComment("工作流定义");
+                t.ToTable(model.TablePrefix + "WKDEFINITIONS", model.Schema, tb => { tb.HasComment("工作流定义"); });
                 t.HasKey(p => p.Id).HasName("Pk_WkDefinition");
                 t.Property(p => p.Id).HasColumnName("ID").HasComment("主键");
                 t.Property(p => p.Version).HasColumnName("VERSION").HasComment("版本号").HasPrecision(9);
@@ -55,7 +55,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkAuditor>(d =>
             {
-                d.ToTable(model.TablePrefix + "WKAUDITORS", model.Schema);
+                d.ToTable(model.TablePrefix + "WKAUDITORS", model.Schema, tb => { tb.HasComment("审核"); });
                 d.Property(d => d.WorkflowId).HasColumnName("WORKFLOWID");
                 d.Property(d => d.ExecutionPointerId).HasColumnName("EXECUTIONPOINTERID");
                 d.Property(d => d.Status).HasColumnName("STATUS").HasPrecision(1);
@@ -78,7 +78,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkCandidate>(d =>
             {
-                d.ToTable(model.TablePrefix + "WKCANDIDATES", model.Schema);
+                d.ToTable(model.TablePrefix + "WKCANDIDATES", model.Schema, tb => { tb.HasComment("流程人员关系"); });
                 d.HasKey(d => new { d.NodeId, d.CandidateId });
                 d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
                 d.Property(d => d.NodeId).HasColumnName("NODEID");
@@ -88,7 +88,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkNode>(t =>
             {
-                t.ToTable(model.TablePrefix + "WKNODES", model.Schema).HasComment("执行节点");
+                t.ToTable(model.TablePrefix + "WKNODES", model.Schema, tb => { tb.HasComment("执行节点"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkDefinitionId).HasColumnName("WKDIFINITIONID");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(WkNodeConsts.MaxName);
@@ -134,7 +134,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkNodePara>(d =>
             {
-                d.ToTable(model.TablePrefix + "WKNODEPARAS", model.Schema).HasComment("步骤参数");
+                d.ToTable(model.TablePrefix + "WKNODEPARAS", model.Schema, tb => { tb.HasComment("步骤参数"); });
                 d.Property(d => d.Id).HasColumnName("ID");
                 d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
                 d.Property(d => d.Key).HasColumnName("KEY").HasMaxLength(WkNodeParaConsts.MaxKey);
@@ -142,7 +142,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkConditionNode>(d =>
         {
-            d.ToTable(model.TablePrefix + "WKCONDITIONNODES", model.Schema).HasComment("节点条件");
+            d.ToTable(model.TablePrefix + "WKCONDITIONNODES", model.Schema, tb => { tb.HasComment("节点条件"); });
             d.Property(d => d.Id).HasColumnName("ID");
             d.Property(d => d.Label).HasColumnName("LABEL").HasMaxLength(WkConditionNodeConsts.MaxLabel);
             d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
@@ -155,7 +155,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         });
             builder.Entity<WkConNodeCondition>(d =>
             {
-                d.ToTable(model.TablePrefix + "WKCONNODECONDITIONS", model.Schema).HasComment("条件集合");
+                d.ToTable(model.TablePrefix + "WKCONNODECONDITIONS", model.Schema, tb => { tb.HasComment("条件集合"); });
                 d.Property(d => d.Id).HasColumnName("ID");
                 d.Property(d => d.Field).HasColumnName("FIELD").HasMaxLength(WkConNodeConditionConsts.MaxField);
                 d.Property(d => d.Operator).HasColumnName("OPERATOR").HasMaxLength(WkConNodeConditionConsts.MaxOperator);
@@ -164,7 +164,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<ApplicationForm>(t =>
             {
-                t.ToTable(model.TablePrefix + "APPLICATIONFORMS", model.Schema).HasComment("流程表单");
+                t.ToTable(model.TablePrefix + "APPLICATIONFORMS", model.Schema, tb => { tb.HasComment("流程表单"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
                 t.Property(d => d.ParentId).HasColumnName("PARENTID");
@@ -186,7 +186,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkStepBody>(t =>
             {
                 t.ConfigureFullAuditedAggregateRoot();
-                t.ToTable(model.TablePrefix + "WKSTEPBODYS", model.Schema).HasComment("节点实体");
+                t.ToTable(model.TablePrefix + "WKSTEPBODYS", model.Schema, tb => { tb.HasComment("节点实体"); });
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(WkStepBodyConsts.MaxName);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkStepBodyConsts.MaxDisplayName);
                 t.Property(d => d.TypeFullName).HasColumnName("TYPEFULLNAME").HasMaxLength(WkStepBodyConsts.MaxTypeFullName);
@@ -200,7 +200,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkStepBodyParam>(t =>
             {
-                t.ToTable(model.TablePrefix + "WKSTEPBODYPARAMS", model.Schema).HasComment("节点参数");
+                t.ToTable(model.TablePrefix + "WKSTEPBODYPARAMS", model.Schema, tb => { tb.HasComment("节点参数"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(WkParamConsts.MaxName);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkParamConsts.MaxDisplay);
@@ -209,7 +209,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkEvent>(t =>
             {
-                t.ToTable(model.TablePrefix + "WKEVENTS", model.Schema).HasComment("流程事件");
+                t.ToTable(model.TablePrefix + "WKEVENTS", model.Schema, tb => { tb.HasComment("流程事件"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.Name).HasColumnName("EVENTNAME").HasMaxLength(WkEventConsts.MaxName);
                 t.Property(d => d.Key).HasColumnName("EVENTKEY").HasMaxLength(WkEventConsts.MaxKey);
@@ -220,7 +220,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkExecutionError>(t =>
             {
-                t.ToTable(model.TablePrefix + "WKEXECUTIONERRORS", model.Schema).HasComment("执行错误");
+                t.ToTable(model.TablePrefix + "WKEXECUTIONERRORS", model.Schema, tb => { tb.HasComment("执行错误"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkInstanceId).HasColumnName("WKINSTANCEID");
                 t.Property(d => d.WkExecutionPointerId).HasColumnName("WKEXECUTIONPOINTERID");
@@ -230,7 +230,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkExtensionAttribute>(d =>
             {
-                d.ToTable(model.TablePrefix + "WKEXTENSIONATTRIBUTES", model.Schema).HasComment("执行节点属性");
+                d.ToTable(model.TablePrefix + "WKEXTENSIONATTRIBUTES", model.Schema, tb => { tb.HasComment("执行节点属性"); });
                 d.Property(d => d.Id).HasColumnName("ID");
                 d.Property(d => d.ExecutionPointerId).HasColumnName("EXECUTIONPOINTERID");
                 d.Property(d => d.AttributeKey).HasColumnName("ATTRIBUTEKEY").HasMaxLength(WkExtensionAttributeConsts.AttributeKey);
@@ -240,7 +240,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkExecutionPointer>(t =>
             {
                 t.ConfigureByConvention();
-                t.ToTable(model.TablePrefix + "WKEXECUTIONPOINTER", model.Schema).HasComment("执行节点实例");
+                t.ToTable(model.TablePrefix + "WKEXECUTIONPOINTER", model.Schema, tb => { tb.HasComment("执行节点实例"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkInstanceId).HasColumnName("WKINSTANCEID");
                 t.Property(d => d.StepId).HasColumnName("STEPID");
@@ -287,7 +287,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkInstance>(t =>
             {
                 t.ConfigureFullAuditedAggregateRoot();
-                t.ToTable(model.TablePrefix + "WKINSTANCES", model.Schema).HasComment("流程实例");
+                t.ToTable(model.TablePrefix + "WKINSTANCES", model.Schema, tb => { tb.HasComment("流程实例"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkDifinitionId).HasColumnName("WKDIFINITIONID");
                 t.Property(d => d.Version).HasColumnName("VERSION");
@@ -315,7 +315,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkSubscription>(t =>
             {
-                t.ToTable(model.TablePrefix + "WKSUBSCRIPTIONS", model.Schema).HasComment("发布");
+                t.ToTable(model.TablePrefix + "WKSUBSCRIPTIONS", model.Schema, tb => { tb.HasComment("发布"); });
 
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WorkflowId).HasColumnName("WORKFLOWID");
