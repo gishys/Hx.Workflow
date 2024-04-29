@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "zlmWXKetltnzNuwAMMoDlB/SJqJxdSCGmlTtRVYsfmUGsqiPmCcYViKQneMCcFgH0Wk0wVMTcKarrKewZ0H59g==",
+  "dgSpecHash": "wTURPPu6HnYYpJyLmN5lp3O5UwMmeWYUr32v43DuSdOgc1e4umndP1IInPLXX2o9DR6504KGAsIPEe4Peod+cA==",
   "success": true,
-  "projectFilePath": "D:\\2021\\workflow\\code\\Hx.Workflow.Api\\Hx.Workflow.Api\\Hx.Workflow.Api.csproj",
+  "projectFilePath": "D:\\2024\\projects\\workflow\\Hx.Workflow.Api\\Hx.Workflow.Api\\Hx.Workflow.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\P52\\.nuget\\packages\\autofac\\6.0.0\\autofac.6.0.0.nupkg.sha512",
     "C:\\Users\\P52\\.nuget\\packages\\autofac.extensions.dependencyinjection\\6.0.0\\autofac.extensions.dependencyinjection.6.0.0.nupkg.sha512",
@@ -229,7 +229,8 @@
     "C:\\Users\\P52\\.nuget\\packages\\volo.abp.validation.abstractions\\4.2.2\\volo.abp.validation.abstractions.4.2.2.nupkg.sha512",
     "C:\\Users\\P52\\.nuget\\packages\\volo.abp.virtualfilesystem\\4.2.2\\volo.abp.virtualfilesystem.4.2.2.nupkg.sha512",
     "C:\\Users\\P52\\.nuget\\packages\\workflowcore\\3.4.0\\workflowcore.3.4.0.nupkg.sha512",
-    "C:\\Users\\P52\\.nuget\\packages\\workflowcore.dsl\\3.3.1\\workflowcore.dsl.3.3.1.nupkg.sha512"
+    "C:\\Users\\P52\\.nuget\\packages\\workflowcore.dsl\\3.3.1\\workflowcore.dsl.3.3.1.nupkg.sha512",
+    "C:\\Users\\P52\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.17\\microsoft.netcore.app.host.win-x64.5.0.17.nupkg.sha512"
   ],
   "logs": []
 }

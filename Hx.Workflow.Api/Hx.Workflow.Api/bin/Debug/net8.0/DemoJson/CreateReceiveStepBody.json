@@ -1,0 +1,22 @@
+{
+  "name": "ReceiveAcceptance",
+  "displayName": "收件受理",
+  "inputs": [
+    {
+      "key": "UserId",
+      "name": "UserId",
+      "StepBodyParaType": 0,
+      "displayName": "收件受理人员",
+      "value": "data.UserId"
+    },
+    {
+      "key": "UserId",
+      "name": "UserId",
+      "StepBodyParaType": 1,
+      "displayName": "审核人",
+      "value": "step.UserId"
+    }
+  ],
+  "typeFullName": "Hx.Workflow.Application.StepBodys.ReceiveAcceptanceStepBody",
+  "assemblyFullName": "Hx.Workflow.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}
