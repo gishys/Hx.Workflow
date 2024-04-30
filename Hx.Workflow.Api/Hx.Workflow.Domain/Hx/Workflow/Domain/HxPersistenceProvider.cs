@@ -43,7 +43,7 @@ namespace Hx.Workflow.Domain
             _currentUser = currentUser;
         }
 
-        public bool SupportsScheduledCommands => throw new NotImplementedException();
+        public bool SupportsScheduledCommands { get; }
 
         public virtual async Task ClearSubscriptionToken(string eventSubscriptionId, string token, CancellationToken cancellationToken = default)
         {
@@ -232,10 +232,13 @@ namespace Hx.Workflow.Domain
                 //需要确认
                 foreach (var subscription in subscriptions)
                 {
-                    var subscriptionEntity = await _wkSubscriptionRepository.FindAsync(new Guid(subscription.Id));
-                    if (subscriptionEntity != null)
+                    if (!string.IsNullOrEmpty(subscription.Id))
                     {
-                        //这部分需要测试
+                        var subscriptionEntity = await _wkSubscriptionRepository.FindAsync(new Guid(subscription.Id));
+                        if (subscriptionEntity != null)
+                        {
+                            //这部分需要测试
+                        }
                     }
                     else
                     {

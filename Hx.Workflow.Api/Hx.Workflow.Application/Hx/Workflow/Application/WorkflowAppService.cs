@@ -31,6 +31,12 @@ namespace Hx.Workflow.Application
             _wkDefinition = wkDefinition;
             _wkInstanceRepository = wkInstanceRepository;
         }
+        /// <summary>
+        /// 创建流程模版
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        /// <exception cref="BusinessException"></exception>
         public virtual async Task CreateAsync(WkDefinitionCreateDto input)
         {
             var entity = new WkDefinition(
@@ -56,20 +62,41 @@ namespace Hx.Workflow.Application
             }
             await _hxWorkflowManager.CreateAsync(entity);
         }
+        /// <summary>
+        /// 获取流程模版
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public virtual async Task<WkDefinitionDto> GetDefinitionAsync(string name)
         {
             var entity = await _hxWorkflowManager.GetDefinitionAsync(name);
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
+        /// <summary>
+        /// 获取全部流程模版
+        /// </summary>
+        /// <returns></returns>
         public virtual async Task<List<WkDefinitionDto>> GetDefinitionsAsync()
         {
             var entitys = await _wkDefinition.GetListAsync(true);
             return ObjectMapper.Map<List<WkDefinition>, List<WkDefinitionDto>>(entitys);
         }
+        /// <summary>
+        /// 通过流程模版Id创建流程
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public virtual async Task<string> StartAsync(StartWorkflowInput input)
         {
             return await _hxWorkflowManager.StartWorlflowAsync(input.Id, input.Version, input.Inputs);
         }
+        /// <summary>
+        /// 开始活动
+        /// </summary>
+        /// <param name="actName"></param>
+        /// <param name="workflowId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null)
         {
             await _hxWorkflowManager.StartActivityAsync(actName, workflowId, data);
@@ -90,8 +117,10 @@ namespace Hx.Workflow.Application
         {
             if (userIds?.Count <= 0 && CurrentUser?.Id != null)
             {
-                userIds = new List<Guid>();
-                userIds.Add((Guid)CurrentUser.Id);
+                userIds = new List<Guid>
+                {
+                    (Guid)CurrentUser.Id
+                };
             }
             var wkinstanceIds = await _wkAuditor.GetWkInstanceIdsAsync(userIds);
             if (wkinstanceIds?.Count > 0)
@@ -107,7 +136,7 @@ namespace Hx.Workflow.Application
             return null;
         }
         /// <summary>
-        /// terminate workflow
+        /// 终止工作流
         /// </summary>
         /// <param name="workflowId"></param>
         /// <returns></returns>
@@ -116,7 +145,7 @@ namespace Hx.Workflow.Application
             return await _hxWorkflowManager.TerminateWorkflowAsync(workflowId);
         }
         /// <summary>
-        /// suspend workflow
+        /// 挂起工作流
         /// </summary>
         /// <param name="workflowId"></param>
         /// <returns></returns>
@@ -125,7 +154,7 @@ namespace Hx.Workflow.Application
             return await _hxWorkflowManager.SuspendWorkflowAsync(workflowId);
         }
         /// <summary>
-        /// resume workflow
+        /// 恢复工作流
         /// </summary>
         /// <param name="workflowId"></param>
         /// <returns></returns>
