@@ -97,8 +97,9 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<string>> GetEvents(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
+            DateTime asOfTime = DateTime.SpecifyKind(asOf, DateTimeKind.Unspecified);
             var raw = await _wkEventRepository
-                .GetEventsAsync(eventName, eventKey, asOf);
+                .GetEventsAsync(eventName, eventKey, asOfTime);
             var result = new List<string>();
             foreach (var s in raw)
                 result.Add(s.Id.ToString());
@@ -106,8 +107,9 @@ namespace Hx.Workflow.Domain
         }
         public async Task<EventSubscription> GetFirstOpenSubscription(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
+            DateTime asOfTime = DateTime.SpecifyKind(asOf, DateTimeKind.Unspecified);
             var raw = await _wkSubscriptionRepository
-                .GetSubcriptionAsync(eventName, eventKey, asOf);
+                .GetSubcriptionAsync(eventName, eventKey, asOfTime);
             return raw?.FirstOrDefault()?.ToEventSubscription();
         }
         public async Task<WkExecutionPointer> GetPersistedExecutionPointer(string id)
@@ -124,14 +126,16 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<string>> GetRunnableEvents(DateTime asAt, CancellationToken cancellationToken = default)
         {
+            DateTime asAtTime = DateTime.SpecifyKind(asAt, DateTimeKind.Unspecified);
             return from p in await
-                   _wkEventRepository.GetRunnableEventsAsync(asAt)
+                   _wkEventRepository.GetRunnableEventsAsync(asAtTime)
                    select p.ToString();
         }
         public async Task<IEnumerable<string>> GetRunnableInstances(DateTime asAt, CancellationToken cancellationToken = default)
         {
+            DateTime asAtTime = DateTime.SpecifyKind(asAt, DateTimeKind.Unspecified);
             return from p in await
-                   _wkInstanceRepository.GetRunnableInstancesAsync(asAt)
+                   _wkInstanceRepository.GetRunnableInstancesAsync(asAtTime)
                    select p.ToString();
         }
         public async Task<EventSubscription> GetSubscription(string eventSubscriptionId, CancellationToken cancellationToken = default)
@@ -141,7 +145,8 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            var subs = await _wkSubscriptionRepository.GetSubcriptionAsync(eventName, eventKey, asOf);
+            DateTime asOfTime = DateTime.SpecifyKind(asOf, DateTimeKind.Unspecified);
+            var subs = await _wkSubscriptionRepository.GetSubcriptionAsync(eventName, eventKey, asOfTime);
             return from x in subs select x.ToEventSubscription();
         }
         public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)
@@ -153,15 +158,17 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<WorkflowInstance>> GetWorkflowInstances(WorkflowStatus? status, string type, DateTime? createdFrom, DateTime? createdTo, int skip, int take)
         {
+            DateTime? createdFromTime = createdFrom.HasValue? DateTime.SpecifyKind(createdFrom.Value, DateTimeKind.Unspecified):null;
+            DateTime? createdToTime = createdFrom.HasValue ? DateTime.SpecifyKind(createdTo.Value, DateTimeKind.Unspecified) : null;
             var query = await _wkInstanceRepository.GetDetails();
             if (status.HasValue)
                 query = query.Where(x => x.Status == status.Value);
             if (!string.IsNullOrEmpty(type))
                 query = query.Where(x => x.WkDifinitionId == new Guid(type));
             if (createdFrom.HasValue)
-                query = query.Where(x => x.CreateTime >= createdFrom.Value);
+                query = query.Where(x => x.CreateTime >= createdFromTime.Value);
             if (createdTo.HasValue)
-                query = query.Where(x => x.CreateTime <= createdTo.Value);
+                query = query.Where(x => x.CreateTime <= createdToTime.Value);
 
             var rawResult = query.Skip(skip).Take(take).ToList();
             if (rawResult == null)
@@ -263,6 +270,7 @@ namespace Hx.Workflow.Domain
 
         public async Task<bool> SetSubscriptionToken(string eventSubscriptionId, string token, string workerId, DateTime expiry, CancellationToken cancellationToken = default)
         {
+
             var uid = new Guid(eventSubscriptionId);
             var existingEntity = await _wkSubscriptionRepository.FindAsync(uid);
 
@@ -270,7 +278,8 @@ namespace Hx.Workflow.Domain
             await existingEntity.SetExternalWorkerId(workerId);
             if (expiry > new DateTime(9999, 12, 31))
                 expiry = new DateTime(9999, 12, 31);
-            await existingEntity.SetExternalTokenExpiry(expiry);
+            DateTime expiryTime = DateTime.SpecifyKind(expiry, DateTimeKind.Unspecified);
+            await existingEntity.SetExternalTokenExpiry(expiryTime);
             await _wkSubscriptionRepository.UpdateAsync(existingEntity);
             return true;
         }
