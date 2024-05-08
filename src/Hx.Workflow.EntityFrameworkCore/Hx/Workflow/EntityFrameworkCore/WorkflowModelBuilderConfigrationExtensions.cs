@@ -330,6 +330,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Version).HasColumnName("VERSION");
                 t.Property(d => d.Description).HasColumnName("DESCRIPTION").HasMaxLength(WkInstanceConsts.Description);
                 t.Property(d => d.Reference).HasColumnName("REFERENCE").HasMaxLength(WkInstanceConsts.Reference);
+                t.Property(d => d.BusinessNumber).HasColumnName("BUSINESSNUMBER").HasMaxLength(WkInstanceConsts.BusinessNumber);
 
                 t.Property(d => d.NextExecution).HasColumnName("NEXTEXECUTION");
                 t.Property(d => d.Status).HasColumnName("STATUS").HasPrecision(1);

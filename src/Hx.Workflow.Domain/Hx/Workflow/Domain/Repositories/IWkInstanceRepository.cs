@@ -23,5 +23,10 @@ namespace Hx.Workflow.Domain.Repositories
         Task<ICollection<WkCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
             Guid wkinstanceId, Guid executionPointerId, ICollection<WkCandidate> wkCandidates);
+        /// <summary>
+        /// 获取当天编号最大值
+        /// </summary>
+        /// <returns></returns>
+        Task<int> GetMaxNumberAsync();
     }
 }

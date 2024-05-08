@@ -15,4 +15,8 @@
     <ProjectReference Include="..\Hx.Workflow.Domain\Hx.Workflow.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Hx\Workflow\Application\BusinessModule\" />
+  </ItemGroup>
+
 </Project>

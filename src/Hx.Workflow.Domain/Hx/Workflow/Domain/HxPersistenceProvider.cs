@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Domain.Persistence;
+﻿using Hx.Workflow.Domain.BusinessModule;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace Hx.Workflow.Domain
         private readonly IWkErrorRepository _wkErrorRepository;
         private readonly IGuidGenerator _guidGenerator;
         private readonly ICurrentUser _currentUser;
+        private readonly BusinessNumberManager BusinessNumberManager;
         public HxPersistenceProvider(
             IWkSubscriptionRepository wkSubscriptionRepository,
             IUnitOfWorkManager unitOfWorkManager,
@@ -31,7 +33,8 @@ namespace Hx.Workflow.Domain
             IWkDefinitionRespository wkDefinitionRespository,
             IWkErrorRepository wkErrorRepository,
             IGuidGenerator guidGenerator,
-            ICurrentUser currentUser)
+            ICurrentUser currentUser,
+            BusinessNumberManager businessNumberManager)
         {
             _wkSubscriptionRepository = wkSubscriptionRepository;
             _unitOfWorkManager = unitOfWorkManager;
@@ -41,6 +44,7 @@ namespace Hx.Workflow.Domain
             _wkErrorRepository = wkErrorRepository;
             _guidGenerator = guidGenerator;
             _currentUser = currentUser;
+            BusinessNumberManager = businessNumberManager;
         }
 
         public bool SupportsScheduledCommands { get; }
@@ -76,7 +80,8 @@ namespace Hx.Workflow.Domain
         public async Task<string> CreateNewWorkflow(WorkflowInstance workflow, CancellationToken cancellationToken = default)
         {
             workflow.Id = _guidGenerator.Create().ToString();
-            var wkInstance = await workflow.ToPersistable();
+            var businessNumber = await BusinessNumberManager.GetMaxNumber();
+            var wkInstance = await workflow.ToPersistable(null, businessNumber);
             return (await _wkInstanceRepository.InsertAsync(wkInstance)).Id.ToString();
         }
         public void EnsureStoreExists()

@@ -139,7 +139,7 @@ namespace Hx.Workflow.Domain
             result.ExternalWorkerId = instance.ExternalWorkerId;
             return result;
         }
-        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstance persistable = null)
+        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstance persistable = null, string businessNumber = null)
         {
             var createTime = DateTime.SpecifyKind(instance.CreateTime, DateTimeKind.Unspecified);
             DateTime? completeTime = instance.CompleteTime.HasValue ? DateTime.SpecifyKind(instance.CompleteTime.Value, DateTimeKind.Unspecified) : null;
@@ -155,7 +155,8 @@ namespace Hx.Workflow.Domain
                     instance.Status,
                     JsonConvert.SerializeObject(instance.Data, SerializerSettings),
                     createTime,
-                    completeTime);
+                    completeTime,
+                    businessNumber);
             }
             else
             {

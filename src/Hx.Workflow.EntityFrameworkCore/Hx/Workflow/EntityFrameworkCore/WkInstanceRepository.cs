@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
@@ -14,7 +15,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public class WkInstanceRepository
+    public partial class WkInstanceRepository
         : EfCoreRepository<WkDbContext, WkInstance, Guid>,
         IWkInstanceRepository
     {
@@ -112,5 +113,22 @@ namespace Hx.Workflow.EntityFrameworkCore
             }
             return await UpdateAsync(updateEntity);
         }
+        /// <summary>
+        /// 获取当天编号最大值
+        /// </summary>
+        /// <returns></returns>
+        public async Task<int> GetMaxNumberAsync()
+        {
+            var dbSet = await GetDbSetAsync();
+            int maxNumber = dbSet
+                .Where(d => d.CreateTime.ToString("d") == DateTime.Now.ToString("d"))
+                .OrderByDescending(d => int.Parse(IntRegex().Match(d.BusinessNumber).Value))
+                .Select(d => int.Parse(IntRegex().Match(d.BusinessNumber).Value))
+                .FirstOrDefault();
+            return maxNumber;
+        }
+
+        [GeneratedRegex(@"\d+")]
+        private static partial Regex IntRegex();
     }
 }
