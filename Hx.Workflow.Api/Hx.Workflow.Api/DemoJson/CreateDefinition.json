@@ -25,9 +25,9 @@
           "nextNodeName": "PrimaryAudit",
           "wkConNodeConditions": [
             {
-              "field": "NextValue",
+              "field": "DecideBranching",
               "operator": "==",
-              "value": "Pass"
+              "value": "Submit"
             }
           ]
         }

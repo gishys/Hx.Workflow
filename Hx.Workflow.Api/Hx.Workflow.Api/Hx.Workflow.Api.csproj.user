@@ -5,5 +5,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <ActiveDebugProfile>Hx.Workflow.Api</ActiveDebugProfile>
+    <NameOfLastUsedPublishProfile>D:\2024\projects\workflow\Hx.Workflow.Api\Hx.Workflow.Api\Properties\PublishProfiles\FolderProfile.pubxml</NameOfLastUsedPublishProfile>
   </PropertyGroup>
 </Project>

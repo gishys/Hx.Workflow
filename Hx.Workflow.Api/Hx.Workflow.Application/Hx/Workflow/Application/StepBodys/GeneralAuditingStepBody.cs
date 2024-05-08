@@ -88,7 +88,7 @@ namespace Hx.Workflow.Application.StepBodys
                 }
             }
         }
-        private void Audit(object data,Guid executionId)
+        private void Audit(object data, Guid executionId)
         {
             string Remark = null;
             if (data != null)
@@ -96,14 +96,15 @@ namespace Hx.Workflow.Application.StepBodys
             var auditorQueryEntity = _wkAuditor.GetAuditorAsync(executionId).Result;
             if (auditorQueryEntity != null)
             {
+                var auditTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
                 if (DecideBranching == "BackOff")
                     auditorQueryEntity.Audit(
                         Domain.Shared.EnumAuditStatus.Unapprove,
-                        DateTime.Now, Remark);
+                        auditTime, Remark);
                 else
                     auditorQueryEntity.Audit(
                         Domain.Shared.EnumAuditStatus.Pass,
-                        DateTime.Now, Remark);
+                        auditTime, Remark);
                 _wkAuditor.UpdateAsync(auditorQueryEntity);
             }
         }

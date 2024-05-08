@@ -4,7 +4,6 @@ using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using SharpYaml.Tokens;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
 namespace Hx.Workflow.EntityFrameworkCore
