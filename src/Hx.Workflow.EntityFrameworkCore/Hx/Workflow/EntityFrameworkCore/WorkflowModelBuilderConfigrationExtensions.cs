@@ -41,6 +41,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.SortNumber).HasColumnName("SORTNUMBER").HasComment("排序");
                 t.Property(p => p.TenantId).HasColumnName("TENANTID").HasComment("租户Id");
 
+                t.Property(p => p.BusinessType).HasColumnName("BUSINESSTYPE").HasMaxLength(WkDefinitionConsts.MaxBusinessType).HasComment("业务类型");
+                t.Property(p => p.ProcessType).HasColumnName("PROCESSTYPE").HasMaxLength(WkDefinitionConsts.MaxProcessType).HasComment("流程类型");
+
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
                 t.Property(p => p.ConcurrencyStamp).HasColumnName("CONCURRENCYSTAMP");
                 t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");

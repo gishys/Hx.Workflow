@@ -1,12 +1,16 @@
-﻿using Hx.Workflow.Application.Contracts;
+﻿using Hx.Workflow.Application.BusinessModule;
+using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using SharpYaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -45,6 +49,8 @@ namespace Hx.Workflow.Application
                     input.Color,
                     input.SortNumber,
                     input.Discription,
+                    input.BusinessType,
+                    input.ProcessType,
                     version: input.Version <= 0 ? 1 : input.Version);
             var nodeEntitys = input.Nodes.ToWkNodes();
             foreach (var node in nodeEntitys)
@@ -109,7 +115,7 @@ namespace Hx.Workflow.Application
         /// <param name="skipCount"></param>
         /// <param name="maxResultCount"></param>
         /// <returns></returns>
-        public virtual async Task<List<WkInstancesDto>> GetMyWkInstanceAsync(
+        public virtual async Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
             ICollection<Guid> userIds = null,
             int skipCount = 0,
@@ -122,18 +128,49 @@ namespace Hx.Workflow.Application
                     (Guid)CurrentUser.Id
                 };
             }
-            var wkinstanceIds = await _wkAuditor.GetWkInstanceIdsAsync(userIds);
-            if (wkinstanceIds?.Count > 0)
+            List<WkProcessInstanceDto> result = [];
+            var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
+                userIds,
+                status,
+                skipCount,
+                maxResultCount);
+            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds, status);
+            foreach (var instance in instances)
             {
-                var instances =
-                    await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
-                        wkinstanceIds,
-                        status,
-                        skipCount,
-                        maxResultCount);
-                return ObjectMapper.Map<List<WkInstance>, List<WkInstancesDto>>(instances);
+                var businessData = JsonSerializer.Deserialize<WkInstancePersistData>(instance.Data);
+                var pointer = instance.ExecutionPointers.First(d => d.Active);
+                var processInstance = new WkProcessInstanceDto
+                {
+                    EarlyWarning = GetEarlyWarning(businessData, instance),
+                    BusinessNumber = instance.BusinessNumber,
+                    ProcessName = businessData.ProcessName,
+                    Located = businessData.Located,
+                    ProcessingStepName = pointer.StepName,
+                    ReceivingTime = instance.CreateTime.ToString("t"),
+                    State = instance.Status.ToString(),
+                    BusinessType = instance.WkDefinition.BusinessType,
+                    BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("t"),
+                    ProcessType = instance.WkDefinition.ProcessType,
+                };
+                result.Add(processInstance);
             }
-            return null;
+            return new PagedResultDto<WkProcessInstanceDto>(count, result);
+        }
+        private string GetEarlyWarning(WkInstancePersistData businessData, WkInstance instance)
+        {
+            var earlyWarning = "green";
+            if (instance.Status == WorkflowStatus.Runnable)
+            {
+                if (businessData.BusinessCommitmentDeadline.AddHours(2) >= DateTime.Now)
+                {
+                    earlyWarning = "yellow";
+                }
+                if (businessData.BusinessCommitmentDeadline >= DateTime.Now)
+                {
+                    earlyWarning = "red";
+                }
+            }
+            return earlyWarning;
         }
         /// <summary>
         /// 终止工作流

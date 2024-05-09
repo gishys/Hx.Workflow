@@ -1,8 +1,11 @@
-﻿using Hx.Workflow.Domain.Repositories;
+﻿using Hx.Workflow.Application.BusinessModule;
+using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.StepBodys;
+using SharpYaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using Volo.Abp.DependencyInjection;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
@@ -35,6 +38,10 @@ namespace Hx.Workflow.Application.StepBodys
         public override ExecutionResult Run(IStepExecutionContext context)
         {
             var instance = _wkInstance.FindAsync(new Guid(context.Workflow.Id)).Result;
+            context.Workflow.Data = new WkInstancePersistData()
+            {
+                BusinessCommitmentDeadline = context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime)
+            };
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             if (!context.ExecutionPointer.EventPublished)
             {
@@ -66,7 +73,14 @@ namespace Hx.Workflow.Application.StepBodys
             }
             var eventData = context.ExecutionPointer.EventData as ActivityResult;
             if (eventData != null)
+            {
                 Audit(eventData.Data, executionPointer.Id);
+                var instanceData = context.Workflow.Data as WkInstancePersistData;
+                var eventInstancePersistData = JsonSerializer.Deserialize<WkInstancePersistData>(eventData.Data.ToString());
+                instanceData.ProcessName = eventInstancePersistData.ProcessName;
+                instanceData.Located = eventInstancePersistData.Located;
+                context.Workflow.Data = instanceData;
+            }
             return ExecutionResult.Next();
         }
         private void AnalysisEventData(ref string Remark, object eventData)

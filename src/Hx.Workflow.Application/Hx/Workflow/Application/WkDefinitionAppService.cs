@@ -27,6 +27,8 @@ namespace Hx.Workflow.Application
                     input.Color,
                     1,
                     input.Discription,
+                    input.BusinessType,
+                    input.ProcessType,
                     version: input.Version <= 0 ? 1 : input.Version);
             var nodeEntitys = input.Nodes.ToWkNodes();
             foreach (var node in nodeEntitys)

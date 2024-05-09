@@ -21,7 +21,7 @@ namespace Hx.Workflow.Domain
         public bool DefaultSelection { get; protected set; }
         public override object[] GetKeys()
         {
-            return new object[] { NodeId, CandidateId };
+            return [NodeId, CandidateId];
         }
         public Task SetNodeId(Guid nodeId)
         {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
 
 namespace Hx.Workflow.Api
@@ -95,7 +96,7 @@ namespace Hx.Workflow.Api
         }
         [HttpGet]
         [Route("workflow/mywkinstances")]
-        public Task<List<WkInstancesDto>> GetMyWkInstanceAsync(Guid userId)
+        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(Guid userId)
         {
             return _workflowAppService.GetMyWkInstanceAsync(
                 userIds: new Guid[] { userId });

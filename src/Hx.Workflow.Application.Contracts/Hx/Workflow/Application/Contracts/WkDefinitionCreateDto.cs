@@ -30,6 +30,14 @@ namespace Hx.Workflow.Application.Contracts
         /// 描述
         /// </summary>
         public string Discription { get; set; }
+        /// <summary>
+        /// 业务类型
+        /// </summary>
+        public string BusinessType { get; set; }
+        /// <summary>
+        /// 流程类型
+        /// </summary>
+        public string ProcessType { get; set; }
         public ICollection<WkNodeCreateDto> Nodes { get; set; }
     }
 }

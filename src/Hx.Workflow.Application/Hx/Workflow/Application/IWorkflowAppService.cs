@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp.Application.Dtos;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -12,7 +13,7 @@ namespace Hx.Workflow.Application
         Task<WkDefinitionDto> GetDefinitionAsync(string name);
         Task<string> StartAsync(StartWorkflowInput input);
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
-        Task<List<WkInstancesDto>> GetMyWkInstanceAsync(
+        Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
             ICollection<Guid> userIds = null,
             int skipCount = 0,

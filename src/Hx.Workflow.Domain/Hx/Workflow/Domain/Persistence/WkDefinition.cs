@@ -50,6 +50,14 @@ namespace Hx.Workflow.Domain.Persistence
         /// </summary>
         public Guid? TenantId { get; protected set; }
         /// <summary>
+        /// 业务类型
+        /// </summary>
+        public string BusinessType {  get; protected set; }
+        /// <summary>
+        /// 流程类型
+        /// </summary>
+        public string ProcessType {  get; protected set; }
+        /// <summary>
         /// 后选者
         /// </summary>
         public ICollection<WkCandidate> WkCandidates { get; protected set; }
@@ -65,6 +73,8 @@ namespace Hx.Workflow.Domain.Persistence
             string color,
             int sortNumber,
             string description,
+            string businessType,
+            string processType,
             WkDefinitionState wkDefinationState = WkDefinitionState.Enable,
             int? limitTime = null,
             Guid? groupId = null,
@@ -79,6 +89,8 @@ namespace Hx.Workflow.Domain.Persistence
             LimitTime = limitTime;
             WkDefinitionState = wkDefinationState;
             Discription = description;
+            BusinessType = businessType;
+            ProcessType = processType;
             SortNumber = sortNumber;
             TenantId = tenantId;
             Nodes = new List<WkNode>();

@@ -76,23 +76,20 @@ namespace Hx.Workflow.EntityFrameworkCore
             int skipCount,
             int maxResultCount)
         {
-            var queryable = (await GetDbSetAsync()).IncludeDetials(true);
-            if (status != null)
-            {
-                queryable = queryable.Where(d => d.Status == status);
-                if (ids?.Count > 0)
-                    queryable = queryable.Where(d => ids.Any(p =>
-                      d.WkAuditors.Any(d => d.UserId == p)));
-            }
-            else
-            {
-                if (ids?.Count > 0)
-                    queryable = queryable.Where(d => ids.Any(p =>
-                      d.WkDefinition.WkCandidates != null ?
-                      d.WkDefinition.WkCandidates.Any(f => f.CandidateId == p)
-                      : false));
-            }
-            return await queryable.Skip(skipCount).Take(maxResultCount).ToListAsync();
+            var queryable = (await GetDbSetAsync())
+                .IncludeDetials(true)
+                .WhereIf(status != null, d => d.Status == status)
+                .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)));
+            return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
+        }
+        public virtual async Task<int> GetMyInstancesCountAsync(
+            ICollection<Guid> ids,
+            WorkflowStatus? status)
+        {
+            var queryable = (await GetDbSetAsync())
+                .WhereIf(status != null, d => d.Status == status)
+                .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)));
+            return await queryable.CountAsync();
         }
         public virtual async Task<ICollection<WkCandidate>> GetCandidatesAsync(Guid wkInstanceId)
         {
