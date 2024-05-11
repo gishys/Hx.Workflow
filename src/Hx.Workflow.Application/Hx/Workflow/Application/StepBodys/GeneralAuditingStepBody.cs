@@ -1,7 +1,7 @@
 ﻿using Hx.Workflow.Application.BusinessModule;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
-using SharpYaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,10 +38,13 @@ namespace Hx.Workflow.Application.StepBodys
         public override ExecutionResult Run(IStepExecutionContext context)
         {
             var instance = _wkInstance.FindAsync(new Guid(context.Workflow.Id)).Result;
-            context.Workflow.Data = new WkInstancePersistData()
+            if (instance.WkDefinition.LimitTime.HasValue)
             {
-                BusinessCommitmentDeadline = context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime)
-            };
+                context.Workflow.Data = new WkInstanceEventData()
+                {
+                    BusinessCommitmentDeadline = context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime)
+                };
+            }
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             if (!context.ExecutionPointer.EventPublished)
             {
@@ -51,7 +54,7 @@ namespace Hx.Workflow.Application.StepBodys
                     executionPointer.Id,
                     null,
                     userId: null,
-                    status: Domain.Shared.EnumAuditStatus.UnAudited);
+                    status: EnumAuditStatus.UnAudited);
                 var rAuditorEntity = _wkAuditor.InsertAsync(auditorInstance).Result;
                 var tempCandidates = Candidates.Split(',');
                 if (tempCandidates?.Length > 0)
@@ -74,12 +77,12 @@ namespace Hx.Workflow.Application.StepBodys
             var eventData = context.ExecutionPointer.EventData as ActivityResult;
             if (eventData != null)
             {
-                Audit(eventData.Data, executionPointer.Id);
-                var instanceData = context.Workflow.Data as WkInstancePersistData;
-                var eventInstancePersistData = JsonSerializer.Deserialize<WkInstancePersistData>(eventData.Data.ToString());
-                instanceData.ProcessName = eventInstancePersistData.ProcessName;
-                instanceData.Located = eventInstancePersistData.Located;
-                context.Workflow.Data = instanceData;
+                var eventInstancePersistData = JsonSerializer.Deserialize<WkInstanceEventData>(JsonSerializer.Serialize(eventData.Data));
+                var auditStatus = eventInstancePersistData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
+                Audit(eventData.Data, executionPointer.Id, auditStatus);
+                var instanceData = JsonSerializer.Deserialize<WkInstanceEventData>(JsonSerializer.Serialize(context.Workflow.Data));
+                eventInstancePersistData.BusinessCommitmentDeadline = instanceData.BusinessCommitmentDeadline;
+                context.Workflow.Data = eventInstancePersistData;
             }
             return ExecutionResult.Next();
         }
@@ -102,7 +105,7 @@ namespace Hx.Workflow.Application.StepBodys
                 }
             }
         }
-        private void Audit(object data, Guid executionId)
+        private void Audit(object data, Guid executionId, EnumAuditStatus auditStatus)
         {
             string Remark = null;
             if (data != null)
@@ -111,14 +114,7 @@ namespace Hx.Workflow.Application.StepBodys
             if (auditorQueryEntity != null)
             {
                 var auditTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
-                if (DecideBranching == "BackOff")
-                    auditorQueryEntity.Audit(
-                        Domain.Shared.EnumAuditStatus.Unapprove,
-                        auditTime, Remark);
-                else
-                    auditorQueryEntity.Audit(
-                        Domain.Shared.EnumAuditStatus.Pass,
-                        auditTime, Remark);
+                auditorQueryEntity.Audit(auditStatus, auditTime, Remark);
                 _wkAuditor.UpdateAsync(auditorQueryEntity);
             }
         }

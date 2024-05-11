@@ -31,6 +31,10 @@ namespace Hx.Workflow.Domain.Persistence
         public PointerStatus Status { get; protected set; }
         public string Scope { get; protected set; }
         public Guid? TenantId { get; protected set; }
+        public string Recipient { get; protected set; }
+        public Guid RecipientId { get; protected set; }
+        public string Submitter { get; protected set; }
+        public Guid? SubmitterId { get; protected set; }
         public ICollection<WkSubscription> WkSubscriptions { get; protected set; }
         public ICollection<WkCandidate> WkCandidates { get; protected set; }
         public WkExecutionPointer()
@@ -54,6 +58,8 @@ namespace Hx.Workflow.Domain.Persistence
             string outcome,
             PointerStatus status,
             string scope,
+            string recipient,
+            Guid recipientId,
             Guid? tenantId = null
             )
         {
@@ -76,6 +82,8 @@ namespace Hx.Workflow.Domain.Persistence
             Status = status;
             Scope = scope;
             TenantId = tenantId;
+            Recipient = recipient;
+            RecipientId = recipientId;
             ExtensionAttributes = new List<WkExtensionAttribute>();
         }
         public Task SetStepId(int stepId)
@@ -181,6 +189,12 @@ namespace Hx.Workflow.Domain.Persistence
         public Task AddCandidates(ICollection<WkCandidate> wkCandidates)
         {
             WkCandidates = wkCandidates;
+            return Task.CompletedTask;
+        }
+        public Task SetSubmitter(string userName, Guid submitterId)
+        {
+            Submitter = userName;
+            SubmitterId = submitterId;
             return Task.CompletedTask;
         }
     }

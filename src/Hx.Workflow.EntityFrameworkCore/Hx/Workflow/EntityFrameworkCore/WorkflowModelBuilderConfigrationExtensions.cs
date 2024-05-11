@@ -298,6 +298,10 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(d => d.Scope).HasColumnName("SCOPE").HasMaxLength(WkExecutionPointerConsts.MaxScope);
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
+                t.Property(d => d.Recipient).HasColumnName("RECIPIENT").HasMaxLength(WkExecutionPointerConsts.RecipientMaxLength);
+                t.Property(d => d.RecipientId).HasColumnName("RECIPIENTID");
+                t.Property(d => d.Submitter).HasColumnName("SUBMITTER").HasMaxLength(WkExecutionPointerConsts.SubmitterMaxLength);
+                t.Property(d => d.SubmitterId).HasColumnName("SUBMITTERID");
 
                 t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");

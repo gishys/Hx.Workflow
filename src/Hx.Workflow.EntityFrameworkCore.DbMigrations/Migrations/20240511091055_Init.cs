@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Migrations
 {
     /// <inheritdoc />
-    public partial class init1 : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,6 +26,8 @@ namespace Migrations
                     DISCRIPTION = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true, comment: "定义描述"),
                     SORTNUMBER = table.Column<int>(type: "integer", nullable: false, comment: "排序"),
                     TENANTID = table.Column<Guid>(type: "uuid", nullable: true, comment: "租户Id"),
+                    BUSINESSTYPE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "业务类型"),
+                    PROCESSTYPE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "流程类型"),
                     EXTRAPROPERTIES = table.Column<string>(type: "text", nullable: false),
                     CONCURRENCYSTAMP = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
                     CREATIONTIME = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
@@ -107,6 +109,7 @@ namespace Migrations
                 columns: table => new
                 {
                     ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    BUSINESSNUMBER = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     WKDIFINITIONID = table.Column<Guid>(type: "uuid", nullable: false),
                     VERSION = table.Column<int>(type: "integer", nullable: false),
                     DESCRIPTION = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
@@ -220,6 +223,10 @@ namespace Migrations
                     STATUS = table.Column<int>(type: "integer", precision: 2, nullable: false),
                     SCOPE = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
                     TENANTID = table.Column<Guid>(type: "uuid", nullable: true),
+                    RECIPIENT = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    RECIPIENTID = table.Column<Guid>(type: "uuid", nullable: false),
+                    SUBMITTER = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    SUBMITTERID = table.Column<Guid>(type: "uuid", nullable: true),
                     CREATIONTIME = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CREATORID = table.Column<Guid>(type: "uuid", nullable: true),
                     LASTMODIFICATIONTIME = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),

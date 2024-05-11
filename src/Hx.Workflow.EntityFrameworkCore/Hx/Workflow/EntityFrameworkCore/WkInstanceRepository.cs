@@ -118,6 +118,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             var dbSet = await GetDbSetAsync();
             int maxNumber = dbSet
+                .AsEnumerable()
                 .Where(d => d.CreateTime.ToString("d") == DateTime.Now.ToString("d"))
                 .OrderByDescending(d => int.Parse(IntRegex().Match(d.BusinessNumber).Value))
                 .Select(d => int.Parse(IntRegex().Match(d.BusinessNumber).Value))

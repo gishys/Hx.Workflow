@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Domain.Persistence;
+﻿using Hx.Workflow.Domain.BusinessModule;
+using Hx.Workflow.Domain.Persistence;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -139,7 +140,7 @@ namespace Hx.Workflow.Domain
             result.ExternalWorkerId = instance.ExternalWorkerId;
             return result;
         }
-        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstance persistable = null, string businessNumber = null)
+        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstancePersistData persistData, WkInstance persistable = null)
         {
             var createTime = DateTime.SpecifyKind(instance.CreateTime, DateTimeKind.Unspecified);
             DateTime? completeTime = instance.CompleteTime.HasValue ? DateTime.SpecifyKind(instance.CompleteTime.Value, DateTimeKind.Unspecified) : null;
@@ -156,7 +157,7 @@ namespace Hx.Workflow.Domain
                     JsonConvert.SerializeObject(instance.Data, SerializerSettings),
                     createTime,
                     completeTime,
-                    businessNumber);
+                    persistData.BusinessNumber);
             }
             else
             {
@@ -174,13 +175,14 @@ namespace Hx.Workflow.Domain
             {
                 DateTime? startTime = exe.StartTime.HasValue ? DateTime.SpecifyKind(exe.StartTime.Value, DateTimeKind.Unspecified) : null;
                 DateTime? endTime = exe.EndTime.HasValue ? DateTime.SpecifyKind(exe.EndTime.Value, DateTimeKind.Unspecified) : null;
+                DateTime? sleepUntil = exe.SleepUntil.HasValue ? DateTime.SpecifyKind(exe.SleepUntil.Value, DateTimeKind.Unspecified) : null;
                 var epTemp = persistable.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == exe.Id);
                 if (epTemp == null)
                 {
                     epTemp = new WkExecutionPointer(
                         exe.StepId,
                         exe.Active,
-                        exe.SleepUntil,
+                        sleepUntil,
                         JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings),
                         startTime,
                         endTime,
@@ -195,14 +197,16 @@ namespace Hx.Workflow.Domain
                         exe.PredecessorId,
                         JsonConvert.SerializeObject(exe.Outcome, SerializerSettings),
                         exe.Status,
-                        string.Join(';', exe.Scope));
+                        string.Join(';', exe.Scope),
+                        persistData.UserName,
+                        persistData.UserId);
                     await persistable.AddExecutionPointer(epTemp);
                 }
                 else
                 {
                     await epTemp.SetStepId(exe.StepId);
                     await epTemp.SetActive(exe.Active);
-                    await epTemp.SetSleepUntil(exe.SleepUntil);
+                    await epTemp.SetSleepUntil(sleepUntil);
                     await epTemp.SetPersistenceData(JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings));
                     await epTemp.SetStartTime(startTime);
                     await epTemp.SetEndTime(endTime);
@@ -218,6 +222,7 @@ namespace Hx.Workflow.Domain
                     await epTemp.SetOutcome(JsonConvert.SerializeObject(exe.Outcome, SerializerSettings));
                     await epTemp.SetStatus(exe.Status);
                     await epTemp.SetScope(string.Join(';', exe.Scope));
+                    await epTemp.SetSubmitter(persistData.UserName, persistData.UserId);
                 }
                 foreach (var attr in exe.ExtensionAttributes)
                 {
@@ -235,30 +240,6 @@ namespace Hx.Workflow.Domain
                 }
             }
             return persistable;
-        }
-        public static WkExecutionPointer ToWkExecutionPointer(this ExecutionPointer exe)
-        {
-            DateTime? startTime = exe.StartTime.HasValue ? DateTime.SpecifyKind(exe.StartTime.Value, DateTimeKind.Unspecified) : null;
-            DateTime? endTime = exe.EndTime.HasValue ? DateTime.SpecifyKind(exe.EndTime.Value, DateTimeKind.Unspecified) : null;
-            return new WkExecutionPointer(
-                exe.StepId,
-                exe.Active,
-                exe.SleepUntil,
-                JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings),
-                startTime,
-                endTime,
-                exe.EventName,
-                exe.EventKey,
-                exe.EventPublished,
-                JsonConvert.SerializeObject(exe.EventData, SerializerSettings),
-                exe.StepName,
-                exe.RetryCount,
-                string.Join(';', exe.Children),
-                JsonConvert.SerializeObject(exe.ContextItem, SerializerSettings),
-                exe.PredecessorId,
-                JsonConvert.SerializeObject(exe.Outcome, SerializerSettings),
-                exe.Status,
-                string.Join(';', exe.Scope));
         }
         public static ICollection<WkCandidate> ToCandidates(
             this ICollection<WkCandidate> entity,

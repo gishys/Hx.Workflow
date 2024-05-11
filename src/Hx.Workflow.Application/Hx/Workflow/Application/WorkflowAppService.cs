@@ -137,7 +137,7 @@ namespace Hx.Workflow.Application
             var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds, status);
             foreach (var instance in instances)
             {
-                var businessData = JsonSerializer.Deserialize<WkInstancePersistData>(instance.Data);
+                var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
                 var pointer = instance.ExecutionPointers.First(d => d.Active);
                 var processInstance = new WkProcessInstanceDto
                 {
@@ -146,6 +146,8 @@ namespace Hx.Workflow.Application
                     ProcessName = businessData.ProcessName,
                     Located = businessData.Located,
                     ProcessingStepName = pointer.StepName,
+                    Recipient = pointer.Recipient,
+                    Submitter = pointer.Submitter,
                     ReceivingTime = instance.CreateTime.ToString("t"),
                     State = instance.Status.ToString(),
                     BusinessType = instance.WkDefinition.BusinessType,
@@ -156,7 +158,7 @@ namespace Hx.Workflow.Application
             }
             return new PagedResultDto<WkProcessInstanceDto>(count, result);
         }
-        private string GetEarlyWarning(WkInstancePersistData businessData, WkInstance instance)
+        private string GetEarlyWarning(WkInstanceEventData businessData, WkInstance instance)
         {
             var earlyWarning = "green";
             if (instance.Status == WorkflowStatus.Runnable)

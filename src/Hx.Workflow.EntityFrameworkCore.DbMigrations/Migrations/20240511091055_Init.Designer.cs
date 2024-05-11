@@ -13,8 +13,8 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Migrations
 {
     [DbContext(typeof(WkDbMigrationsContext))]
-    [Migration("20240429032452_init1")]
-    partial class init1
+    [Migration("20240511091055_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -79,6 +79,12 @@ namespace Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("ID")
                         .HasComment("主键");
+
+                    b.Property<string>("BusinessType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("BUSINESSTYPE")
+                        .HasComment("业务类型");
 
                     b.Property<string>("Color")
                         .HasMaxLength(10)
@@ -149,6 +155,12 @@ namespace Migrations
                         .HasColumnType("integer")
                         .HasColumnName("LIMITTIME")
                         .HasComment("限制时间");
+
+                    b.Property<string>("ProcessType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("PROCESSTYPE")
+                        .HasComment("流程类型");
 
                     b.Property<int>("SortNumber")
                         .HasColumnType("integer")
@@ -362,6 +374,15 @@ namespace Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("PREDECESSORID");
 
+                    b.Property<string>("Recipient")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("RECIPIENT");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("RECIPIENTID");
+
                     b.Property<int>("RetryCount")
                         .HasColumnType("integer")
                         .HasColumnName("RETRYCOUNT");
@@ -392,6 +413,15 @@ namespace Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("STEPNAME");
+
+                    b.Property<string>("Submitter")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("SUBMITTER");
+
+                    b.Property<Guid?>("SubmitterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("SUBMITTERID");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("uuid")
@@ -452,6 +482,11 @@ namespace Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("ID");
+
+                    b.Property<string>("BusinessNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("BUSINESSNUMBER");
 
                     b.Property<DateTime?>("CompleteTime")
                         .HasColumnType("timestamp without time zone")
