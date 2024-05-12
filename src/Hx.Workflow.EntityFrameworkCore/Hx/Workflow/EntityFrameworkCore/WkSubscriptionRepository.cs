@@ -34,5 +34,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.SubscribeAsOf <= eventTime && d.ExternalToken == null)
                 .ToListAsync();
         }
+        public virtual async Task<bool> AnyAsync(Guid id)
+        {
+            return await (await GetDbSetAsync()).AnyAsync(d => d.WorkflowId == id);
+        }
     }
 }

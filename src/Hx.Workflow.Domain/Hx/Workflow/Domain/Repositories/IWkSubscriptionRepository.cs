@@ -17,5 +17,6 @@ namespace Hx.Workflow.Domain.Repositories
         /// <returns></returns>
         Task<List<WkSubscription>> GetSubcriptionAsync(
             string eventName, string eventKey, DateTime eventTime);
+        Task<bool> AnyAsync(Guid id);
     }
 }

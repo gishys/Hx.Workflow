@@ -1,9 +1,10 @@
 {
   "activityName": "GeneralAuditActivity",
-  "workflowId": "31897ae1-f912-7245-3e9b-39fce3a6fa43",
+  "workflowId": "3a127ed4-7bb0-dc22-61e7-d388d5cc221f",
   "data": {
     "DecideBranching": "Submit",
     "Remark": "审核通过",
-    "Candidates": "fa20498b-863f-4877-8379-39fc7d7ebb55"
+    "Candidates": "fa20498b-863f-4877-8379-39fc7d7ebb55",
+"ProcessName":"2024051200001 张三"
   }
 }

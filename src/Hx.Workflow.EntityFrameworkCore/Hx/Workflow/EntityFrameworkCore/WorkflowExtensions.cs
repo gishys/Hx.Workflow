@@ -21,10 +21,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(d => d.Nodes)
                 .ThenInclude(d => d.NextNodes)
                 .ThenInclude(d => d.WkConNodeConditions)
-                .Include(d=>d.Nodes)
-                .ThenInclude(d=>d.WkCandidates)
-                .Include(d=>d.Nodes)
-                .ThenInclude(d=>d.ApplicationForms);
+                .Include(d => d.Nodes)
+                .ThenInclude(d => d.WkCandidates)
+                .Include(d => d.Nodes)
+                .ThenInclude(d => d.ApplicationForms);
         }
         public static IQueryable<WkInstance> IncludeDetials(
             this IQueryable<WkInstance> query,
@@ -38,7 +38,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(x => x.ExecutionPointers)
                 .ThenInclude(x => x.WkSubscriptions)
                 .Include(x => x.WkDefinition)
-                .Include(x=>x.WkAuditors);
+                .ThenInclude(x => x.Nodes)
+                .ThenInclude(x => x.NextNodes)
+                .ThenInclude(x => x.WkConNodeConditions)
+                .Include(x => x.WkAuditors);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Guids;
 using Volo.Abp.Uow;
@@ -278,7 +279,9 @@ namespace Hx.Workflow.Domain
 
         public async Task<bool> SetSubscriptionToken(string eventSubscriptionId, string token, string workerId, DateTime expiry, CancellationToken cancellationToken = default)
         {
-
+            var wkInstance = await _wkInstanceRepository.FindAsync(new Guid(workerId));
+            if (wkInstance == null)
+                throw new UserFriendlyException("流程实例不存在！");
             var uid = new Guid(eventSubscriptionId);
             var existingEntity = await _wkSubscriptionRepository.FindAsync(uid);
 

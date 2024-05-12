@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
@@ -40,13 +41,14 @@ namespace Hx.Workflow.Application.StepBodys
             var instance = _wkInstance.FindAsync(new Guid(context.Workflow.Id)).Result;
             if (instance.WkDefinition.LimitTime.HasValue)
             {
-                context.Workflow.Data = new WkInstanceEventData()
+                var workflowData = new Dictionary<string, object>
                 {
-                    BusinessCommitmentDeadline = context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime)
+                    { "BusinessCommitmentDeadline", context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime) }
                 };
+                context.Workflow.Data = workflowData;
             }
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
-            if (!context.ExecutionPointer.EventPublished)
+            if (!executionPointer.EventPublished)
             {
                 var auditorInstance =
                     new WkAuditor(
@@ -78,11 +80,25 @@ namespace Hx.Workflow.Application.StepBodys
             if (eventData != null)
             {
                 var eventInstancePersistData = JsonSerializer.Deserialize<WkInstanceEventData>(JsonSerializer.Serialize(eventData.Data));
+                var step = instance.WkDefinition.Nodes.First(d => d.Name == executionPointer.StepName);
+                if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventInstancePersistData.DecideBranching)))
+                    throw new UserFriendlyException("参数DecideBranching错误！");
                 var auditStatus = eventInstancePersistData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
                 Audit(eventData.Data, executionPointer.Id, auditStatus);
-                var instanceData = JsonSerializer.Deserialize<WkInstanceEventData>(JsonSerializer.Serialize(context.Workflow.Data));
-                eventInstancePersistData.BusinessCommitmentDeadline = instanceData.BusinessCommitmentDeadline;
-                context.Workflow.Data = eventInstancePersistData;
+                var evantData = eventData.Data as Dictionary<string, object>;
+                var workflowData = new Dictionary<string, object>(context.Workflow.Data as Dictionary<string, object>);
+                foreach (var item in evantData)
+                {
+                    if (!workflowData.ContainsKey(item.Key))
+                    {
+                        workflowData.Add(item.Key, item.Value);
+                    }
+                }
+                context.Workflow.Data = workflowData;
+            }
+            else
+            {
+                throw new UserFriendlyException("提交data不能为空！");
             }
             return ExecutionResult.Next();
         }
