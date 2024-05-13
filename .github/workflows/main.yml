@@ -1,8 +1,9 @@
-name: NuGet Package Workflow
+name: Multi-package NuGet Workflow
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -21,4 +22,21 @@ jobs:
       run: |
         dotnet build src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release
         dotnet pack src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release -o ./src/Hx.Workflow.Application/bin/Debug
-        cp ./src/Hx.Workflow.Application/bin/Debug/Hx.Workflow.Application.1.0.1.nupkg $GITHUB_WORKSPACE
+
+        dotnet build src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release
+        dotnet pack src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release -o ./src/Hx.Workflow.Application.Contracts/bin/Debug
+
+        dotnet build src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release
+        dotnet pack src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release -o ./src/Hx.Workflow.Domain/bin/Debug
+
+        dotnet build src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release
+        dotnet pack src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release -o ./src/Hx.Workflow.Domain.Shared/bin/Debug
+
+        dotnet build src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release
+        dotnet pack src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release -o ./src/Hx.Workflow.EntityFrameworkCore/bin/Debug
+
+        cp ./src/Hx.Workflow.Application/bin/Debug/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.Application.Contracts/bin/Debug/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.Domain/bin/Debug/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.Domain.Shared/bin/Debug/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.EntityFrameworkCore/bin/Debug/*.nupkg $GITHUB_WORKSPACE
