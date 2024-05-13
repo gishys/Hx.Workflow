@@ -39,3 +39,11 @@ jobs:
         cp ./src/Hx.Workflow.Domain/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Domain.Shared/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg $GITHUB_WORKSPACE
+
+    - name: Push NuGet packages
+      run: 
+       nuget push ./src/Hx.Workflow.Application/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+       nuget push ./src/Hx.Workflow.Application.Contracts/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+       nuget push ./src/HHx.Workflow.Domain/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+       nuget push ./src/Hx.Workflow.Domain.Shared/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+       nuget push ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
