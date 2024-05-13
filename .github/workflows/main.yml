@@ -21,22 +21,22 @@ jobs:
     - name: Build and pack NuGet packages
       run: |
         dotnet build src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release
-        dotnet pack src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release -o ./src/Hx.Workflow.Application/bin/Debug
+        dotnet pack src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release -o ./src/Hx.Workflow.Application
 
         dotnet build src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release
-        dotnet pack src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release -o ./src/Hx.Workflow.Application.Contracts/bin/Debug
+        dotnet pack src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release -o ./src/Hx.Workflow.Application.Contracts
 
         dotnet build src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release
-        dotnet pack src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release -o ./src/Hx.Workflow.Domain/bin/Debug
+        dotnet pack src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release -o ./src/Hx.Workflow.Domain
 
         dotnet build src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release
-        dotnet pack src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release -o ./src/Hx.Workflow.Domain.Shared/bin/Debug
+        dotnet pack src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release -o ./src/Hx.Workflow.Domain.Shared
 
         dotnet build src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release
-        dotnet pack src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release -o ./src/Hx.Workflow.EntityFrameworkCore/bin/Debug
+        dotnet pack src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release -o ./src/Hx.Workflow.EntityFrameworkCore
 
-        cp ./src/Hx.Workflow.Application/bin/Debug/*.nupkg $GITHUB_WORKSPACE
-        cp ./src/Hx.Workflow.Application.Contracts/bin/Debug/*.nupkg $GITHUB_WORKSPACE
-        cp ./src/Hx.Workflow.Domain/bin/Debug/*.nupkg $GITHUB_WORKSPACE
-        cp ./src/Hx.Workflow.Domain.Shared/bin/Debug/*.nupkg $GITHUB_WORKSPACE
-        cp ./src/Hx.Workflow.EntityFrameworkCore/bin/Debug/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.Application/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.Application.Contracts/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.Domain/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.Domain.Shared/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg $GITHUB_WORKSPACE
