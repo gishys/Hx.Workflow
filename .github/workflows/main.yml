@@ -1,9 +1,8 @@
 name: Multi-package NuGet Workflow
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
 jobs:
   build:
