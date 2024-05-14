@@ -19,20 +19,22 @@ jobs:
 
     - name: Build and pack NuGet packages
       run: |
+        version=$(echo "${{ github.event.release.tag_name }}" | cut -c 2-)
+        echo "Setting version to $version"
         dotnet build src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release
-        dotnet pack src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release -o ./src/Hx.Workflow.Application
+        dotnet pack src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release -o ./src/Hx.Workflow.Application /p:PackageVersion=$version
 
         dotnet build src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release
-        dotnet pack src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release -o ./src/Hx.Workflow.Application.Contracts
+        dotnet pack src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release -o ./src/Hx.Workflow.Application.Contracts /p:PackageVersion=$version
 
         dotnet build src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release
-        dotnet pack src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release -o ./src/Hx.Workflow.Domain
+        dotnet pack src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release -o ./src/Hx.Workflow.Domain /p:PackageVersion=$version
 
         dotnet build src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release
-        dotnet pack src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release -o ./src/Hx.Workflow.Domain.Shared
+        dotnet pack src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release -o ./src/Hx.Workflow.Domain.Shared /p:PackageVersion=$version
 
         dotnet build src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release
-        dotnet pack src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release -o ./src/Hx.Workflow.EntityFrameworkCore
+        dotnet pack src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release -o ./src/Hx.Workflow.EntityFrameworkCore /p:PackageVersion=$version
 
         cp ./src/Hx.Workflow.Application/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Application.Contracts/*.nupkg $GITHUB_WORKSPACE
