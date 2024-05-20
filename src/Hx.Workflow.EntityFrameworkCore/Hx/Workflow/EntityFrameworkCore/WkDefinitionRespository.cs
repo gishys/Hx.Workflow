@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -40,6 +41,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             return await (await GetDbSetAsync())
                 .IncludeDetials(includeDetails)
+                .Where(d => d.WkDefinitionState == WkDefinitionState.Enable)
                 .ToListAsync(GetCancellationToken(cancellationToken));
         }
         public virtual async Task<WkDefinition> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)

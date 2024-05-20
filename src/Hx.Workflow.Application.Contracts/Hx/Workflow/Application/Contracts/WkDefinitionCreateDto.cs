@@ -15,6 +15,10 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public string Title { get; set; }
         /// <summary>
+        /// 限制时间（分钟）
+        /// </summary>
+        public int? LimitTime { get; set; }
+        /// <summary>
         /// get or set icon
         /// </summary>
         public string Icon { get; set; }

@@ -18,7 +18,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// </summary>
         public string Title { get; protected set; }
         /// <summary>
-        /// 限制时间
+        /// 限制时间（分钟）
         /// </summary>
         public int? LimitTime { get; protected set; }
         /// <summary>
@@ -34,7 +34,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// </summary>
         public string Color { get; protected set; }
         /// <summary>
-        /// get or set group()
+        /// get or set group
         /// </summary>
         public Guid? GroupId { get; protected set; }
         /// <summary>

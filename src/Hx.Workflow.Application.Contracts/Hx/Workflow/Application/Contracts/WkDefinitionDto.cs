@@ -6,6 +6,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkDefinitionDto
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 版本号
         /// </summary>

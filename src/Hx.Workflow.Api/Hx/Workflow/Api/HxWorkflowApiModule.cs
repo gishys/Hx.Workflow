@@ -68,7 +68,7 @@ namespace Hx.Workflow.Api
         {
             var app = context.GetApplicationBuilder();
             var env = context.GetEnvironment();
-
+            app.UseCors(DefaultCorsPolicyName);
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
