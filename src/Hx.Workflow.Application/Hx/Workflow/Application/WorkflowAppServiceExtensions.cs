@@ -63,6 +63,17 @@ namespace Hx.Workflow.Application
                                 outcomp.Value));
                     }
                 }
+                if (node.WkCandidates?.Count > 0)
+                {
+                    foreach (var candidate in node.WkCandidates)
+                    {
+                        nodeEntity.AddCandidates(new WkCandidate(
+                            candidate.CandidateId,
+                            candidate.UserName,
+                            candidate.DisplayUserName,
+                            candidate.DefaultSelection));
+                    }
+                }
                 nodeEntitys.Add(nodeEntity);
             }
             return nodeEntitys;
@@ -70,9 +81,9 @@ namespace Hx.Workflow.Application
         public static ICollection<WkCandidate> ToWkCandidate(this ICollection<WkCandidateUpdateDto> inputs)
         {
             var resultEntity = new List<WkCandidate>();
-            foreach(var entity in inputs)
+            foreach (var entity in inputs)
             {
-                resultEntity.Add(new WkCandidate(entity.CandidateId, entity.UserName, entity.DisplayUserName));
+                resultEntity.Add(new WkCandidate(entity.CandidateId, entity.UserName, entity.DisplayUserName, entity.DefaultSelection));
             }
             return resultEntity;
         }

@@ -56,7 +56,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             Guid userId,
             ICollection<WkCandidate> wkCandidates)
         {
-            var entity = await (await GetDbSetAsync()).FirstOrDefaultAsync(d => d.Id == wkDefinitionId);
+            var entity = await (await GetDbSetAsync()).Include(d => d.WkCandidates).FirstOrDefaultAsync(d => d.Id == wkDefinitionId);
             if (entity?.WkCandidates != null)
             {
                 var updateCnadidates = entity.WkCandidates.Where(d => d.CandidateId == userId).ToList();

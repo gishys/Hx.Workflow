@@ -8,11 +8,12 @@ namespace Hx.Workflow.Domain
     {
         public WkCandidate()
         { }
-        public WkCandidate(Guid candidateId, string userName, string displayUserName)
+        public WkCandidate(Guid candidateId, string userName, string displayUserName, bool defaultSelection = false)
         {
             CandidateId = candidateId;
             UserName = userName;
             DisplayUserName = displayUserName;
+            DefaultSelection = defaultSelection;
         }
         public Guid NodeId { get; protected set; }
         public Guid CandidateId { get; protected set; }

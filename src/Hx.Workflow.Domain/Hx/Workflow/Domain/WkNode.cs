@@ -88,6 +88,7 @@ namespace Hx.Workflow.Domain
             Position = new List<WkPoint>();
             NextNodes = new List<WkConditionNode>();
             OutcomeSteps = new List<WkNodePara>();
+            WkCandidates = new List<WkCandidate>();
         }
         public Task SetStepName(string name)
         {
@@ -97,6 +98,11 @@ namespace Hx.Workflow.Domain
         public Task AddOutcomeSteps(WkNodePara para)
         {
             OutcomeSteps.Add(para);
+            return Task.CompletedTask;
+        }
+        public Task AddCandidates(WkCandidate para)
+        {
+            WkCandidates.Add(para);
             return Task.CompletedTask;
         }
         public Task AddPoint(WkPoint point)
