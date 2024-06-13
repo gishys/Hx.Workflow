@@ -105,6 +105,11 @@ namespace Hx.Workflow.Domain
             WkCandidates.Add(para);
             return Task.CompletedTask;
         }
+        public Task AddApplicationForms(ApplicationForm para)
+        {
+            ApplicationForms.Add(para);
+            return Task.CompletedTask;
+        }
         public Task AddPoint(WkPoint point)
         {
             Position.Add(point);

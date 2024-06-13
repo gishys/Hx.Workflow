@@ -256,7 +256,8 @@ namespace Hx.Workflow.Domain
                     updateCandidate = new WkCandidate(
                         candidate.CandidateId,
                         candidate.UserName,
-                        candidate.DisplayUserName);
+                        candidate.DisplayUserName,
+                        candidate.DefaultSelection);
                     entity.Add(updateCandidate);
                 }
                 updateCandidate.SetSelection(true);

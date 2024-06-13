@@ -94,6 +94,7 @@ namespace Hx.Workflow.Domain.Persistence
             SortNumber = sortNumber;
             TenantId = tenantId;
             Nodes = new List<WkNode>();
+            WkCandidates = new List<WkCandidate>();
         }
         public Task SetWkDefinitionName(string title)
         {

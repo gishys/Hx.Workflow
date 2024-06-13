@@ -9,8 +9,10 @@ using System.Linq.Dynamic.Core;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Users;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.EntityFrameworkCore
@@ -128,5 +130,16 @@ namespace Hx.Workflow.EntityFrameworkCore
 
         [GeneratedRegex(@"\d+")]
         private static partial Regex IntRegex();
+        public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId)
+        {
+            var instance = await FindAsync(workflowId);
+            var exePointer = instance.ExecutionPointers.First(d => d.Status == PointerStatus.Running);
+            if (!exePointer.WkCandidates.Any(d => d.CandidateId == currentUserId))
+            {
+                throw new UserFriendlyException("没有权限接收实例！");
+            }
+            exePointer.WkCandidates.RemoveAll(d => d.CandidateId != currentUserId);
+            return await UpdateAsync(instance);
+        }
     }
 }

@@ -3,7 +3,6 @@ using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
-using SharpYaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,6 +51,14 @@ namespace Hx.Workflow.Application
                     input.BusinessType,
                     input.ProcessType,
                     version: input.Version <= 0 ? 1 : input.Version);
+            foreach (var candidate in input.WkCandidates)
+            {
+                entity.WkCandidates.Add(new WkCandidate(
+                    candidate.CandidateId,
+                    candidate.UserName,
+                    candidate.DisplayUserName,
+                    candidate.DefaultSelection));
+            }
             var nodeEntitys = input.Nodes.ToWkNodes();
             foreach (var node in nodeEntitys)
             {
@@ -173,6 +180,30 @@ namespace Hx.Workflow.Application
                 }
             }
             return earlyWarning;
+        }
+        public virtual async Task<WkCurrentInstanceDetailsDto> RecipientInstanceAsync(Guid workflowId)
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                var instance = await _wkInstanceRepository.RecipientExePointerAsync(workflowId, CurrentUser.Id.Value);
+                var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
+                var pointer = instance.ExecutionPointers.First(d => d.Active);
+                var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
+                return new WkCurrentInstanceDetailsDto()
+                {
+                    Id = instance.Id,
+                    BusinessNumber = instance.BusinessNumber,
+                    Receiver = pointer.Recipient,
+                    ReceiveTime = pointer.StartTime?.ToString("t"),
+                    RegistrationCategory = instance.WkDefinition.BusinessType,
+                    BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("t"),
+                    Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms),
+                };
+            }
+            else
+            {
+                throw new UserFriendlyException("为获取到当前登录用户！");
+            }
         }
         /// <summary>
         /// 终止工作流

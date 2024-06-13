@@ -43,5 +43,6 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public string ProcessType { get; set; }
         public ICollection<WkNodeCreateDto> Nodes { get; set; }
+        public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
     }
 }

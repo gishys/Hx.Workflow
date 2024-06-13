@@ -1,13 +1,16 @@
 ﻿using Hx.Workflow.Application.BusinessModule;
+using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Users;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -19,14 +22,17 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;
+        private readonly ICurrentUser _currentUser;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
-            IWkDefinitionRespository wkDefinition)
+            IWkDefinitionRespository wkDefinition,
+            ICurrentUser currentUser)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
+            _currentUser = currentUser;
         }
         /// <summary>
         /// 审核人
@@ -64,7 +70,10 @@ namespace Hx.Workflow.Application.StepBodys
                     var definition = _wkDefinition.FindAsync(instance.WkDifinitionId).Result;
                     if (definition.WkCandidates?.Count > 0)
                     {
-                        var dcandidate = definition.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
+                        var dcandidate = definition.Nodes
+                            .First(d => d.Name == executionPointer.StepName)
+                            .WkCandidates
+                            .Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
                         if (dcandidate?.Count > 0)
                             _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, dcandidate);
                     }

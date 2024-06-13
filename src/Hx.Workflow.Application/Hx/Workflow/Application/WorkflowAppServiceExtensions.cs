@@ -74,6 +74,18 @@ namespace Hx.Workflow.Application
                             candidate.DefaultSelection));
                     }
                 }
+                if (node.ApplicationForms?.Count > 0)
+                {
+                    foreach (var appForm in node.ApplicationForms)
+                    {
+                        nodeEntity.AddApplicationForms(new ApplicationForm(
+                            appForm.ParentId,
+                            appForm.Code,
+                            appForm.Name,
+                            appForm.DispalyName,
+                            appForm.ApplicationType));
+                    }
+                }
                 nodeEntitys.Add(nodeEntity);
             }
             return nodeEntitys;
