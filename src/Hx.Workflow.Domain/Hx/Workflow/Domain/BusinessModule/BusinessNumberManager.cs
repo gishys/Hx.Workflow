@@ -38,7 +38,7 @@ namespace Hx.Workflow.Domain.BusinessModule
                     });
                 string prefix = $"{DateTime.Now.Year}{DateTime.Now.Month.ToString().PadLeft(2, '0')}{DateTime.Now.Day.ToString().PadLeft(2, '0')}";
                 cache.Next();
-                string nextNumber = (cache.Count + 1).ToString();
+                string nextNumber = $"{prefix}{cache.Count.ToString().PadLeft(5, '0')}";
                 await AppointmentStockCache.SetAsync(key, cache);
                 return nextNumber;
             }
