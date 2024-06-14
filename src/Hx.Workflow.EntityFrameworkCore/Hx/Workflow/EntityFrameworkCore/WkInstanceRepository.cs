@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,6 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.Users;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.EntityFrameworkCore
@@ -81,7 +81,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             var queryable = (await GetDbSetAsync())
                 .IncludeDetials(true)
                 .WhereIf(status != null, d => d.Status == status)
-                .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)));
+                .Where(d => d.WkAuditors.Any(a => a.Status == EnumAuditStatus.UnAudited && ids.Any(id => id == a.UserId)));
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(

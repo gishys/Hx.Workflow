@@ -97,6 +97,20 @@ namespace Hx.Workflow.Application
             return ObjectMapper.Map<List<WkDefinition>, List<WkDefinitionDto>>(entitys);
         }
         /// <summary>
+        /// 获取可创建的模板（赋予权限）
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        public virtual async Task<List<WkDefinitionDto>> GetDefinitionsCanCreateAsync()
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                var entitys = await _wkDefinition.GetListHasPermissionAsync(CurrentUser.Id.Value);
+                return ObjectMapper.Map<List<WkDefinition>, List<WkDefinitionDto>>(entitys);
+            }
+            throw new UserFriendlyException("无法获取当前登录用户！");
+        }
+        /// <summary>
         /// 通过流程模版Id创建流程
         /// </summary>
         /// <param name="input"></param>
