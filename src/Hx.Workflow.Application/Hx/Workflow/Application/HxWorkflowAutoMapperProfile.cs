@@ -31,6 +31,8 @@ namespace Hx.Workflow.Application
             CreateMap<WkConditionNode, WkConditionNodeDto>(MemberList.Destination);
             CreateMap<WkConNodeCondition, WkConNodeConditionDto>(MemberList.Destination);
             CreateMap<ExePointerCandidate, WkCandidateDto>(MemberList.Destination);
+            CreateMap<DefinitionCandidate, WkCandidateDto>(MemberList.Destination);
+            CreateMap<WkNodeCandidate, WkCandidateDto>(MemberList.Destination);
         }
     }
 }

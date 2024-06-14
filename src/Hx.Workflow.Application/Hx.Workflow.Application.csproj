@@ -7,16 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Hx\Workflow\Application\BusinessModule\**" />
+    <EmbeddedResource Remove="Hx\Workflow\Application\BusinessModule\**" />
+    <None Remove="Hx\Workflow\Application\BusinessModule\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Volo.Abp.AutoMapper" Version="8.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Hx.Workflow.Application.Contracts\Hx.Workflow.Application.Contracts.csproj" />
     <ProjectReference Include="..\Hx.Workflow.Domain\Hx.Workflow.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Hx\Workflow\Application\BusinessModule\" />
   </ItemGroup>
 
 </Project>
