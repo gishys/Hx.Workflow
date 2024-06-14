@@ -24,5 +24,17 @@ namespace Hx.Workflow.Application
         Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateDto entity);
         Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId);
         Task<List<WkDefinitionDto>> GetDefinitionsAsync();
+        /// <summary>
+        /// 获取可创建的模板（赋予权限）
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        Task<List<WkDefinitionDto>> GetDefinitionsCanCreateAsync();
+        /// <summary>
+        /// 接收实例
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        Task<WkCurrentInstanceDetailsDto> RecipientInstanceAsync(Guid workflowId);
     }
 }

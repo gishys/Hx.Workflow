@@ -107,5 +107,17 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.GetCandidatesAsync(wkInstanceId);
         }
+        [HttpGet]
+        [Route("workflow/definitionscancreate")]
+        public Task<List<WkDefinitionDto>> GetDefinitionsCanCreateAsync()
+        {
+            return _workflowAppService.GetDefinitionsCanCreateAsync();
+        }
+        [HttpGet]
+        [Route("workflow/recipientinstance")]
+        public Task<WkCurrentInstanceDetailsDto> RecipientInstanceAsync(Guid workflowId)
+        {
+            return _workflowAppService.RecipientInstanceAsync(workflowId);
+        }
     }
 }
