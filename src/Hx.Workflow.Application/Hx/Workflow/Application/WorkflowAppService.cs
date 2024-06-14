@@ -42,14 +42,16 @@ namespace Hx.Workflow.Application
         /// <exception cref="BusinessException"></exception>
         public virtual async Task CreateAsync(WkDefinitionCreateDto input)
         {
+            var sortNumber = await _wkDefinition.GetMaxSortNumberAsync();
             var entity = new WkDefinition(
                     input.Title,
                     input.Icon,
                     input.Color,
-                    input.SortNumber,
+                    sortNumber,
                     input.Discription,
                     input.BusinessType,
                     input.ProcessType,
+                    limitTime: input.LimitTime,
                     version: input.Version <= 0 ? 1 : input.Version);
             foreach (var candidate in input.WkCandidates)
             {

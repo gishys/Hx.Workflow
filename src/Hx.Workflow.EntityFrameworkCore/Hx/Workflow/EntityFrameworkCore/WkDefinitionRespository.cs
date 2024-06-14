@@ -51,6 +51,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .FirstOrDefaultAsync(d => d.Title == name,
                 GetCancellationToken(cancellationToken));
         }
+        public async Task<int> GetMaxSortNumberAsync()
+        {
+            return await (await GetDbSetAsync()).MaxAsync(d => d.SortNumber);
+        }
         public virtual async Task<WkDefinition> UpdateCandidatesAsync(
             Guid wkDefinitionId,
             Guid userId,

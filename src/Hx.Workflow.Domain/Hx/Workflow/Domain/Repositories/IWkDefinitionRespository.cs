@@ -21,5 +21,6 @@ namespace Hx.Workflow.Domain.Repositories
             Guid wkDefinitionId,
             Guid userId,
             ICollection<WkCandidate> wkCandidates);
+        Task<int> GetMaxSortNumberAsync();
     }
 }

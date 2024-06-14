@@ -12,7 +12,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 步骤体Id
         /// </summary>
-        public Guid? WkStepBodyId { get;protected set; }
+        public Guid? WkStepBodyId { get; protected set; }
         /// <summary>
         /// 节点Id
         /// </summary>
@@ -89,6 +89,7 @@ namespace Hx.Workflow.Domain
             NextNodes = new List<WkConditionNode>();
             OutcomeSteps = new List<WkNodePara>();
             WkCandidates = new List<WkCandidate>();
+            ApplicationForms = new List<ApplicationForm>();
         }
         public Task SetStepName(string name)
         {
