@@ -197,11 +197,22 @@ namespace Hx.Workflow.Application
             }
             return earlyWarning;
         }
-        public virtual async Task<WkCurrentInstanceDetailsDto> RecipientInstanceAsync(Guid workflowId)
+        public virtual async Task RecipientInstanceAsync(Guid workflowId)
         {
             if (CurrentUser.Id.HasValue)
             {
-                var instance = await _wkInstanceRepository.RecipientExePointerAsync(workflowId, CurrentUser.Id.Value);
+                await _wkInstanceRepository.RecipientExePointerAsync(workflowId, CurrentUser.Id.Value);
+            }
+            else
+            {
+                throw new UserFriendlyException("为获取到当前登录用户！");
+            }
+        }
+        public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId)
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                var instance = await _wkInstanceRepository.FindAsync(workflowId);
                 var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
                 var pointer = instance.ExecutionPointers.First(d => d.Active);
                 var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);

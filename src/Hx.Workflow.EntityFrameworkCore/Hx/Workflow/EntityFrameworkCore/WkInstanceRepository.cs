@@ -5,6 +5,8 @@ using Hx.Workflow.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text.RegularExpressions;
@@ -96,8 +98,13 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)
         {
             var queryable = (await GetDbSetAsync()).IncludeDetials(true);
-            return (await queryable.FirstOrDefaultAsync(d => d.Id == wkInstanceId))
-                ?.WkDefinition.WkCandidates.ToList() as ICollection<ExePointerCandidate>;
+            var instance = await queryable.FirstOrDefaultAsync(d => d.Id == wkInstanceId);
+            if (instance != null && instance.Status == WorkflowStatus.Runnable)
+            {
+                var currentPointer = instance.ExecutionPointers.First(d => d.Status == PointerStatus.Running);
+                return currentPointer.WkCandidates;
+            }
+            return new Collection<ExePointerCandidate>();
         }
         public virtual async Task<WkInstance> UpdateCandidateAsync(
             Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates)

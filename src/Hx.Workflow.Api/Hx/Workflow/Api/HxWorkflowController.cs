@@ -113,11 +113,17 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.GetDefinitionsCanCreateAsync();
         }
-        [HttpGet]
+        [HttpPut]
         [Route("workflow/recipientinstance")]
-        public Task<WkCurrentInstanceDetailsDto> RecipientInstanceAsync(Guid workflowId)
+        public Task RecipientInstanceAsync(Guid workflowId)
         {
             return _workflowAppService.RecipientInstanceAsync(workflowId);
+        }
+        [HttpGet]
+        [Route("workflow/recipientinstance")]
+        public Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId)
+        {
+            return _workflowAppService.GetInstanceAsync(workflowId);
         }
     }
 }
