@@ -55,7 +55,7 @@ namespace Hx.Workflow.Application
                     version: input.Version <= 0 ? 1 : input.Version);
             foreach (var candidate in input.WkCandidates)
             {
-                entity.WkCandidates.Add(new WkCandidate(
+                entity.WkCandidates.Add(new DefinitionCandidate(
                     candidate.CandidateId,
                     candidate.UserName,
                     candidate.DisplayUserName,
@@ -242,7 +242,7 @@ namespace Hx.Workflow.Application
         public virtual async Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateDto entity)
         {
             var wkCandidates = entity.WkCandidates.ToWkCandidate();
-            var resultEntity = await _wkDefinition.UpdateCandidatesAsync(entity.Id, entity.UserId, wkCandidates);
+            var resultEntity = await _wkDefinition.UpdateCandidatesAsync(entity.Id, entity.UserId, wkCandidates as ICollection<DefinitionCandidate>);
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(resultEntity);
         }
         /// <summary>
@@ -256,7 +256,7 @@ namespace Hx.Workflow.Application
             var resultEntity = await _wkInstanceRepository.UpdateCandidateAsync(
                 entity.WkInstanceId,
                 entity.WkExecutionPointerId,
-                wkCandidates);
+                wkCandidates as ICollection<ExePointerCandidate>);
             return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
         }
         /// <summary>
@@ -267,7 +267,7 @@ namespace Hx.Workflow.Application
         public virtual async Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId)
         {
             var entitys = await _wkInstanceRepository.GetCandidatesAsync(wkInstanceId);
-            return ObjectMapper.Map<ICollection<WkCandidate>, ICollection<WkCandidateDto>>(entitys);
+            return ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkCandidateDto>>(entitys);
         }
     }
 }

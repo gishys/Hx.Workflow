@@ -20,7 +20,7 @@ namespace Hx.Workflow.Domain.Repositories
         Task<WkDefinition> UpdateCandidatesAsync(
             Guid wkDefinitionId,
             Guid userId,
-            ICollection<WkCandidate> wkCandidates);
+            ICollection<DefinitionCandidate> wkCandidates);
         Task<int> GetMaxSortNumberAsync();
     }
 }

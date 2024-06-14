@@ -53,12 +53,17 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public async Task<int> GetMaxSortNumberAsync()
         {
-            return await (await GetDbSetAsync()).MaxAsync(d => d.SortNumber);
+            var dbSet = await GetDbSetAsync();
+            if (dbSet.Any())
+            {
+                return await dbSet.Select(d => d.SortNumber).MaxAsync();
+            }
+            return 0;
         }
         public virtual async Task<WkDefinition> UpdateCandidatesAsync(
             Guid wkDefinitionId,
             Guid userId,
-            ICollection<WkCandidate> wkCandidates)
+            ICollection<DefinitionCandidate> wkCandidates)
         {
             var entity = await (await GetDbSetAsync()).Include(d => d.WkCandidates).FirstOrDefaultAsync(d => d.Id == wkDefinitionId);
             if (entity?.WkCandidates != null)
@@ -68,13 +73,13 @@ namespace Hx.Workflow.EntityFrameworkCore
                 {
                     foreach (var candidate in updateCnadidates.ToList())
                     {
-                        WkCandidate updateCandidate = wkCandidates.FirstOrDefault(
+                        DefinitionCandidate updateCandidate = wkCandidates.FirstOrDefault(
                             d => d.CandidateId == candidate.CandidateId);
                         if (updateCandidate != null)
                             continue;
                         else
                         {
-                            updateCandidate = new WkCandidate(
+                            updateCandidate = new DefinitionCandidate(
                                 candidate.CandidateId,
                                 candidate.UserName,
                                 candidate.DisplayUserName);

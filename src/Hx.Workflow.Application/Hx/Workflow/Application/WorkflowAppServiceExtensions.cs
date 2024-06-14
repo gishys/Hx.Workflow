@@ -67,7 +67,7 @@ namespace Hx.Workflow.Application
                 {
                     foreach (var candidate in node.WkCandidates)
                     {
-                        nodeEntity.AddCandidates(new WkCandidate(
+                        nodeEntity.AddCandidates(new WkNodeCandidate(
                             candidate.CandidateId,
                             candidate.UserName,
                             candidate.DisplayUserName,
@@ -90,12 +90,12 @@ namespace Hx.Workflow.Application
             }
             return nodeEntitys;
         }
-        public static ICollection<WkCandidate> ToWkCandidate(this ICollection<WkCandidateUpdateDto> inputs)
+        public static ICollection<Candidate> ToWkCandidate(this ICollection<WkCandidateUpdateDto> inputs)
         {
-            var resultEntity = new List<WkCandidate>();
+            var resultEntity = new List<Candidate>();
             foreach (var entity in inputs)
             {
-                resultEntity.Add(new WkCandidate(entity.CandidateId, entity.UserName, entity.DisplayUserName, entity.DefaultSelection));
+                resultEntity.Add(new Candidate(entity.CandidateId, entity.UserName, entity.DisplayUserName, entity.DefaultSelection));
             }
             return resultEntity;
         }

@@ -93,14 +93,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)));
             return await queryable.CountAsync();
         }
-        public virtual async Task<ICollection<WkCandidate>> GetCandidatesAsync(Guid wkInstanceId)
+        public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)
         {
             var queryable = (await GetDbSetAsync()).IncludeDetials(true);
             return (await queryable.FirstOrDefaultAsync(d => d.Id == wkInstanceId))
-                ?.WkDefinition.WkCandidates.ToList();
+                ?.WkDefinition.WkCandidates.ToList() as ICollection<ExePointerCandidate>;
         }
         public virtual async Task<WkInstance> UpdateCandidateAsync(
-            Guid wkinstanceId, Guid executionPointerId, ICollection<WkCandidate> wkCandidates)
+            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates)
         {
             var dbSet = await GetDbSetAsync();
             var updateEntity = await dbSet.IncludeDetials(true).FirstOrDefaultAsync(d => d.Id == wkinstanceId);

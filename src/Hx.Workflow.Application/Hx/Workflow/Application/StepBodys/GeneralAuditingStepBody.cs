@@ -75,7 +75,7 @@ namespace Hx.Workflow.Application.StepBodys
                             .WkCandidates
                             .Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
                         if (dcandidate?.Count > 0)
-                            _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, dcandidate);
+                            _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, dcandidate as ICollection<ExePointerCandidate>);
                     }
                 }
                 var effectiveData = DateTime.MinValue;

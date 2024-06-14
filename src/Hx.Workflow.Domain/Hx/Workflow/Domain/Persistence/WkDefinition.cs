@@ -60,7 +60,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// <summary>
         /// 后选者
         /// </summary>
-        public ICollection<WkCandidate> WkCandidates { get; protected set; }
+        public ICollection<DefinitionCandidate> WkCandidates { get; protected set; }
         /// <summary>
         /// 节点集合
         /// </summary>
@@ -94,7 +94,7 @@ namespace Hx.Workflow.Domain.Persistence
             SortNumber = sortNumber;
             TenantId = tenantId;
             Nodes = new List<WkNode>();
-            WkCandidates = new List<WkCandidate>();
+            WkCandidates = new List<DefinitionCandidate>();
         }
         public Task SetWkDefinitionName(string title)
         {
@@ -126,12 +126,12 @@ namespace Hx.Workflow.Domain.Persistence
             Nodes.Add(node);
             return Task.CompletedTask;
         }
-        public Task AddCandidate(WkCandidate input)
+        public Task AddCandidate(DefinitionCandidate input)
         {
             WkCandidates.Add(input);
             return Task.CompletedTask;
         }
-        public Task AddCandidates(ICollection<WkCandidate> inputs)
+        public Task AddCandidates(ICollection<DefinitionCandidate> inputs)
         {
             WkCandidates = inputs;
             return Task.CompletedTask;

@@ -66,6 +66,16 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .HasConstraintName("Pk_WkDef_Candidate")
                 .OnDelete(DeleteBehavior.Cascade);
             });
+            builder.Entity<DefinitionCandidate>(d =>
+            {
+                d.ToTable(model.TablePrefix + "DEFINITION_CANDIDATES", model.Schema, tb => { tb.HasComment("流程模板候选人"); });
+                d.HasKey(d => new { d.NodeId, d.CandidateId });
+                d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
+                d.Property(d => d.NodeId).HasColumnName("NODEID");
+                d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
+                d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
+                d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
+            });
             builder.Entity<WkAuditor>(d =>
             {
                 d.ToTable(model.TablePrefix + "WKAUDITORS", model.Schema, tb => { tb.HasComment("审核"); });
@@ -96,16 +106,6 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WithMany()
                 .HasForeignKey(d => d.ExecutionPointerId)
                 .HasConstraintName("Pk_WkAuditor_ExecPointer");
-            });
-            builder.Entity<WkCandidate>(d =>
-            {
-                d.ToTable(model.TablePrefix + "WKCANDIDATES", model.Schema, tb => { tb.HasComment("流程人员关系"); });
-                d.HasKey(d => new { d.NodeId, d.CandidateId });
-                d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
-                d.Property(d => d.NodeId).HasColumnName("NODEID");
-                d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
-                d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
-                d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
             });
             builder.Entity<WkNode>(t =>
             {
@@ -153,6 +153,16 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .HasConstraintName("Pk_WkNode_OutcomeSteps")
                 .OnDelete(DeleteBehavior.Cascade);
             });
+            builder.Entity<WkNodeCandidate>(d =>
+            {
+                d.ToTable(model.TablePrefix + "NODE_CANDIDATES", model.Schema, tb => { tb.HasComment("流程模板候选人"); });
+                d.HasKey(d => new { d.NodeId, d.CandidateId });
+                d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
+                d.Property(d => d.NodeId).HasColumnName("NODEID");
+                d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
+                d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
+                d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
+            });
             builder.Entity<WkNodePara>(d =>
             {
                 d.ToTable(model.TablePrefix + "WKNODEPARAS", model.Schema, tb => { tb.HasComment("步骤参数"); });
@@ -162,18 +172,18 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.Value).HasColumnName("VALUE").HasMaxLength(WkNodeParaConsts.MaxValue);
             });
             builder.Entity<WkConditionNode>(d =>
-        {
-            d.ToTable(model.TablePrefix + "WKCONDITIONNODES", model.Schema, tb => { tb.HasComment("节点条件"); });
-            d.Property(d => d.Id).HasColumnName("ID");
-            d.Property(d => d.Label).HasColumnName("LABEL").HasMaxLength(WkConditionNodeConsts.MaxLabel);
-            d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
-            d.Property(d => d.NextNodeName).HasColumnName("NEXTNODENAME");
+            {
+                d.ToTable(model.TablePrefix + "WKCONDITIONNODES", model.Schema, tb => { tb.HasComment("节点条件"); });
+                d.Property(d => d.Id).HasColumnName("ID");
+                d.Property(d => d.Label).HasColumnName("LABEL").HasMaxLength(WkConditionNodeConsts.MaxLabel);
+                d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
+                d.Property(d => d.NextNodeName).HasColumnName("NEXTNODENAME");
 
-            d.HasMany(d => d.WkConNodeConditions).WithOne()
-            .HasForeignKey(d => d.WkConditionNodeId)
-            .HasConstraintName("Pk_Candition_ConCondition")
-            .OnDelete(DeleteBehavior.Cascade);
-        });
+                d.HasMany(d => d.WkConNodeConditions).WithOne()
+                .HasForeignKey(d => d.WkConditionNodeId)
+                .HasConstraintName("Pk_Candition_ConCondition")
+                .OnDelete(DeleteBehavior.Cascade);
+            });
             builder.Entity<WkConNodeCondition>(d =>
             {
                 d.ToTable(model.TablePrefix + "WKCONNODECONDITIONS", model.Schema, tb => { tb.HasComment("条件集合"); });
@@ -327,6 +337,16 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WithOne()
                 .HasForeignKey(d => d.ExecutionPointerId)
                 .HasConstraintName("Pk_Pointer_Subscript");
+            });
+            builder.Entity<ExePointerCandidate>(d =>
+            {
+                d.ToTable(model.TablePrefix + "POINTER_CANDIDATES", model.Schema, tb => { tb.HasComment("流程模板候选人"); });
+                d.HasKey(d => new { d.NodeId, d.CandidateId });
+                d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
+                d.Property(d => d.NodeId).HasColumnName("NODEID");
+                d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
+                d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
+                d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
             });
             builder.Entity<WkInstance>(t =>
             {

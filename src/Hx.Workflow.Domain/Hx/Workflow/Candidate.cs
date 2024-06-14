@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Entities;
 
-namespace Hx.Workflow.Domain
+namespace Hx.Workflow
 {
-    public class WkCandidate : Entity
+    public class Candidate : Entity
     {
-        public WkCandidate()
+        public Candidate()
         { }
-        public WkCandidate(Guid candidateId, string userName, string displayUserName, bool defaultSelection = false)
+        public Candidate(Guid candidateId, string userName, string displayUserName, bool defaultSelection = false)
         {
             CandidateId = candidateId;
             UserName = userName;

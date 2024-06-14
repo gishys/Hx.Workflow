@@ -23,9 +23,9 @@ namespace Hx.Workflow.Domain.Repositories
         Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
             WorkflowStatus? status);
-        Task<ICollection<WkCandidate>> GetCandidatesAsync(Guid wkInstanceId);
+        Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
-            Guid wkinstanceId, Guid executionPointerId, ICollection<WkCandidate> wkCandidates);
+            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates);
         /// <summary>
         /// 获取当天编号最大值
         /// </summary>

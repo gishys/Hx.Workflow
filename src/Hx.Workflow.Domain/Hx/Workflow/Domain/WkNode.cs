@@ -56,7 +56,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 节点执行者集合
         /// </summary>
-        public virtual ICollection<WkCandidate> WkCandidates { get; protected set; }
+        public virtual ICollection<WkNodeCandidate> WkCandidates { get; protected set; }
         /// <summary>
         /// 流程定义
         /// </summary>
@@ -88,7 +88,7 @@ namespace Hx.Workflow.Domain
             Position = new List<WkPoint>();
             NextNodes = new List<WkConditionNode>();
             OutcomeSteps = new List<WkNodePara>();
-            WkCandidates = new List<WkCandidate>();
+            WkCandidates = new List<WkNodeCandidate>();
             ApplicationForms = new List<ApplicationForm>();
         }
         public Task SetStepName(string name)
@@ -101,7 +101,7 @@ namespace Hx.Workflow.Domain
             OutcomeSteps.Add(para);
             return Task.CompletedTask;
         }
-        public Task AddCandidates(WkCandidate para)
+        public Task AddCandidates(WkNodeCandidate para)
         {
             WkCandidates.Add(para);
             return Task.CompletedTask;
