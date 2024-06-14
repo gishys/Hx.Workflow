@@ -21,11 +21,12 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task CreateAsync(WkDefinitionCreateDto input)
         {
+            var sortNumber = await _definitionRespository.GetMaxSortNumberAsync();
             var entity = new WkDefinition(
                     input.Title,
                     input.Icon,
                     input.Color,
-                    1,
+                    sortNumber++,
                     input.Discription,
                     input.BusinessType,
                     input.ProcessType,

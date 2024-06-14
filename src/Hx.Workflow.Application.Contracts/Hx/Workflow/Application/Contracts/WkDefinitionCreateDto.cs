@@ -27,10 +27,6 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public string Color { get; set; }
         /// <summary>
-        /// get or set color
-        /// </summary>
-        public int SortNumber { get; set; }
-        /// <summary>
         /// 描述
         /// </summary>
         public string Discription { get; set; }

@@ -319,7 +319,7 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.HasMany(d => d.WkCandidates)
                 .WithOne()
-                .HasForeignKey(d => d.CandidateId)
+                .HasForeignKey(d => d.NodeId)
                 .HasConstraintName("Pk_Pointer_Candidate")
                 .OnDelete(DeleteBehavior.Cascade);
 
