@@ -20,6 +20,13 @@ namespace Hx.Workflow.EntityFrameworkCore
         public WkDefinitionRespository(IDbContextProvider<WkDbContext> options)
             : base(options)
         { }
+        public override async Task<WkDefinition> FindAsync(
+            Guid id, bool includeDetails = true, CancellationToken cancellation = default)
+        {
+            return await (await GetDbSetAsync())
+                    .IncludeDetials(includeDetails)
+                    .FirstOrDefaultAsync(d => d.Id == id, cancellation);
+        }
         /// <summary>
         /// Get entity by id an version
         /// </summary>

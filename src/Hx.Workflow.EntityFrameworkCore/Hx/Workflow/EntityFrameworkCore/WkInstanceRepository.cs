@@ -46,9 +46,9 @@ namespace Hx.Workflow.EntityFrameworkCore
         public override async Task<WkInstance> FindAsync(
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
-            return (await GetDbSetAsync())
+            return await (await GetDbSetAsync())
                     .IncludeDetials(includeDetails)
-                    .FirstOrDefault(d => d.Id == id);
+                    .FirstOrDefaultAsync(d => d.Id == id, cancellation);
         }
         public virtual async Task<WkExecutionPointer> GetPointerAsync(Guid pointerId)
         {
@@ -110,12 +110,15 @@ namespace Hx.Workflow.EntityFrameworkCore
             Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates)
         {
             var dbSet = await GetDbSetAsync();
-            var updateEntity = await dbSet.IncludeDetials(true).FirstOrDefaultAsync(d => d.Id == wkinstanceId);
+            var updateEntity = await dbSet
+                .Include(d => d.ExecutionPointers)
+                .ThenInclude(d => d.WkCandidates)
+                .FirstOrDefaultAsync(d => d.Id == wkinstanceId);
             if (updateEntity != null)
             {
                 var executionPointer = updateEntity.ExecutionPointers.FirstOrDefault(d => d.Id == executionPointerId);
                 if (executionPointer != null)
-                    await executionPointer.AddCandidates(wkCandidates.ToCandidates(executionPointer.WkCandidates));
+                    await executionPointer.AddCandidates(wkCandidates);
             }
             return await UpdateAsync(updateEntity);
         }

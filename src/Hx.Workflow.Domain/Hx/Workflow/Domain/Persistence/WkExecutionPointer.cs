@@ -85,6 +85,7 @@ namespace Hx.Workflow.Domain.Persistence
             Recipient = recipient;
             RecipientId = recipientId;
             ExtensionAttributes = new List<WkExtensionAttribute>();
+            WkCandidates = new List<ExePointerCandidate>();
         }
         public Task SetStepId(int stepId)
         {

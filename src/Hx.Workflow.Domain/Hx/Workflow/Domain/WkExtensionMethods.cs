@@ -241,28 +241,19 @@ namespace Hx.Workflow.Domain
             }
             return persistable;
         }
-        public static ICollection<ExePointerCandidate> ToCandidates(
-            this ICollection<ExePointerCandidate> entity,
-            ICollection<ExePointerCandidate> sourceEntitys)
+        public static ICollection<ExePointerCandidate> ToCandidates(this ICollection<WkNodeCandidate> nodes)
         {
-            foreach (var candidate in sourceEntitys)
+            var candidates = new List<ExePointerCandidate>();
+            foreach (var node in nodes)
             {
-                ExePointerCandidate updateCandidate = entity.FirstOrDefault(
-                    d => d.CandidateId == candidate.CandidateId);
-                if (updateCandidate != null)
-                    continue;
-                else
-                {
-                    updateCandidate = new ExePointerCandidate(
-                        candidate.CandidateId,
-                        candidate.UserName,
-                        candidate.DisplayUserName,
-                        candidate.DefaultSelection);
-                    entity.Add(updateCandidate);
-                }
-                updateCandidate.SetSelection(true);
+                candidates.Add(new ExePointerCandidate(
+                    node.CandidateId,
+                    node.UserName,
+                    node.DisplayUserName,
+                    node.DefaultSelection
+                    ));
             }
-            return entity;
+            return candidates;
         }
     }
 }

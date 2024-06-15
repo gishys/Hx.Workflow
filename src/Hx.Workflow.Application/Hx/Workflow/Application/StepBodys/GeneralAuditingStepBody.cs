@@ -69,14 +69,19 @@ namespace Hx.Workflow.Application.StepBodys
                     if (tempCandidates?.Length > 0)
                     {
                         var definition = _wkDefinition.FindAsync(instance.WkDifinitionId).Result;
-                        if (definition.WkCandidates?.Count > 0)
+                        if (definition != null)
                         {
-                            var dcandidate = definition.Nodes
-                                .First(d => d.Name == executionPointer.StepName)
-                                .WkCandidates
+                            var pointer = definition.Nodes.First(d => d.Name == executionPointer.StepName);
+                            if (pointer != null)
+                            {
+                                var dcandidate = pointer.WkCandidates
                                 .Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
-                            if (dcandidate?.Count > 0)
-                                _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, dcandidate as ICollection<ExePointerCandidate>);
+                                if (dcandidate?.Count > 0)
+                                    _wkInstance.UpdateCandidateAsync(
+                                        instance.Id,
+                                        executionPointer.Id,
+                                        dcandidate.ToCandidates());
+                            }
                         }
                     }
                 }
