@@ -21,18 +21,21 @@ namespace Hx.Workflow.Application
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkDefinitionRespository _wkDefinition;
         private readonly IWkInstanceRepository _wkInstanceRepository;
+        private readonly IWkErrorRepository _errorRepository;
         public WorkflowAppService(
             IWkStepBodyRespository wkStepBody,
             HxWorkflowManager hxWorkflowManager,
             IWkAuditorRespository wkAuditor,
             IWkDefinitionRespository wkDefinition,
-            IWkInstanceRepository wkInstanceRepository)
+            IWkInstanceRepository wkInstanceRepository,
+            IWkErrorRepository errorRepository)
         {
             _wkStepBody = wkStepBody;
             _hxWorkflowManager = hxWorkflowManager;
             _wkAuditor = wkAuditor;
             _wkDefinition = wkDefinition;
             _wkInstanceRepository = wkInstanceRepository;
+            _errorRepository = errorRepository;
         }
         /// <summary>
         /// 创建流程模版
@@ -108,7 +111,7 @@ namespace Hx.Workflow.Application
                 var entitys = await _wkDefinition.GetListHasPermissionAsync(CurrentUser.Id.Value);
                 return ObjectMapper.Map<List<WkDefinition>, List<WkDefinitionDto>>(entitys);
             }
-            throw new UserFriendlyException("无法获取当前登录用户！");
+            throw new UserFriendlyException("未获取到当前登录用户！");
         }
         /// <summary>
         /// 通过流程模版Id创建流程
@@ -205,17 +208,30 @@ namespace Hx.Workflow.Application
             }
             else
             {
-                throw new UserFriendlyException("为获取到当前登录用户！");
+                throw new UserFriendlyException("未获取到当前登录用户！");
             }
         }
-        public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId)
+        public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
             if (CurrentUser.Id.HasValue)
             {
                 var instance = await _wkInstanceRepository.FindAsync(workflowId);
                 var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
-                var pointer = instance.ExecutionPointers.First(d => d.Active);
+                WkExecutionPointer pointer;
+                if (pointerId.HasValue)
+                {
+                    pointer = instance.ExecutionPointers.First(d => d.Id == pointerId.Value);
+                }
+                else
+                {
+                    pointer = instance.ExecutionPointers.First(d => d.Active);
+                }
                 var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
+                var currentPointerDto = ObjectMapper.Map<WkExecutionPointer, WkExecutionPointerDto>(pointer);
+                currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms);
+                currentPointerDto.StepDisplayName = step.DisplayName;
+                var errors = await _errorRepository.GetListByIdAsync(workflowId, pointerId);
+                currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
                 return new WkCurrentInstanceDetailsDto()
                 {
                     Id = instance.Id,
@@ -224,12 +240,32 @@ namespace Hx.Workflow.Application
                     ReceiveTime = pointer.StartTime?.ToString("t"),
                     RegistrationCategory = instance.WkDefinition.BusinessType,
                     BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("t"),
-                    Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms),
+                    CurrentExecutionPointer = currentPointerDto,
                 };
             }
             else
             {
-                throw new UserFriendlyException("为获取到当前登录用户！");
+                throw new UserFriendlyException("未获取到当前登录用户！");
+            }
+        }
+        public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                var instance = await _wkInstanceRepository.FindAsync(workflowId);
+                var pointer = instance.ExecutionPointers.OrderBy(d => d.StepId).First(d => d.Active);
+                return instance.ExecutionPointers.Select(
+                    d => new WkNodeTreeDto()
+                    {
+                        Key = d.Id,
+                        Title = d.StepName,
+                        Selected = d.Active
+                    })
+                    .ToList();
+            }
+            else
+            {
+                throw new UserFriendlyException("未获取到当前登录用户！");
             }
         }
         /// <summary>

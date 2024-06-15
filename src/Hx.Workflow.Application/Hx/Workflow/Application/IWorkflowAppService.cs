@@ -36,6 +36,7 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <returns></returns>
         Task RecipientInstanceAsync(Guid workflowId);
-        Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId);
+        Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId);
+        Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId);
     }
 }

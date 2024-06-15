@@ -14,6 +14,6 @@ namespace Hx.Workflow.Application.Contracts
         public string Receiver { get; set; }
         public string ReceiveTime { get; set; }
         public string BusinessCommitmentDeadline { get; set; }
-        public ICollection<ApplicationFormDto> Forms {  get; set; }
+        public WkExecutionPointerDto CurrentExecutionPointer { get; set; }
     }
 }

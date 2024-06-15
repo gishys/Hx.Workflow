@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Users;
@@ -15,7 +16,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-    public class GeneralAuditingStepBody : StepBody, ITransientDependency
+    public class GeneralAuditingStepBody : StepBodyAsync, ITransientDependency
     {
         private const string ActivityName = "GeneralAuditActivity";
         private readonly IWkAuditorRespository _wkAuditor;
@@ -41,9 +42,9 @@ namespace Hx.Workflow.Application.StepBodys
         /// 分支判断
         /// </summary>
         public string DecideBranching { get; set; } = null;
-        public override ExecutionResult Run(IStepExecutionContext context)
+        public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var instance = _wkInstance.FindAsync(new Guid(context.Workflow.Id)).Result;
+            var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
             if (instance.WkDefinition.LimitTime.HasValue)
             {
                 var workflowData = new Dictionary<string, object>
@@ -62,32 +63,36 @@ namespace Hx.Workflow.Application.StepBodys
                     _currentUser.UserName,
                     userId: _currentUser.Id,
                     status: EnumAuditStatus.UnAudited);
-                var rAuditorEntity = _wkAuditor.InsertAsync(auditorInstance).Result;
-                if (!string.IsNullOrEmpty(Candidates))
+                await _wkAuditor.InsertAsync(auditorInstance);
+                var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);
+                if (definition == null)
+                    throw new UserFriendlyException("获取实例流程模板失败！");
+                var pointer = definition.Nodes.First(d => d.Name == executionPointer.StepName);
+                if (pointer == null)
+                    throw new UserFriendlyException("获取流程节点失败！");
+                List<WkNodeCandidate> dcandidate;
+                if (pointer.StepNodeType == StepNodeType.Activity)
                 {
-                    var tempCandidates = Candidates.Split(',');
-                    if (tempCandidates?.Length > 0)
+                    if (!string.IsNullOrEmpty(Candidates))
                     {
-                        var definition = _wkDefinition.FindAsync(instance.WkDifinitionId).Result;
-                        if (definition != null)
+                        var tempCandidates = Candidates.Split(',');
+                        if (tempCandidates?.Length > 0)
                         {
-                            var pointer = definition.Nodes.First(d => d.Name == executionPointer.StepName);
-                            if (pointer != null)
-                            {
-                                var dcandidate = pointer.WkCandidates
-                                .Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
-                                if (dcandidate?.Count > 0)
-                                    _wkInstance.UpdateCandidateAsync(
-                                        instance.Id,
-                                        executionPointer.Id,
-                                        dcandidate.ToCandidates());
-                            }
+                            dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
                         }
+                    }
+                    else
+                    {
+                        throw new UserFriendlyException("请选择正确的接收用户！");
                     }
                 }
                 else
                 {
-                    throw new UserFriendlyException("请选择正确的接收用户！");
+                    dcandidate = [new(_currentUser.Id.Value, _currentUser.UserName, _currentUser.Name, true)];
+                    await _wkInstance.UpdateCandidateAsync(
+                        instance.Id,
+                        executionPointer.Id,
+                        dcandidate.ToCandidates());
                 }
                 var effectiveData = DateTime.MinValue;
                 var executionResult = ExecutionResult.WaitForActivity(

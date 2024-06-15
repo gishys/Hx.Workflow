@@ -33,6 +33,9 @@ namespace Hx.Workflow.Application
             CreateMap<ExePointerCandidate, WkCandidateDto>(MemberList.Destination);
             CreateMap<DefinitionCandidate, WkCandidateDto>(MemberList.Destination);
             CreateMap<WkNodeCandidate, WkCandidateDto>(MemberList.Destination);
+            CreateMap<WkExecutionPointer, WkExecutionPointerDto>(MemberList.None)
+                .ForMember(d => d.Status, d => d.MapFrom(f => (int)f.Status));
+            CreateMap<WkExecutionError, WkExecutionErrorDto>(MemberList.Destination);
         }
     }
 }
