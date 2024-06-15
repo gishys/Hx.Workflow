@@ -81,7 +81,9 @@ namespace Hx.Workflow.EntityFrameworkCore
             int maxResultCount)
         {
             var queryable = (await GetDbSetAsync())
-                .IncludeDetials(true)
+                .Include(x => x.ExecutionPointers)
+                .Include(x => x.WkDefinition)
+                .Include(x => x.WkAuditors)
                 .WhereIf(status != null, d => d.Status == status)
                 .Where(d => d.WkAuditors.Any(a => a.Status == EnumAuditStatus.UnAudited && ids.Any(id => id == a.UserId)));
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
@@ -92,7 +94,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             var queryable = (await GetDbSetAsync())
                 .WhereIf(status != null, d => d.Status == status)
-                .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)));
+                .Where(d => d.WkAuditors.Any(a => a.Status == EnumAuditStatus.UnAudited && ids.Any(id => id == a.UserId)));
             return await queryable.CountAsync();
         }
         public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)

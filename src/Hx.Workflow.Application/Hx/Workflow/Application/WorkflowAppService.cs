@@ -164,7 +164,7 @@ namespace Hx.Workflow.Application
             foreach (var instance in instances)
             {
                 var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
-                var pointer = instance.ExecutionPointers.First(d => d.Active);
+                var pointer = instance.ExecutionPointers.First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
                 var processInstance = new WkProcessInstanceDto
                 {
                     EarlyWarning = GetEarlyWarning(businessData, instance),
