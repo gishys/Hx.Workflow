@@ -27,12 +27,12 @@ namespace Hx.Workflow.Application.StepBodys
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
             IWkDefinitionRespository wkDefinition,
-            ICurrentUser currentUser)
+            IAbpLazyServiceProvider LazyServiceProvider)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
-            _currentUser = currentUser;
+            _currentUser = LazyServiceProvider.LazyGetRequiredService<ICurrentUser>();
         }
         /// <summary>
         /// 审核人
@@ -88,11 +88,18 @@ namespace Hx.Workflow.Application.StepBodys
                 }
                 else
                 {
-                    dcandidate = [new(_currentUser.Id.Value, _currentUser.UserName, _currentUser.Name, true)];
-                    await _wkInstance.UpdateCandidateAsync(
-                        instance.Id,
-                        executionPointer.Id,
-                        dcandidate.ToCandidates());
+                    if (_currentUser.Id.HasValue)
+                    {
+                        dcandidate = [new(_currentUser.Id.Value, _currentUser.UserName, _currentUser.Name, true)];
+                        await _wkInstance.UpdateCandidateAsync(
+                            instance.Id,
+                            executionPointer.Id,
+                            dcandidate.ToCandidates());
+                    }
+                    else
+                    {
+                        throw new UserFriendlyException("未获取到当前登录用户！");
+                    }
                 }
                 var effectiveData = DateTime.MinValue;
                 var executionResult = ExecutionResult.WaitForActivity(

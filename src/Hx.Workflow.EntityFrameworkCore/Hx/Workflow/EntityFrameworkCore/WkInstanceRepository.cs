@@ -132,8 +132,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             int maxNumber = dbSet
                 .AsEnumerable()
                 .Where(d => d.CreateTime.ToString("d") == DateTime.Now.ToString("d"))
-                .OrderByDescending(d => int.Parse(IntRegex().Match(d.BusinessNumber).Value))
-                .Select(d => int.Parse(IntRegex().Match(d.BusinessNumber).Value))
+                .OrderByDescending(d => int.Parse(IntRegex().Match(d.BusinessNumber.Left(5)).Value))
+                .Select(d => int.Parse(IntRegex().Match(d.BusinessNumber.Left(5)).Value))
                 .FirstOrDefault();
             return maxNumber;
         }
