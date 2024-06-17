@@ -17,7 +17,6 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-    [Authorize]
     public class GeneralAuditingStepBody : StepBodyAsync, ITransientDependency
     {
         private const string ActivityName = "GeneralAuditActivity";
@@ -25,15 +24,18 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;
         private readonly ICurrentUser _currentUser;
+        private readonly IAuthorizationService _authorizationService;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
             IWkDefinitionRespository wkDefinition,
-            IAbpLazyServiceProvider LazyServiceProvider)
+            IAbpLazyServiceProvider LazyServiceProvider,
+            IAuthorizationService authorizationService)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
+            _authorizationService = authorizationService;
             _currentUser = LazyServiceProvider.LazyGetRequiredService<ICurrentUser>();
         }
         /// <summary>
@@ -46,7 +48,8 @@ namespace Hx.Workflow.Application.StepBodys
         public string DecideBranching { get; set; } = null;
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            Console.WriteLine($"当前登录用户：{_currentUser.Id}:{_currentUser.Name}");
+            var result = await _authorizationService.AuthorizeAsync("AbpIdentity.Users");
+            Console.WriteLine($"当前登录用户：{_currentUser.Id}:{_currentUser.Name}，权限:{result.Succeeded}");
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
             if (instance.WkDefinition.LimitTime.HasValue)
             {
@@ -87,7 +90,9 @@ namespace Hx.Workflow.Application.StepBodys
                 }
                 else
                 {
-                    var defCandidate = definition.WkCandidates.First(d => d.CandidateId == new Guid(Candidates));
+
+                    if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
+                    var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
                     var auditorInstance =
                         new WkAuditor(
                             instance.Id,

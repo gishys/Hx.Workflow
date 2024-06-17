@@ -15,7 +15,6 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
     public class WorkflowAppService : HxWorkflowAppServiceBase, IWorkflowAppService
     {
         private readonly IWkStepBodyRespository _wkStepBody;
@@ -149,7 +148,7 @@ namespace Hx.Workflow.Application
             int skipCount = 0,
             int maxResultCount = 20)
         {
-            if (userIds?.Count <= 0 && CurrentUser?.Id != null)
+            if (userIds?.Count >= 0 && CurrentUser?.Id != null)
             {
                 userIds = new List<Guid>
                 {
