@@ -96,10 +96,9 @@ namespace Hx.Workflow.Api
         }
         [HttpGet]
         [Route("workflow/mywkinstances")]
-        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(Guid userId)
+        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync()
         {
-            return _workflowAppService.GetMyWkInstanceAsync(
-                userIds: new Guid[] { userId });
+            return _workflowAppService.GetMyWkInstanceAsync();
         }
         [HttpGet]
         [Route("workflow/candidate/{wkInstanceId}")]

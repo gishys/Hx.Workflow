@@ -148,7 +148,7 @@ namespace Hx.Workflow.Application
             int skipCount = 0,
             int maxResultCount = 20)
         {
-            if (userIds?.Count <= 0 && CurrentUser?.Id != null)
+            if ((userIds == null || userIds.Count == 0) && CurrentUser.Id.HasValue)
             {
                 userIds = [CurrentUser.Id.Value];
             }
