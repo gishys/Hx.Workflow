@@ -44,6 +44,7 @@ namespace Hx.Workflow.Application.StepBodys
         public string DecideBranching { get; set; } = null;
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
+            Console.WriteLine($"当前登录用户：{_currentUser.Id}:{_currentUser.Name}");
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
             if (instance.WkDefinition.LimitTime.HasValue)
             {
@@ -51,7 +52,7 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     { "BusinessCommitmentDeadline", context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime) }
                 };
-                context.Workflow.Data = workflowData;
+                context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
             }
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             if (!executionPointer.EventPublished)
@@ -79,7 +80,7 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     else
                     {
-                        throw new UserFriendlyException("请选择正确的接收用户！");
+                        throw new UserFriendlyException("未传入正确的接收者！");
                     }
                 }
                 else
@@ -115,16 +116,8 @@ namespace Hx.Workflow.Application.StepBodys
                     throw new UserFriendlyException("参数DecideBranching错误！");
                 var auditStatus = eventInstancePersistData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
                 await Audit(eventData.Data, executionPointer.Id, auditStatus);
-                var evantData = eventData.Data as Dictionary<string, object>;
-                var workflowData = new Dictionary<string, object>(context.Workflow.Data as Dictionary<string, object>);
-                foreach (var item in evantData)
-                {
-                    if (!workflowData.ContainsKey(item.Key))
-                    {
-                        workflowData.Add(item.Key, item.Value);
-                    }
-                }
-                context.Workflow.Data = workflowData;
+                var workflowData = context.Workflow.Data as Dictionary<string, object>;
+                context.Workflow.Data = workflowData.Cancat(eventData.Data as Dictionary<string, object>);
             }
             else
             {
