@@ -17,7 +17,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-    [AllowAnonymous]
+    [Authorize]
     public class GeneralAuditingStepBody : StepBodyAsync, ITransientDependency
     {
         private const string ActivityName = "GeneralAuditActivity";
