@@ -83,6 +83,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             var queryable = (await GetDbSetAsync())
                 .Include(x => x.ExecutionPointers)
                 .Include(x => x.WkDefinition)
+                .ThenInclude(x=>x.Nodes)
                 .Include(x => x.WkAuditors)
                 .WhereIf(status != null, d => d.Status == status)
                 .Where(d => d.WkAuditors.Any(a => a.Status == EnumAuditStatus.UnAudited && ids.Any(id => id == a.UserId)));
