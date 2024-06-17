@@ -192,7 +192,7 @@ namespace Hx.Workflow.Domain.Persistence
             WkCandidates = wkCandidates;
             return Task.CompletedTask;
         }
-        public Task SetSubmitterInfo(string userName, Guid submitterId)
+        public Task SetSubmitterInfo(string userName, Guid? submitterId)
         {
             Submitter = userName;
             SubmitterId = submitterId;

@@ -148,12 +148,9 @@ namespace Hx.Workflow.Application
             int skipCount = 0,
             int maxResultCount = 20)
         {
-            if (userIds?.Count >= 0 && CurrentUser?.Id != null)
+            if (userIds?.Count <= 0 && CurrentUser?.Id != null)
             {
-                userIds = new List<Guid>
-                {
-                    (Guid)CurrentUser.Id
-                };
+                userIds = [CurrentUser.Id.Value];
             }
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
@@ -215,47 +212,40 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
-            if (CurrentUser.Id.HasValue)
+            var instance = await _wkInstanceRepository.FindAsync(workflowId);
+            var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
+            WkExecutionPointer pointer;
+            if (pointerId.HasValue)
             {
-                var instance = await _wkInstanceRepository.FindAsync(workflowId);
-                var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
-                WkExecutionPointer pointer;
-                if (pointerId.HasValue)
-                {
-                    pointer = instance.ExecutionPointers.First(d => d.Id == pointerId.Value);
-                }
-                else
-                {
-                    pointer = instance.ExecutionPointers.First(d => d.Active);
-                }
-                var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
-                var currentPointerDto = ObjectMapper.Map<WkExecutionPointer, WkExecutionPointerDto>(pointer);
-                currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms);
-                currentPointerDto.StepDisplayName = step.DisplayName;
-                var errors = await _errorRepository.GetListByIdAsync(workflowId, pointerId);
-                currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
-                return new WkCurrentInstanceDetailsDto()
-                {
-                    Id = instance.Id,
-                    BusinessNumber = instance.BusinessNumber,
-                    Receiver = pointer.Recipient,
-                    ReceiveTime = pointer.StartTime?.ToString("t"),
-                    RegistrationCategory = instance.WkDefinition.BusinessType,
-                    BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("t"),
-                    CurrentExecutionPointer = currentPointerDto,
-                };
+                pointer = instance.ExecutionPointers.First(d => d.Id == pointerId.Value);
             }
             else
             {
-                throw new UserFriendlyException("未获取到当前登录用户！");
+                pointer = instance.ExecutionPointers.First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
             }
+            var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
+            var currentPointerDto = ObjectMapper.Map<WkExecutionPointer, WkExecutionPointerDto>(pointer);
+            currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms);
+            currentPointerDto.StepDisplayName = step.DisplayName;
+            var errors = await _errorRepository.GetListByIdAsync(workflowId, pointerId);
+            currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
+            return new WkCurrentInstanceDetailsDto()
+            {
+                Id = instance.Id,
+                BusinessNumber = instance.BusinessNumber,
+                Receiver = pointer.Recipient,
+                ReceiveTime = pointer.StartTime?.ToString("D"),
+                RegistrationCategory = instance.WkDefinition.BusinessType,
+                BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("D"),
+                CurrentExecutionPointer = currentPointerDto,
+            };
         }
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
             if (CurrentUser.Id.HasValue)
             {
                 var instance = await _wkInstanceRepository.FindAsync(workflowId);
-                var pointer = instance.ExecutionPointers.OrderBy(d => d.StepId).First(d => d.Active);
+                var pointer = instance.ExecutionPointers.OrderBy(d => d.StepId).First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
                 return instance.ExecutionPointers.Select(
                     d => new WkNodeTreeDto()
                     {

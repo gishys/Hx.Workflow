@@ -103,7 +103,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             var instance = await queryable.FirstOrDefaultAsync(d => d.Id == wkInstanceId);
             if (instance != null && instance.Status == WorkflowStatus.Runnable)
             {
-                var currentPointer = instance.ExecutionPointers.First(d => d.Status == PointerStatus.Running);
+                var currentPointer = instance.ExecutionPointers.First(d => d.Status == PointerStatus.Running || d.Status == PointerStatus.WaitingForEvent);
                 return currentPointer.WkCandidates;
             }
             return new Collection<ExePointerCandidate>();
@@ -145,7 +145,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId)
         {
             var instance = await FindAsync(workflowId);
-            var exePointer = instance.ExecutionPointers.First(d => d.Status == PointerStatus.Running);
+            var exePointer = instance.ExecutionPointers.First(d => d.Status == PointerStatus.WaitingForEvent);
             if (!exePointer.WkCandidates.Any(d => d.CandidateId == currentUserId))
             {
                 throw new UserFriendlyException("没有权限接收实例！");

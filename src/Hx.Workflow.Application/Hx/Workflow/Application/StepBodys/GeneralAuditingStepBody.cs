@@ -23,20 +23,17 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;
-        private readonly ICurrentUser _currentUser;
         private readonly IAuthorizationService _authorizationService;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
             IWkDefinitionRespository wkDefinition,
-            IAbpLazyServiceProvider LazyServiceProvider,
             IAuthorizationService authorizationService)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
             _authorizationService = authorizationService;
-            _currentUser = LazyServiceProvider.LazyGetRequiredService<ICurrentUser>();
         }
         /// <summary>
         /// 审核人
@@ -49,7 +46,7 @@ namespace Hx.Workflow.Application.StepBodys
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var result = await _authorizationService.AuthorizeAsync("AbpIdentity.Users");
-            Console.WriteLine($"当前登录用户：{_currentUser.Id}:{_currentUser.Name}，权限:{result.Succeeded}");
+            Console.WriteLine($"权限:{result.Succeeded}");
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
             if (instance.WkDefinition.LimitTime.HasValue)
             {
