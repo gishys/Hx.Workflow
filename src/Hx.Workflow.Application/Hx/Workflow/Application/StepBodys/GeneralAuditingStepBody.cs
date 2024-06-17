@@ -3,6 +3,7 @@ using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
+    [AllowAnonymous]
     public class GeneralAuditingStepBody : StepBodyAsync, ITransientDependency
     {
         private const string ActivityName = "GeneralAuditActivity";

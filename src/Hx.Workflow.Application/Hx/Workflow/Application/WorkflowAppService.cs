@@ -3,6 +3,7 @@ using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
+    [AllowAnonymous]
     public class WorkflowAppService : HxWorkflowAppServiceBase, IWorkflowAppService
     {
         private readonly IWkStepBodyRespository _wkStepBody;
@@ -165,19 +167,20 @@ namespace Hx.Workflow.Application
             {
                 var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
                 var pointer = instance.ExecutionPointers.First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
+                var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
                 var processInstance = new WkProcessInstanceDto
                 {
                     EarlyWarning = GetEarlyWarning(businessData, instance),
                     BusinessNumber = instance.BusinessNumber,
                     ProcessName = businessData.ProcessName,
                     Located = businessData.Located,
-                    ProcessingStepName = pointer.StepName,
+                    ProcessingStepName = step.DisplayName,
                     Recipient = pointer.Recipient,
                     Submitter = pointer.Submitter,
-                    ReceivingTime = instance.CreateTime.ToString("t"),
+                    ReceivingTime = instance.CreateTime.ToString("D"),
                     State = instance.Status.ToString(),
                     BusinessType = instance.WkDefinition.BusinessType,
-                    BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("t"),
+                    BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("D"),
                     ProcessType = instance.WkDefinition.ProcessType,
                 };
                 result.Add(processInstance);

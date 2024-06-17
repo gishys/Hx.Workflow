@@ -222,7 +222,7 @@ namespace Hx.Workflow.Domain
                     await epTemp.SetOutcome(JsonConvert.SerializeObject(exe.Outcome, SerializerSettings));
                     await epTemp.SetStatus(exe.Status);
                     await epTemp.SetScope(string.Join(';', exe.Scope));
-                    await epTemp.SetSubmitter(persistData.UserName, persistData.UserId);
+                    await epTemp.SetSubmitterInfo(persistData.UserName, persistData.UserId);
                 }
                 foreach (var attr in exe.ExtensionAttributes)
                 {

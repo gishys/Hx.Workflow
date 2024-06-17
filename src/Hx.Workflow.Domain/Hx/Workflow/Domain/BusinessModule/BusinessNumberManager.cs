@@ -30,7 +30,7 @@ namespace Hx.Workflow.Domain.BusinessModule
                     async () =>
                     {
                         var maxNumber = await WkInstanceRepository.GetMaxNumberAsync();
-                        return new BusinessNumberCache(businessType, maxNumber);
+                        return new BusinessNumberCache(key, maxNumber);
                     },
                     () => new DistributedCacheEntryOptions()
                     {

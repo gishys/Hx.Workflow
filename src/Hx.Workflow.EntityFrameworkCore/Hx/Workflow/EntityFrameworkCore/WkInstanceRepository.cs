@@ -134,8 +134,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             int maxNumber = dbSet
                 .AsEnumerable()
                 .Where(d => d.CreateTime.ToString("d") == DateTime.Now.ToString("d"))
-                .OrderByDescending(d => int.Parse(IntRegex().Match(d.BusinessNumber.Left(5)).Value))
-                .Select(d => int.Parse(IntRegex().Match(d.BusinessNumber.Left(5)).Value))
+                .OrderByDescending(d => int.Parse(IntRegex().Match(d.BusinessNumber.Right(5)).Value))
+                .Select(d => int.Parse(IntRegex().Match(d.BusinessNumber.Right(5)).Value))
                 .FirstOrDefault();
             return maxNumber;
         }
@@ -151,6 +151,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 throw new UserFriendlyException("没有权限接收实例！");
             }
             exePointer.WkCandidates.RemoveAll(d => d.CandidateId != currentUserId);
+            var candidate = exePointer.WkCandidates.First(d => d.CandidateId == currentUserId);
+            await exePointer.SetRecipientInfo(candidate.UserName, currentUserId);
             return await UpdateAsync(instance);
         }
     }
