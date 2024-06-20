@@ -76,6 +76,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> ids,
+            string businessNumber,
             WorkflowStatus? status,
             int skipCount,
             int maxResultCount)
@@ -83,19 +84,24 @@ namespace Hx.Workflow.EntityFrameworkCore
             var queryable = (await GetDbSetAsync())
                 .Include(x => x.ExecutionPointers)
                 .Include(x => x.WkDefinition)
-                .ThenInclude(x=>x.Nodes)
+                .ThenInclude(x => x.Nodes)
                 .Include(x => x.WkAuditors)
                 .WhereIf(status != null, d => d.Status == status)
-                .Where(d => d.WkAuditors.Any(a => a.Status == EnumAuditStatus.UnAudited && ids.Any(id => id == a.UserId)));
+                .WhereIf(businessNumber == null, d => d.BusinessNumber.Contains(businessNumber))
+                .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)) ||
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent || a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
+            string businessNumber,
             WorkflowStatus? status)
         {
             var queryable = (await GetDbSetAsync())
                 .WhereIf(status != null, d => d.Status == status)
-                .Where(d => d.WkAuditors.Any(a => a.Status == EnumAuditStatus.UnAudited && ids.Any(id => id == a.UserId)));
+                .WhereIf(businessNumber == null, d => d.BusinessNumber.Contains(businessNumber))
+                .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)) ||
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent || a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.CountAsync();
         }
         public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)

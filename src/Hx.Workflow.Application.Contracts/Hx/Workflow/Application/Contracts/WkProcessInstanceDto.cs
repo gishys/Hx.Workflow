@@ -8,6 +8,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkProcessInstanceDto
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 预警
         /// </summary>
@@ -60,5 +61,9 @@ namespace Hx.Workflow.Application.Contracts
         /// 流程类型
         /// </summary>
         public string ProcessType { get; set; }
+        /// <summary>
+        /// 是否已签收
+        /// </summary>
+        public bool IsSign {  get; set; }
     }
 }

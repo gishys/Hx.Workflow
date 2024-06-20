@@ -17,11 +17,13 @@ namespace Hx.Workflow.Domain.Repositories
         Task<WkExecutionPointer> GetPointerAsync(Guid pointerId);
         Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> id,
+            string businessNumber,
             WorkflowStatus? status,
             int skipCount,
             int maxResultCount);
         Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
+            string businessNumber,
             WorkflowStatus? status);
         Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(

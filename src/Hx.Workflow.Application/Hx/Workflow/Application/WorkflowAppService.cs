@@ -144,6 +144,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
+            string businessNumber = null,
             ICollection<Guid> userIds = null,
             int skipCount = 0,
             int maxResultCount = 20)
@@ -155,10 +156,11 @@ namespace Hx.Workflow.Application
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,
+                businessNumber,
                 status,
                 skipCount,
                 maxResultCount);
-            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds, status);
+            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds, businessNumber, status);
             foreach (var instance in instances)
             {
                 var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
@@ -166,6 +168,7 @@ namespace Hx.Workflow.Application
                 var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
                 var processInstance = new WkProcessInstanceDto
                 {
+                    Id = instance.Id,
                     EarlyWarning = GetEarlyWarning(businessData, instance),
                     BusinessNumber = instance.BusinessNumber,
                     ProcessName = businessData.ProcessName,
@@ -178,6 +181,7 @@ namespace Hx.Workflow.Application
                     BusinessType = instance.WkDefinition.BusinessType,
                     BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("D"),
                     ProcessType = instance.WkDefinition.ProcessType,
+                    IsSign = instance.WkAuditors.Any(a => userIds.Any(id => id == a.UserId)) || userIds.Any(id => id == pointer.RecipientId),
                 };
                 result.Add(processInstance);
             }

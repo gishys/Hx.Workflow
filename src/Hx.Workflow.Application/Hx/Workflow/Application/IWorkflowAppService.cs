@@ -15,6 +15,7 @@ namespace Hx.Workflow.Application
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
+            string businessNumber = null,
             ICollection<Guid> userIds = null,
             int skipCount = 0,
             int maxResultCount = 20);
