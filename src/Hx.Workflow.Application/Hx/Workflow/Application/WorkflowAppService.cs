@@ -153,7 +153,6 @@ namespace Hx.Workflow.Application
             {
                 userIds = [CurrentUser.Id.Value];
             }
-            userIds = [new("3a1328d4-8203-4f48-6fba-a3e94111e8f5")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,
@@ -193,11 +192,11 @@ namespace Hx.Workflow.Application
             var earlyWarning = "green";
             if (instance.Status == WorkflowStatus.Runnable)
             {
-                if (businessData.BusinessCommitmentDeadline >= DateTime.Now)
+                if (businessData.BusinessCommitmentDeadline <= DateTime.Now)
                 {
                     earlyWarning = "red";
                 }
-                else if (businessData.BusinessCommitmentDeadline.AddHours(2) >= DateTime.Now)
+                else if (businessData.BusinessCommitmentDeadline.AddHours(2) <= DateTime.Now)
                 {
                     earlyWarning = "yellow";
                 }
