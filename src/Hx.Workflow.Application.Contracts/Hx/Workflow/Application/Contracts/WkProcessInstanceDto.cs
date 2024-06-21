@@ -40,7 +40,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 接收时间
         /// </summary>
-        public string ReceivingTime { get; set; }
+        public DateTime ReceivingTime { get; set; }
         /// <summary>
         /// 步骤期限
         /// </summary>
@@ -56,7 +56,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 业务限定日期
         /// </summary>
-        public string BusinessCommitmentDeadline { get; set; }
+        public DateTime BusinessCommitmentDeadline { get; set; }
         /// <summary>
         /// 流程类型
         /// </summary>

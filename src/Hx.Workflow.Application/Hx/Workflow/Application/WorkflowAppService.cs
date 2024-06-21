@@ -153,6 +153,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = [CurrentUser.Id.Value];
             }
+            userIds = [new("3a1328d4-8203-4f48-6fba-a3e94111e8f5")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,
@@ -176,10 +177,10 @@ namespace Hx.Workflow.Application
                     ProcessingStepName = step.DisplayName,
                     Recipient = pointer.Recipient,
                     Submitter = pointer.Submitter,
-                    ReceivingTime = instance.CreateTime.ToString("D"),
+                    ReceivingTime = instance.CreateTime,
                     State = instance.Status.ToString(),
                     BusinessType = instance.WkDefinition.BusinessType,
-                    BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("D"),
+                    BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                     ProcessType = instance.WkDefinition.ProcessType,
                     IsSign = instance.WkAuditors.Any(a => userIds.Any(id => id == a.UserId)) || userIds.Any(id => id == pointer.RecipientId),
                 };
@@ -192,13 +193,13 @@ namespace Hx.Workflow.Application
             var earlyWarning = "green";
             if (instance.Status == WorkflowStatus.Runnable)
             {
-                if (businessData.BusinessCommitmentDeadline.AddHours(2) >= DateTime.Now)
-                {
-                    earlyWarning = "yellow";
-                }
                 if (businessData.BusinessCommitmentDeadline >= DateTime.Now)
                 {
                     earlyWarning = "red";
+                }
+                else if (businessData.BusinessCommitmentDeadline.AddHours(2) >= DateTime.Now)
+                {
+                    earlyWarning = "yellow";
                 }
             }
             return earlyWarning;
@@ -238,31 +239,24 @@ namespace Hx.Workflow.Application
                 Id = instance.Id,
                 BusinessNumber = instance.BusinessNumber,
                 Receiver = pointer.Recipient,
-                ReceiveTime = pointer.StartTime?.ToString("D"),
+                ReceiveTime = pointer.StartTime,
                 RegistrationCategory = instance.WkDefinition.BusinessType,
-                BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline.ToString("D"),
+                BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                 CurrentExecutionPointer = currentPointerDto,
             };
         }
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
-            if (CurrentUser.Id.HasValue)
-            {
-                var instance = await _wkInstanceRepository.FindAsync(workflowId);
-                var pointer = instance.ExecutionPointers.OrderBy(d => d.StepId).First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
-                return instance.ExecutionPointers.Select(
-                    d => new WkNodeTreeDto()
-                    {
-                        Key = d.Id,
-                        Title = d.StepName,
-                        Selected = d.Active
-                    })
-                    .ToList();
-            }
-            else
-            {
-                throw new UserFriendlyException("未获取到当前登录用户！");
-            }
+            var instance = await _wkInstanceRepository.FindAsync(workflowId);
+            var pointer = instance.ExecutionPointers.OrderBy(d => d.StepId).First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
+            return instance.ExecutionPointers.Select(
+                d => new WkNodeTreeDto()
+                {
+                    Key = d.Id,
+                    Title = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName).DisplayName,
+                    Selected = d.Status == PointerStatus.WaitingForEvent
+                })
+                .ToList();
         }
         /// <summary>
         /// 终止工作流

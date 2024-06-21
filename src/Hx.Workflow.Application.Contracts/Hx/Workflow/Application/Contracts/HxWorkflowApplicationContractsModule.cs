@@ -3,7 +3,7 @@ using Volo.Abp.Modularity;
 
 namespace Hx.Workflow.Application.Contracts
 {
-    [DependsOn(typeof(AbpDddApplicationModule))]
+    [DependsOn(typeof(AbpDddApplicationContractsModule))]
     public class HxWorkflowApplicationContractsModule : AbpModule
     {
     }

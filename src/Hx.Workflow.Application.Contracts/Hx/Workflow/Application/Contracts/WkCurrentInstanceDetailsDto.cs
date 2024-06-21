@@ -12,8 +12,8 @@ namespace Hx.Workflow.Application.Contracts
         public string BusinessNumber { get; set; }
         public string RegistrationCategory { get; set; }
         public string Receiver { get; set; }
-        public string ReceiveTime { get; set; }
-        public string BusinessCommitmentDeadline { get; set; }
+        public DateTime? ReceiveTime { get; set; }
+        public DateTime BusinessCommitmentDeadline { get; set; }
         public WkExecutionPointerDto CurrentExecutionPointer { get; set; }
     }
 }
