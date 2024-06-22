@@ -46,7 +46,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(x => x.WkConNodeConditions)
                 .Include(x => x.WkDefinition)
                 .ThenInclude(x => x.WkCandidates)
-                .Include(x => x.WkAuditors);
+                .Include(x => x.WkAuditors)
+                .Include(x => x.WkDefinition)
+                .ThenInclude(x => x.Nodes)
+                .ThenInclude(x => x.ApplicationForms);
         }
     }
 }
