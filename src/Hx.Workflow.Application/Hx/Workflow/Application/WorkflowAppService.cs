@@ -86,9 +86,19 @@ namespace Hx.Workflow.Application
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public virtual async Task<WkDefinitionDto> GetDefinitionAsync(string name)
+        public virtual async Task<WkDefinitionDto> GetDefinitionByNameAsync(string name)
         {
             var entity = await _hxWorkflowManager.GetDefinitionAsync(name);
+            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
+        }
+        /// <summary>
+        /// 获取流程模版
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual async Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1)
+        {
+            var entity = await _wkDefinition.GetDefinitionAsync(id, version);
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
         /// <summary>

@@ -82,7 +82,7 @@ namespace Hx.Workflow.Application
                             appForm.ParentId,
                             appForm.Code,
                             appForm.Name,
-                            appForm.DispalyName,
+                            appForm.DisplayName,
                             appForm.ApplicationType));
                     }
                 }

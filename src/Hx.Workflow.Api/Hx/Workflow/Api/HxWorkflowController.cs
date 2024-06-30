@@ -54,9 +54,15 @@ namespace Hx.Workflow.Api
         }
         [HttpGet]
         [Route("definition/{name}")]
-        public Task<WkDefinitionDto> GetDefinition(string name)
+        public Task<WkDefinitionDto> GetDefinitionByName(string name)
         {
-            return _workflowAppService.GetDefinitionAsync(name);
+            return _workflowAppService.GetDefinitionByNameAsync(name);
+        }
+        [HttpGet]
+        [Route("definition/details")]
+        public Task<WkDefinitionDto> GetDefinition(Guid id, int version = 1)
+        {
+            return _workflowAppService.GetDefinitionAsync(id, version);
         }
         [HttpGet]
         [Route("definition")]

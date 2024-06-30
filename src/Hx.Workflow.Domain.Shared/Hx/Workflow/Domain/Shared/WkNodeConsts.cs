@@ -7,6 +7,6 @@ namespace Hx.Workflow.Domain.Shared
     public class WkNodeConsts
     {
         public const int MaxName = 100;
-        public const int MaxDispalyName = 200;
+        public const int MaxDisplayName = 200;
     }
 }

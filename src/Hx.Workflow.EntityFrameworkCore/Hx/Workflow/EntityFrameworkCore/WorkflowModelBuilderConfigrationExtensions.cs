@@ -118,7 +118,7 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(d => d.LimitTime).HasColumnName("LIMITTIME");
                 t.Property(d => d.NodeFormType).HasColumnName("NODEFORMTYPE").HasPrecision(1);
-                t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkNodeConsts.MaxDispalyName);
+                t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkNodeConsts.MaxDisplayName);
 
                 t.HasMany(d => d.ApplicationForms)
                 .WithOne(d => d.WkNode)
@@ -201,7 +201,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.ParentId).HasColumnName("PARENTID");
                 t.Property(d => d.Code).HasColumnName("CODE").HasMaxLength(ApplicationFormConsts.MaxCode);
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(ApplicationFormConsts.MaxName);
-                t.Property(d => d.DispalyName).HasColumnName("DISPALYNAME").HasMaxLength(ApplicationFormConsts.MaxDispalyName);
+                t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(ApplicationFormConsts.MaxDisplayName);
                 t.Property(d => d.ApplicationType).HasColumnName("APPLICATIONTYPE").HasPrecision(1);
             });
             builder.Entity<WkPoint>(t =>

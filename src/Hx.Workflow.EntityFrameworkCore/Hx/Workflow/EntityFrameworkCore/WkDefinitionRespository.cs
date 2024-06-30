@@ -33,9 +33,11 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <param name="id"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        public virtual async Task<WkDefinition> GetDefinitionAsync(Guid id, int version)
+        public virtual async Task<WkDefinition> GetDefinitionAsync(Guid id, int version, CancellationToken cancellation = default)
         {
             return (await GetDbSetAsync())
+                .IncludeDetials(true)
+                .OrderBy(d => d.SortNumber)
                 .FirstOrDefault(x => x.Id == id && x.Version == version);
         }
         /// <summary>

@@ -10,7 +10,8 @@ namespace Hx.Workflow.Application
     public interface IWorkflowAppService
     {
         Task CreateAsync(WkDefinitionCreateDto input);
-        Task<WkDefinitionDto> GetDefinitionAsync(string name);
+        Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1);
+        Task<WkDefinitionDto> GetDefinitionByNameAsync(string name);
         Task<string> StartAsync(StartWorkflowInput input);
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(

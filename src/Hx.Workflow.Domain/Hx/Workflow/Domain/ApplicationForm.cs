@@ -24,7 +24,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// application node type
         /// </summary>
-        public string DispalyName { get; protected set; }
+        public string DisplayName { get; protected set; }
         /// <summary>
         /// application type
         /// </summary>
@@ -35,13 +35,13 @@ namespace Hx.Workflow.Domain
             Guid? parentId,
             string code,
             string name,
-            string dispalyName,
+            string displayName,
             ApplicationType applicationType)
         {
             ParentId = parentId;
             Code = code;
             Name = name;
-            DispalyName = dispalyName;
+            DisplayName = displayName;
             ApplicationType = applicationType;
         }
         public Task SetName(string name)

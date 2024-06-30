@@ -20,7 +20,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// application node type
         /// </summary>
-        public string DispalyName { get; set; }
+        public string DisplayName { get; set; }
         /// <summary>
         /// application type
         /// </summary>
