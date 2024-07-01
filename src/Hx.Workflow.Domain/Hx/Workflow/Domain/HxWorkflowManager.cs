@@ -160,6 +160,7 @@ namespace Hx.Workflow.Domain
         public virtual async Task StartActivityAsync(
             string actName, string workflowId, object data = null)
         {
+
             var activity = await _workflowHost.GetPendingActivity(actName, workflowId);
             if (activity != null)
             {
@@ -201,7 +202,6 @@ namespace Hx.Workflow.Domain
             var stepSource = new JStepSource();
             stepSource.Id = step.Id.ToString();
             stepSource.Name = step.Name;
-            //stepSource.NextStepId = GetNextNodeId(step, allNodes);
             var stepBody = step.StepBody;
             if (stepBody == null)
             {

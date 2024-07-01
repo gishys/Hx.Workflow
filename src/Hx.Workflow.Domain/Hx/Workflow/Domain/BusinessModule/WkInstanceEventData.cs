@@ -12,8 +12,5 @@ namespace Hx.Workflow.Application.BusinessModule
         public string ProcessName {  get; set; }
         public string Located {  get; set; }
         public DateTime BusinessCommitmentDeadline {  get; set; }
-        public string DecideBranching {  get; set; }
-        public StepExecutionType? ExecutionType {  get; set; }
-        public string Candidates {  get; set; }
     }
 }

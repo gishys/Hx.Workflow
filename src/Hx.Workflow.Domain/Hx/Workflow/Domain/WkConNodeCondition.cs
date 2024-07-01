@@ -14,7 +14,8 @@ namespace Hx.Workflow.Domain
         public WkConNodeCondition(
             string field,
             string tOperator,
-            string value)
+            string value
+            )
         {
             Field = field;
             Operator = tOperator;

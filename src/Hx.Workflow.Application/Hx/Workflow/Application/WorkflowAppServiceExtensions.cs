@@ -24,7 +24,7 @@ namespace Hx.Workflow.Application
                     {
                         if (condition.NextNodeName.Length > 0)
                         {
-                            var conditionEntity = new WkConditionNode(condition.NextNodeName);
+                            var conditionEntity = new WkConditionNode(condition.NextNodeName, condition.NodeType);
                             if (condition.WkConNodeConditions?.Count > 0)
                             {
                                 foreach (var conCondition in condition.WkConNodeConditions)

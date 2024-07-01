@@ -177,7 +177,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.Id).HasColumnName("ID");
                 d.Property(d => d.Label).HasColumnName("LABEL").HasMaxLength(WkConditionNodeConsts.MaxLabel);
                 d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
-                d.Property(d => d.NextNodeName).HasColumnName("NEXTNODENAME");
+                d.Property(d => d.NextNodeName).HasColumnName("NEXTNODENAME").HasMaxLength(WkConditionNodeConsts.MaxNodeName);
+                d.Property(d => d.NodeType).HasColumnName("NODETYPE").HasMaxLength(WkConditionNodeConsts.MaxNodeType);
 
                 d.HasMany(d => d.WkConNodeConditions).WithOne()
                 .HasForeignKey(d => d.WkConditionNodeId)
@@ -312,6 +313,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.RecipientId).HasColumnName("RECIPIENTID");
                 t.Property(d => d.Submitter).HasColumnName("SUBMITTER").HasMaxLength(WkExecutionPointerConsts.SubmitterMaxLength);
                 t.Property(d => d.SubmitterId).HasColumnName("SUBMITTERID");
+                t.Property(p => p.CommitmentDeadline).HasColumnName("COMMITMENTDEADLINE").HasColumnType("timestamp without time zone");
 
                 t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");

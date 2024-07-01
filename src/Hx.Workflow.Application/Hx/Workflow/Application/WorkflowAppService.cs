@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Application.BusinessModule;
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
+using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -142,6 +143,9 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null)
         {
+            var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(data));
+            if (string.IsNullOrEmpty(eventPointerEventData.DecideBranching))
+                throw new UserFriendlyException("提交必须携带分支节点名称！");
             await _hxWorkflowManager.StartActivityAsync(actName, workflowId, data);
         }
         /// <summary>
@@ -252,6 +256,8 @@ namespace Hx.Workflow.Application
                 RegistrationCategory = instance.WkDefinition.BusinessType,
                 BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                 CurrentExecutionPointer = currentPointerDto,
+                ProcessName = businessData.ProcessName,
+                Located = businessData.Located,
             };
         }
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)

@@ -176,6 +176,7 @@ namespace Hx.Workflow.Domain
                 DateTime? startTime = exe.StartTime.HasValue ? DateTime.SpecifyKind(exe.StartTime.Value, DateTimeKind.Unspecified) : null;
                 DateTime? endTime = exe.EndTime.HasValue ? DateTime.SpecifyKind(exe.EndTime.Value, DateTimeKind.Unspecified) : null;
                 DateTime? sleepUntil = exe.SleepUntil.HasValue ? DateTime.SpecifyKind(exe.SleepUntil.Value, DateTimeKind.Unspecified) : null;
+                var eventPointerEventData = System.Text.Json.JsonSerializer.Deserialize<WkPointerEventData>(System.Text.Json.JsonSerializer.Serialize(exe.EventData));
                 var epTemp = persistable.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == exe.Id);
                 if (epTemp == null)
                 {
@@ -199,7 +200,8 @@ namespace Hx.Workflow.Domain
                         exe.Status,
                         string.Join(';', exe.Scope),
                         persistData.UserName,
-                        persistData.UserId);
+                        persistData.UserId,
+                        eventPointerEventData.CommitmentDeadline);
                     await persistable.AddExecutionPointer(epTemp);
                 }
                 else

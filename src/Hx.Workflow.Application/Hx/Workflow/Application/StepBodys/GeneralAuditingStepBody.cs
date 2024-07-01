@@ -1,11 +1,14 @@
 ﻿using Hx.Workflow.Application.BusinessModule;
 using Hx.Workflow.Domain;
+using Hx.Workflow.Domain.BusinessModule;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -57,12 +60,12 @@ namespace Hx.Workflow.Application.StepBodys
                 context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
             }
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
+            var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);
+            var pointer = definition.Nodes.First(d => d.Name == executionPointer.StepName);
             if (!executionPointer.EventPublished)
             {
-                var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);
                 if (definition == null)
                     throw new UserFriendlyException("获取实例流程模板失败！");
-                var pointer = definition.Nodes.First(d => d.Name == executionPointer.StepName);
                 if (pointer == null)
                     throw new UserFriendlyException("获取流程节点失败！");
                 List<WkNodeCandidate> dcandidate;
@@ -114,14 +117,15 @@ namespace Hx.Workflow.Application.StepBodys
             var eventData = context.ExecutionPointer.EventData as ActivityResult;
             if (eventData != null)
             {
-                var eventInstancePersistData = JsonSerializer.Deserialize<WkInstanceEventData>(JsonSerializer.Serialize(eventData.Data));
+                var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(eventData.Data));
                 var step = instance.WkDefinition.Nodes.First(d => d.Name == executionPointer.StepName);
-                if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventInstancePersistData.DecideBranching)))
+                if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
                     throw new UserFriendlyException("参数DecideBranching错误！");
-                var auditStatus = eventInstancePersistData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
+                var auditStatus = eventPointerEventData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
                 await Audit(eventData.Data, executionPointer.Id, auditStatus);
-                var workflowData = context.Workflow.Data as Dictionary<string, object>;
-                context.Workflow.Data = workflowData.Cancat(eventData.Data as Dictionary<string, object>);
+                var pointerData = context.Workflow.Data as Dictionary<string, object>;
+                pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                context.ExecutionPointer.EventData = pointerData;
             }
             else
             {

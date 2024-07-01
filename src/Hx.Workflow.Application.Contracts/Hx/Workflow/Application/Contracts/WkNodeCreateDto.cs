@@ -30,6 +30,10 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public int SortNumber { get; set; }
         /// <summary>
+        /// 限制时间
+        /// </summary>
+        public int? LimitTime { get; set; }
+        /// <summary>
         /// 位置信息
         /// </summary>
         public ICollection<WkPointCreateDto> Position { get; set; }

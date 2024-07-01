@@ -10,14 +10,17 @@ namespace Hx.Workflow.Domain
         public Guid WkNodeId { get; protected set; }
         public string Label { get; protected set; }
         public string NextNodeName { get; protected set; }
+        public int NodeType { get; protected set; }
         public virtual ICollection<WkConNodeCondition> WkConNodeConditions { get; protected set; }
         public WkConditionNode()
         { }
         public WkConditionNode(
             string nextNodeName,
+            int nodeType,
             string label = "")
         {
             Label = label;
+            NodeType = nodeType;
             NextNodeName = nextNodeName;
             WkConNodeConditions = new List<WkConNodeCondition>();
         }

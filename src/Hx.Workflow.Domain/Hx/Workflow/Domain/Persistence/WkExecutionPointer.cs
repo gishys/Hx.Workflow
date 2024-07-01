@@ -35,6 +35,7 @@ namespace Hx.Workflow.Domain.Persistence
         public Guid RecipientId { get; protected set; }
         public string Submitter { get; protected set; }
         public Guid? SubmitterId { get; protected set; }
+        public DateTime? CommitmentDeadline {  get; protected set; }
         public ICollection<WkSubscription> WkSubscriptions { get; protected set; }
         public ICollection<ExePointerCandidate> WkCandidates { get; protected set; }
         public WkExecutionPointer()
@@ -60,6 +61,7 @@ namespace Hx.Workflow.Domain.Persistence
             string scope,
             string recipient,
             Guid recipientId,
+            DateTime? commitmentDeadline,
             Guid? tenantId = null
             )
         {
@@ -84,6 +86,7 @@ namespace Hx.Workflow.Domain.Persistence
             TenantId = tenantId;
             Recipient = recipient;
             RecipientId = recipientId;
+            CommitmentDeadline = commitmentDeadline;
             ExtensionAttributes = new List<WkExtensionAttribute>();
             WkCandidates = new List<ExePointerCandidate>();
         }
