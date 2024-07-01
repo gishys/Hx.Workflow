@@ -1,20 +1,16 @@
-﻿using Hx.Workflow.Application.BusinessModule;
-using Hx.Workflow.Domain;
+﻿using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
-using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Users;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -112,6 +108,11 @@ namespace Hx.Workflow.Application.StepBodys
                     ActivityName,
                     null,
                     effectiveData);
+                var pointerData = context.ExecutionPointer.EventData as Dictionary<string, object>;
+                if (pointer.LimitTime != null)
+                {
+                    pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                }
                 return executionResult;
             }
             var eventData = context.ExecutionPointer.EventData as ActivityResult;
@@ -123,12 +124,6 @@ namespace Hx.Workflow.Application.StepBodys
                     throw new UserFriendlyException("参数DecideBranching错误！");
                 var auditStatus = eventPointerEventData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
                 await Audit(eventData.Data, executionPointer.Id, auditStatus);
-                var pointerData = context.Workflow.Data as Dictionary<string, object>;
-                if ((pointer.LimitTime != null))
-                {
-                    pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
-                }
-                context.ExecutionPointer.EventData = pointerData;
             }
             else
             {

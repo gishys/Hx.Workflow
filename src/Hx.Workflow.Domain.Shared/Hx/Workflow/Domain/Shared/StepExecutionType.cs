@@ -8,7 +8,13 @@ namespace Hx.Workflow.Domain.Shared
 {
     public enum StepExecutionType
     {
+        /// <summary>
+        /// 提交
+        /// </summary>
         Next = 1,
+        /// <summary>
+        /// 退回
+        /// </summary>
         BackOff = 2
     }
 }

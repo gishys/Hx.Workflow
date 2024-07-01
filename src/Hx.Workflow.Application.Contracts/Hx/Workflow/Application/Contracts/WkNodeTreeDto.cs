@@ -11,5 +11,7 @@ namespace Hx.Workflow.Application.Contracts
         public string Title { get; set; }
         public Guid Key { get; set; }
         public bool Selected { get; set; }
+        public string Name {  get; set; }
+        public string Receiver {  get; set; }
     }
 }

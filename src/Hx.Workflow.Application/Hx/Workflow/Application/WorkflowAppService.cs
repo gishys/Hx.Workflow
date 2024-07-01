@@ -268,7 +268,9 @@ namespace Hx.Workflow.Application
                 {
                     Key = d.Id,
                     Title = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName).DisplayName,
-                    Selected = d.Status == PointerStatus.WaitingForEvent
+                    Selected = d.Status == PointerStatus.WaitingForEvent,
+                    Name = pointer.StepName,
+                    Receiver = pointer.Recipient
                 })
                 .ToList();
         }

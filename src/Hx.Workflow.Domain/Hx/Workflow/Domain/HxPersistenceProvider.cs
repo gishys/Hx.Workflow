@@ -83,16 +83,16 @@ namespace Hx.Workflow.Domain
             workflow.Id = _guidGenerator.Create().ToString();
             var businessNumber = await BusinessNumberManager.GetMaxNumber();
             var persistData = new WkInstancePersistData(businessNumber, _currentUser.UserName, _currentUser.Id.HasValue ? _currentUser.Id.Value : Guid.Empty);
-            var definition = await _wkDefinitionRespository.FindAsync(new Guid(workflow.WorkflowDefinitionId));
-            foreach (var pointer in workflow.ExecutionPointers)
-            {
-                var node = definition.Nodes.First(d => d.Name == pointer.StepName);
-                if (node.LimitTime != null)
-                {
-                    var pointerData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)node.LimitTime) } };
-                    pointer.EventData = pointerData;
-                }
-            }
+            //var definition = await _wkDefinitionRespository.FindAsync(new Guid(workflow.WorkflowDefinitionId));
+            //foreach (var pointer in workflow.ExecutionPointers)
+            //{
+            //    var node = definition.Nodes.First(d => d.Name == pointer.StepName);
+            //    if (node.LimitTime != null)
+            //    {
+            //        var pointerData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)node.LimitTime) } };
+            //        pointer.EventData = pointerData;
+            //    }
+            //}
             var wkInstance = await workflow.ToPersistable(persistData);
             return (await _wkInstanceRepository.InsertAsync(wkInstance)).Id.ToString();
         }

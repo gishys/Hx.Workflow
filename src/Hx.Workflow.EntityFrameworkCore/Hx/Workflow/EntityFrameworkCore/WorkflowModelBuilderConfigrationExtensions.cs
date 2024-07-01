@@ -200,6 +200,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
                 t.Property(d => d.ParentId).HasColumnName("PARENTID");
+                t.Property(d => d.SequenceNumber).HasColumnName("SEQUENCENUMBER");
                 t.Property(d => d.Code).HasColumnName("CODE").HasMaxLength(ApplicationFormConsts.MaxCode);
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(ApplicationFormConsts.MaxName);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(ApplicationFormConsts.MaxDisplayName);

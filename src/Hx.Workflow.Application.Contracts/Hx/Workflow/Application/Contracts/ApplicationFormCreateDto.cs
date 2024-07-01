@@ -21,6 +21,7 @@ namespace Hx.Workflow.Application.Contracts
         /// application node type
         /// </summary>
         public string DisplayName { get; set; }
+        public int SequenceNumber { get; set; }
         /// <summary>
         /// application type
         /// </summary>

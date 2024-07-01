@@ -84,7 +84,8 @@ namespace Hx.Workflow.Application
                             appForm.Code,
                             appForm.Name,
                             appForm.DisplayName,
-                            appForm.ApplicationType));
+                            appForm.ApplicationType,
+                            appForm.SequenceNumber));
                     }
                 }
                 nodeEntitys.Add(nodeEntity);

@@ -29,6 +29,7 @@ namespace Hx.Workflow.Domain
         /// application type
         /// </summary>
         public ApplicationType ApplicationType { get;protected set; }
+        public int SequenceNumber {  get; protected set; }
         public ApplicationForm()
         { }
         public ApplicationForm(
@@ -36,13 +37,16 @@ namespace Hx.Workflow.Domain
             string code,
             string name,
             string displayName,
-            ApplicationType applicationType)
+            ApplicationType applicationType,
+            int sequenceNumber)
         {
             ParentId = parentId;
             Code = code;
             Name = name;
             DisplayName = displayName;
             ApplicationType = applicationType;
+            SequenceNumber = sequenceNumber;
+
         }
         public Task SetName(string name)
         {
