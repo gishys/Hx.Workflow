@@ -4,7 +4,6 @@ using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
-using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;

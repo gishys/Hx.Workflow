@@ -17,7 +17,8 @@ namespace Hx.Workflow.Application
                         node.DisplayName,
                         node.StepNodeType,
                         node.Version,
-                        node.NodeFormType);
+                        node.NodeFormType,
+                        node.LimitTime);
                 if (node.NextNodes?.Count > 0)
                 {
                     foreach (var condition in node.NextNodes)

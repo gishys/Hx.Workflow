@@ -201,7 +201,7 @@ namespace Hx.Workflow.Domain
                         string.Join(';', exe.Scope),
                         persistData.UserName,
                         persistData.UserId,
-                        eventPointerEventData.CommitmentDeadline);
+                        eventPointerEventData?.CommitmentDeadline);
                     await persistable.AddExecutionPointer(epTemp);
                 }
                 else
