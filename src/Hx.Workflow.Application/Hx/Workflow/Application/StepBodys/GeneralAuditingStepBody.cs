@@ -124,7 +124,10 @@ namespace Hx.Workflow.Application.StepBodys
                 var auditStatus = eventPointerEventData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
                 await Audit(eventData.Data, executionPointer.Id, auditStatus);
                 var pointerData = context.Workflow.Data as Dictionary<string, object>;
-                pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                if ((pointer.LimitTime != null))
+                {
+                    pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                }
                 context.ExecutionPointer.EventData = pointerData;
             }
             else
