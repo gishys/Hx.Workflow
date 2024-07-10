@@ -6,6 +6,7 @@ namespace Hx.Workflow.Domain.Shared
 {
     public enum ApplicationType
     {
-        Form = 1
+        Form = 1,
+        PrintForm = 2
     }
 }

@@ -242,7 +242,7 @@ namespace Hx.Workflow.Application
             }
             var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
             var currentPointerDto = ObjectMapper.Map<WkExecutionPointer, WkExecutionPointerDto>(pointer);
-            currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms);
+            currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms.OrderBy(d => d.SequenceNumber).ToList());
             currentPointerDto.StepDisplayName = step.DisplayName;
             var errors = await _errorRepository.GetListByIdAsync(workflowId, pointerId);
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
