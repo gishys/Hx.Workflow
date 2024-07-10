@@ -249,6 +249,7 @@ namespace Hx.Workflow.Application
             return new WkCurrentInstanceDetailsDto()
             {
                 Id = instance.Id,
+                DefinitionId = instance.WkDefinition.Id,
                 BusinessNumber = instance.BusinessNumber,
                 Receiver = pointer.Recipient,
                 ReceiveTime = pointer.StartTime,
