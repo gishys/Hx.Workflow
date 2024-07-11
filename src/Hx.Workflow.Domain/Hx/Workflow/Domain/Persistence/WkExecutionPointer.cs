@@ -35,7 +35,7 @@ namespace Hx.Workflow.Domain.Persistence
         public Guid RecipientId { get; protected set; }
         public string Submitter { get; protected set; }
         public Guid? SubmitterId { get; protected set; }
-        public DateTime? CommitmentDeadline {  get; protected set; }
+        public DateTime? CommitmentDeadline { get; protected set; }
         public ICollection<WkSubscription> WkSubscriptions { get; protected set; }
         public ICollection<ExePointerCandidate> WkCandidates { get; protected set; }
         public WkExecutionPointer()
@@ -205,6 +205,11 @@ namespace Hx.Workflow.Domain.Persistence
         {
             Recipient = userName;
             RecipientId = recipientId;
+            return Task.CompletedTask;
+        }
+        public Task SetCommitmentDeadline(DateTime? commitmentDeadline)
+        {
+            CommitmentDeadline = commitmentDeadline;
             return Task.CompletedTask;
         }
     }

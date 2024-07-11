@@ -225,6 +225,7 @@ namespace Hx.Workflow.Domain
                     await epTemp.SetStatus(exe.Status);
                     await epTemp.SetScope(string.Join(';', exe.Scope));
                     await epTemp.SetSubmitterInfo(persistData.UserName, persistData.UserId == Guid.Empty ? null : persistData.UserId);
+                    await epTemp.SetCommitmentDeadline(eventPointerEventData?.CommitmentDeadline);
                 }
                 foreach (var attr in exe.ExtensionAttributes)
                 {

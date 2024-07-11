@@ -46,7 +46,7 @@ namespace Hx.Workflow.Application.StepBodys
         public string DecideBranching { get; set; } = null;
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var claims = _currentPrincipalAccessor.Principal?.Identity?.FindUserId();
+            var claims = _currentPrincipalAccessor.Principal?.Claims?.ToList();
             Console.WriteLine($"权限:{claims}");
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
             if (instance.WkDefinition.LimitTime.HasValue)
@@ -99,7 +99,7 @@ namespace Hx.Workflow.Application.StepBodys
                     if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
                     var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
                     var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionPointer.Id);
-                    if (auditorQueryEntity != null)
+                    if (auditorQueryEntity == null)
                     {
                         var auditorInstance =
                             new WkAuditor(
