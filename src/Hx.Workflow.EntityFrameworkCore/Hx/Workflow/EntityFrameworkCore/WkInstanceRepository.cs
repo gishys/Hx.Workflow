@@ -89,7 +89,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(status != null, d => d.Status == status)
                 .WhereIf(businessNumber != null, d => d.BusinessNumber.Contains(businessNumber))
                 .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)) ||
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
+                d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Status == PointerStatus.Failed) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(
@@ -101,7 +101,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(status != null, d => d.Status == status)
                 .WhereIf(businessNumber != null, d => d.BusinessNumber.Contains(businessNumber))
                 .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)) ||
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
+                d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Status == PointerStatus.Failed) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.CountAsync();
         }
         public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)
@@ -115,7 +115,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                     d.Status,
                     ExecutionPointers = d.ExecutionPointers.Select(e => new
                     {
-                        e.Status,
+                        e.Active,
                         e.WkCandidates
                     })
                 });
@@ -124,7 +124,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             && d.Status == WorkflowStatus.Runnable);
             if (instance != null)
             {
-                var currentPointer = instance.ExecutionPointers.First(d => d.Status == PointerStatus.Running || d.Status == PointerStatus.WaitingForEvent);
+                var currentPointer = instance.ExecutionPointers.First(d => d.Active);
                 return currentPointer.WkCandidates;
             }
             return new Collection<ExePointerCandidate>();

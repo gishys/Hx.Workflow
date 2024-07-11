@@ -53,7 +53,14 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     { "BusinessCommitmentDeadline", context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime) }
                 };
-                context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
+                if (context.Workflow.Data as IDictionary<string, object> != null)
+                {
+                    context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
+                }
+                else
+                {
+                    context.Workflow.Data = workflowData;
+                }
             }
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);
@@ -108,10 +115,17 @@ namespace Hx.Workflow.Application.StepBodys
                     ActivityName,
                     null,
                     effectiveData);
-                var pointerData = context.ExecutionPointer.EventData as Dictionary<string, object>;
                 if (pointer.LimitTime != null)
                 {
-                    pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                    if (context.ExecutionPointer.EventData is Dictionary<string, object> pointerData)
+                    {
+                        pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                        context.ExecutionPointer.EventData = pointerData;
+                    }
+                    else
+                    {
+                        context.ExecutionPointer.EventData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } };
+                    }
                 }
                 return executionResult;
             }
