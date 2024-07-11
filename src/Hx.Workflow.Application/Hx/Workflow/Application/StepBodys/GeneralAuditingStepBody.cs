@@ -96,14 +96,18 @@ namespace Hx.Workflow.Application.StepBodys
 
                     if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
                     var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
-                    var auditorInstance =
-                        new WkAuditor(
-                            instance.Id,
-                            executionPointer.Id,
-                            defCandidate.UserName,
-                            userId: defCandidate.CandidateId,
-                            status: EnumAuditStatus.UnAudited);
-                    await _wkAuditor.InsertAsync(auditorInstance);
+                    var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionPointer.Id);
+                    if (auditorQueryEntity != null)
+                    {
+                        var auditorInstance =
+                            new WkAuditor(
+                                instance.Id,
+                                executionPointer.Id,
+                                defCandidate.UserName,
+                                userId: defCandidate.CandidateId,
+                                status: EnumAuditStatus.UnAudited);
+                        await _wkAuditor.InsertAsync(auditorInstance);
+                    }
                     dcandidate = [new(defCandidate.CandidateId, defCandidate.UserName, defCandidate.DisplayUserName, defCandidate.DefaultSelection)];
                 }
                 await _wkInstance.UpdateCandidateAsync(
