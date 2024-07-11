@@ -263,17 +263,19 @@ namespace Hx.Workflow.Application
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId);
-            var pointer = instance.ExecutionPointers.OrderBy(d => d.StepId).First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
-            return instance.ExecutionPointers.Select(
-                d => new WkNodeTreeDto()
+            var result = new List<WkNodeTreeDto>();
+            foreach (var node in instance.ExecutionPointers.OrderBy(d => d.StepId))
+            {
+                result.Add(new WkNodeTreeDto()
                 {
-                    Key = d.Id,
-                    Title = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName).DisplayName,
-                    Selected = d.Active || d.Status == PointerStatus.WaitingForEvent,
-                    Name = pointer.StepName,
-                    Receiver = pointer.Recipient
-                })
-                .ToList();
+                    Key = node.Id,
+                    Title = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName).DisplayName,
+                    Selected = node.Active || node.Status == PointerStatus.WaitingForEvent,
+                    Name = node.StepName,
+                    Receiver = node.Recipient
+                });
+            }
+            return result;
         }
         /// <summary>
         /// 终止工作流

@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Security.Claims;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -22,17 +24,17 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;
-        private readonly IAuthorizationService _authorizationService;
+        private readonly ICurrentPrincipalAccessor _currentPrincipalAccessor;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
             IWkDefinitionRespository wkDefinition,
-            IAuthorizationService authorizationService)
+            ICurrentPrincipalAccessor currentPrincipalAccessor)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
-            _authorizationService = authorizationService;
+            _currentPrincipalAccessor = currentPrincipalAccessor;
         }
         /// <summary>
         /// 审核人
@@ -44,8 +46,8 @@ namespace Hx.Workflow.Application.StepBodys
         public string DecideBranching { get; set; } = null;
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var result = await _authorizationService.AuthorizeAsync("AbpIdentity.Users");
-            Console.WriteLine($"权限:{result.Succeeded}");
+            var claims = _currentPrincipalAccessor.Principal?.Identity?.FindUserId();
+            Console.WriteLine($"权限:{claims}");
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
             if (instance.WkDefinition.LimitTime.HasValue)
             {
@@ -121,15 +123,16 @@ namespace Hx.Workflow.Application.StepBodys
                     effectiveData);
                 if (pointer.LimitTime != null)
                 {
-                    if (context.ExecutionPointer.EventData is Dictionary<string, object> pointerData)
+                    var pointerData = context.ExecutionPointer.EventData as Dictionary<string, object>;
+                    if (pointerData != null)
                     {
                         pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
-                        context.ExecutionPointer.EventData = pointerData;
                     }
                     else
                     {
-                        context.ExecutionPointer.EventData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } };
+                        pointerData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } };
                     }
+                    context.ExecutionPointer.EventData = pointerData;
                 }
                 return executionResult;
             }
