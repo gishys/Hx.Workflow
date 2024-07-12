@@ -167,6 +167,10 @@ namespace Hx.Workflow.Domain
                 Console.WriteLine(activity.Parameters);
                 await _workflowHost.SubmitActivitySuccess(activity.Token, data);
             }
+            else
+            {
+                throw new UserFriendlyException($"{actName} was not found.");
+            }
         }
         internal virtual WorkflowDefinition LoadDefinitionByJson(WkDefinition input)
         {

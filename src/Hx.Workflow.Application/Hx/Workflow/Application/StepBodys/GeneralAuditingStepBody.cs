@@ -24,17 +24,14 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;
-        private readonly ICurrentPrincipalAccessor _currentPrincipalAccessor;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
-            IWkDefinitionRespository wkDefinition,
-            ICurrentPrincipalAccessor currentPrincipalAccessor)
+            IWkDefinitionRespository wkDefinition)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
-            _currentPrincipalAccessor = currentPrincipalAccessor;
         }
         /// <summary>
         /// 审核人
@@ -46,8 +43,6 @@ namespace Hx.Workflow.Application.StepBodys
         public string DecideBranching { get; set; } = null;
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var claims = _currentPrincipalAccessor.Principal?.Claims?.ToList();
-            Console.WriteLine($"权限:{claims}");
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
             if (instance.WkDefinition.LimitTime.HasValue)
             {
@@ -55,14 +50,15 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     { "BusinessCommitmentDeadline", context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime) }
                 };
-                if (context.Workflow.Data as IDictionary<string, object> != null)
-                {
-                    context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
-                }
-                else
-                {
-                    context.Workflow.Data = workflowData;
-                }
+                context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
+                //if (context.Workflow.Data as IDictionary<string, object> != null)
+                //{
+                //    context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
+                //}
+                //else
+                //{
+                //    context.Workflow.Data = workflowData;
+                //}
             }
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);
@@ -121,19 +117,19 @@ namespace Hx.Workflow.Application.StepBodys
                     ActivityName,
                     null,
                     effectiveData);
-                if (pointer.LimitTime != null)
-                {
-                    var pointerData = context.ExecutionPointer.EventData as Dictionary<string, object>;
-                    if (pointerData != null)
-                    {
-                        pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
-                    }
-                    else
-                    {
-                        pointerData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } };
-                    }
-                    context.ExecutionPointer.EventData = pointerData;
-                }
+                //if (pointer.LimitTime != null)
+                //{
+                //    var pointerData = context.ExecutionPointer.EventData as Dictionary<string, object>;
+                //    if (pointerData != null)
+                //    {
+                //        pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                //    }
+                //    else
+                //    {
+                //        pointerData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } };
+                //    }
+                //    context.ExecutionPointer.EventData = pointerData;
+                //}
                 return executionResult;
             }
             var eventData = context.ExecutionPointer.EventData as ActivityResult;
