@@ -176,7 +176,7 @@ namespace Hx.Workflow.Domain
                 DateTime? startTime = exe.StartTime.HasValue ? DateTime.SpecifyKind(exe.StartTime.Value, DateTimeKind.Unspecified) : null;
                 DateTime? endTime = exe.EndTime.HasValue ? DateTime.SpecifyKind(exe.EndTime.Value, DateTimeKind.Unspecified) : null;
                 DateTime? sleepUntil = exe.SleepUntil.HasValue ? DateTime.SpecifyKind(exe.SleepUntil.Value, DateTimeKind.Unspecified) : null;
-                var eventPointerEventData = System.Text.Json.JsonSerializer.Deserialize<WkPointerEventData>(System.Text.Json.JsonSerializer.Serialize(exe.EventData));
+                var eventPointerEventData = System.Text.Json.JsonSerializer.Deserialize<WkPointerEventData>(System.Text.Json.JsonSerializer.Serialize(exe.ExtensionAttributes));
                 var epTemp = persistable.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == exe.Id);
                 if (epTemp == null)
                 {
@@ -224,7 +224,20 @@ namespace Hx.Workflow.Domain
                     await epTemp.SetOutcome(JsonConvert.SerializeObject(exe.Outcome, SerializerSettings));
                     await epTemp.SetStatus(exe.Status);
                     await epTemp.SetScope(string.Join(';', exe.Scope));
-                    await epTemp.SetSubmitterInfo(persistData.UserName, persistData.UserId == Guid.Empty ? null : persistData.UserId);
+                    var eventData = exe.EventData as ActivityResult;
+                    if (eventData != null)
+                    {
+                        var data = eventData.Data as IDictionary<string, object>;
+                        if (data != null)
+                        {
+                            if (data.ContainsKey("SubmitterId"))
+                            {
+                                if (data["SubmitterId"] != null)
+                                    persistData.UserId = new Guid(data["SubmitterId"] as string);
+                            }
+                        }
+                    }
+                    await epTemp.SetSubmitterInfo(persistData.UserName, persistData.UserId);
                     await epTemp.SetCommitmentDeadline(eventPointerEventData?.CommitmentDeadline);
                 }
                 foreach (var attr in exe.ExtensionAttributes)

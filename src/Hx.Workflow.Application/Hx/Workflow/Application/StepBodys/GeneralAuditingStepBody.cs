@@ -54,23 +54,32 @@ namespace Hx.Workflow.Application.StepBodys
             var pointer = definition.Nodes.First(d => d.Name == executionPointer.StepName);
             if (pointer.LimitTime != null)
             {
-                context.ExecutionPointer.EventData = (context.ExecutionPointer.EventData as IDictionary<string, object>).Cancat(new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } });
+                if (context.ExecutionPointer.ExtensionAttributes.ContainsKey("CommitmentDeadline"))
+                    context.ExecutionPointer.ExtensionAttributes.Remove("CommitmentDeadline");
+                context.ExecutionPointer.ExtensionAttributes.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
             }
-            if (!executionPointer.EventPublished || pointer.StepNodeType != StepNodeType.End)
+            if (pointer.StepNodeType != StepNodeType.End)
             {
-                if (definition == null)
-                    throw new UserFriendlyException("获取实例流程模板失败！");
-                if (pointer == null)
-                    throw new UserFriendlyException("获取流程节点失败！");
-                List<WkNodeCandidate> dcandidate;
-                if (pointer.StepNodeType == StepNodeType.Activity)
+                if (!executionPointer.EventPublished)
                 {
-                    if (!string.IsNullOrEmpty(Candidates))
+                    if (definition == null)
+                        throw new UserFriendlyException("获取实例流程模板失败！");
+                    if (pointer == null)
+                        throw new UserFriendlyException("获取流程节点失败！");
+                    List<WkNodeCandidate> dcandidate;
+                    if (pointer.StepNodeType == StepNodeType.Activity)
                     {
-                        var tempCandidates = Candidates.Split(',');
-                        if (tempCandidates?.Length > 0)
+                        if (!string.IsNullOrEmpty(Candidates))
                         {
-                            dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
+                            var tempCandidates = Candidates.Split(',');
+                            if (tempCandidates?.Length > 0)
+                            {
+                                dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
+                            }
+                            else
+                            {
+                                throw new UserFriendlyException("未传入正确的接收者！");
+                            }
                         }
                         else
                         {
@@ -79,51 +88,47 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     else
                     {
-                        throw new UserFriendlyException("未传入正确的接收者！");
+                        if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
+                        var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
+                        var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionPointer.Id);
+                        if (auditorQueryEntity == null)
+                        {
+                            var auditorInstance =
+                                new WkAuditor(
+                                    instance.Id,
+                                    executionPointer.Id,
+                                    defCandidate.UserName,
+                                    userId: defCandidate.CandidateId,
+                                    status: EnumAuditStatus.UnAudited);
+                            await _wkAuditor.InsertAsync(auditorInstance);
+                        }
+                        dcandidate = [new(defCandidate.CandidateId, defCandidate.UserName, defCandidate.DisplayUserName, defCandidate.DefaultSelection)];
                     }
+                    await _wkInstance.UpdateCandidateAsync(
+                        instance.Id,
+                        executionPointer.Id,
+                        dcandidate.ToCandidates());
+                    var effectiveData = DateTime.MinValue;
+                    var executionResult = ExecutionResult.WaitForActivity(
+                        context.ExecutionPointer.Id,
+                        null,
+                        effectiveData);
+                    return executionResult;
+                }
+                var eventData = context.ExecutionPointer.EventData as ActivityResult;
+                if (eventData != null)
+                {
+                    var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(eventData.Data));
+                    var step = instance.WkDefinition.Nodes.First(d => d.Name == executionPointer.StepName);
+                    if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
+                        throw new UserFriendlyException("参数DecideBranching错误！");
+                    var auditStatus = eventPointerEventData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
+                    await Audit(eventData.Data, executionPointer.Id, auditStatus);
                 }
                 else
                 {
-                    if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
-                    var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
-                    var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionPointer.Id);
-                    if (auditorQueryEntity == null)
-                    {
-                        var auditorInstance =
-                            new WkAuditor(
-                                instance.Id,
-                                executionPointer.Id,
-                                defCandidate.UserName,
-                                userId: defCandidate.CandidateId,
-                                status: EnumAuditStatus.UnAudited);
-                        await _wkAuditor.InsertAsync(auditorInstance);
-                    }
-                    dcandidate = [new(defCandidate.CandidateId, defCandidate.UserName, defCandidate.DisplayUserName, defCandidate.DefaultSelection)];
+                    throw new UserFriendlyException("提交data不能为空！");
                 }
-                await _wkInstance.UpdateCandidateAsync(
-                    instance.Id,
-                    executionPointer.Id,
-                    dcandidate.ToCandidates());
-                var effectiveData = DateTime.MinValue;
-                var executionResult = ExecutionResult.WaitForActivity(
-                    context.ExecutionPointer.Id,
-                    null,
-                    effectiveData);
-                return executionResult;
-            }
-            var eventData = context.ExecutionPointer.EventData as ActivityResult;
-            if (eventData != null)
-            {
-                var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(eventData.Data));
-                var step = instance.WkDefinition.Nodes.First(d => d.Name == executionPointer.StepName);
-                if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
-                    throw new UserFriendlyException("参数DecideBranching错误！");
-                var auditStatus = eventPointerEventData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
-                await Audit(eventData.Data, executionPointer.Id, auditStatus);
-            }
-            else
-            {
-                throw new UserFriendlyException("提交data不能为空！");
             }
             return ExecutionResult.Next();
         }

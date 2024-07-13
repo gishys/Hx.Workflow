@@ -68,7 +68,9 @@ namespace Hx.Workflow.Domain
             using (var uow = _unitOfWorkManager.Begin())
             {
                 newEvent.Id = _guidGenerator.Create().ToString();
-                newEvent.EventData = (newEvent.EventData as IDictionary<string, object>).Cancat(new Dictionary<string, object>() { { "SubmitterId", _currentUser.Id } });
+                var eventData = newEvent.EventData as ActivityResult;
+                eventData.Data = (eventData.Data as IDictionary<string, object>).Cancat(new Dictionary<string, object>() { { "SubmitterId", _currentUser.Id } });
+                newEvent.EventData = eventData;
                 var persistable = newEvent.ToPersistable();
                 var entity = await _wkEventRepository.InsertAsync(persistable);
                 await uow.SaveChangesAsync();
