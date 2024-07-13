@@ -40,7 +40,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<List<Guid>> GetRunnableEventsAsync(DateTime eventTime)
         {
             return await (from x in await GetDbSetAsync()
-                          where !x.IsProcessed && x.Time == eventTime
+                          where !x.IsProcessed && x.Time <= eventTime
                           select x.Id).ToListAsync();
         }
     }

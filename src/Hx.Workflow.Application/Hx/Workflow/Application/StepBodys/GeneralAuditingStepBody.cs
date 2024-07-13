@@ -3,16 +3,13 @@ using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
-using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Principal;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Security.Claims;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -51,19 +48,15 @@ namespace Hx.Workflow.Application.StepBodys
                     { "BusinessCommitmentDeadline", context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime) }
                 };
                 context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
-                //if (context.Workflow.Data as IDictionary<string, object> != null)
-                //{
-                //    context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
-                //}
-                //else
-                //{
-                //    context.Workflow.Data = workflowData;
-                //}
             }
             var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
             var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);
             var pointer = definition.Nodes.First(d => d.Name == executionPointer.StepName);
-            if (!executionPointer.EventPublished)
+            if (pointer.LimitTime != null)
+            {
+                context.ExecutionPointer.EventData = (context.ExecutionPointer.EventData as IDictionary<string, object>).Cancat(new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } });
+            }
+            if (!executionPointer.EventPublished || pointer.StepNodeType != StepNodeType.End)
             {
                 if (definition == null)
                     throw new UserFriendlyException("获取实例流程模板失败！");
@@ -91,7 +84,6 @@ namespace Hx.Workflow.Application.StepBodys
                 }
                 else
                 {
-
                     if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
                     var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
                     var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionPointer.Id);
@@ -114,22 +106,9 @@ namespace Hx.Workflow.Application.StepBodys
                     dcandidate.ToCandidates());
                 var effectiveData = DateTime.MinValue;
                 var executionResult = ExecutionResult.WaitForActivity(
-                    ActivityName,
+                    context.ExecutionPointer.Id,
                     null,
                     effectiveData);
-                //if (pointer.LimitTime != null)
-                //{
-                //    var pointerData = context.ExecutionPointer.EventData as Dictionary<string, object>;
-                //    if (pointerData != null)
-                //    {
-                //        pointerData.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
-                //    }
-                //    else
-                //    {
-                //        pointerData = new Dictionary<string, object>() { { "CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime) } };
-                //    }
-                //    context.ExecutionPointer.EventData = pointerData;
-                //}
                 return executionResult;
             }
             var eventData = context.ExecutionPointer.EventData as ActivityResult;

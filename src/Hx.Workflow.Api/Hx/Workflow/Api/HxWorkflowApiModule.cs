@@ -11,6 +11,7 @@ using System.Linq;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.ExceptionHandling;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
@@ -27,6 +28,13 @@ namespace Hx.Workflow.Api
         private const string DefaultCorsPolicyName = "Default";
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<AbpAntiForgeryOptions>(options =>
+            {
+                options.AutoValidateIgnoredHttpMethods.Add("POST");
+                options.AutoValidateIgnoredHttpMethods.Add("DELETE");
+                options.AutoValidateIgnoredHttpMethods.Add("PUT");
+                options.AutoValidateIgnoredHttpMethods.Add("GET");
+            });
             var configuration = context.Services.GetConfiguration();
             context.Services.AddSwaggerGen(options =>
             {

@@ -1,9 +1,11 @@
 ﻿using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -66,6 +68,7 @@ namespace Hx.Workflow.Domain
             using (var uow = _unitOfWorkManager.Begin())
             {
                 newEvent.Id = _guidGenerator.Create().ToString();
+                newEvent.EventData = (newEvent.EventData as IDictionary<string, object>).Cancat(new Dictionary<string, object>() { { "SubmitterId", _currentUser.Id } });
                 var persistable = newEvent.ToPersistable();
                 var entity = await _wkEventRepository.InsertAsync(persistable);
                 await uow.SaveChangesAsync();
@@ -253,7 +256,8 @@ namespace Hx.Workflow.Domain
                         var subscriptionEntity = await _wkSubscriptionRepository.FindAsync(new Guid(subscription.Id));
                         if (subscriptionEntity != null)
                         {
-                            //这部分需要测试
+                            //var scription = subscription.ToPersistable();
+                            //await _wkSubscriptionRepository.UpdateAsync(scription);
                         }
                     }
                     else
