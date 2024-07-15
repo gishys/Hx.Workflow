@@ -10,7 +10,7 @@ namespace Hx.Workflow.Application.Contracts
     {
         public Guid Id { get; set; }
         public Guid DefinitionId { get; set; }
-        public string BusinessNumber { get; set; }
+        public string Reference { get; set; }
         public string RegistrationCategory { get; set; }
         public string Receiver { get; set; }
         public DateTime? ReceiveTime { get; set; }

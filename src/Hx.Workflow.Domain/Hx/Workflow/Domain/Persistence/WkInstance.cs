@@ -10,7 +10,6 @@ namespace Hx.Workflow.Domain.Persistence
 {
     public class WkInstance : FullAuditedAggregateRoot<Guid>, IMultiTenant
     {
-        public string BusinessNumber { get; protected set; }
         public Guid WkDifinitionId { get; protected set; }
         public WkDefinition WkDefinition { get; protected set; }
         public int Version { get; protected set; }
@@ -37,7 +36,6 @@ namespace Hx.Workflow.Domain.Persistence
             string data,
             DateTime createTime,
             DateTime? completeTime,
-            string businessNumber,
             Guid? tenantId = null)
         {
             Id = id;
@@ -51,7 +49,6 @@ namespace Hx.Workflow.Domain.Persistence
             CreateTime = createTime;
             CompleteTime = completeTime;
             TenantId = tenantId;
-            BusinessNumber = businessNumber;
             ExecutionPointers = new List<WkExecutionPointer>();
         }
         public Task SetWkDifinitionId(Guid wkDifinitionId)
@@ -97,11 +94,6 @@ namespace Hx.Workflow.Domain.Persistence
         public Task SetCompleteTime(DateTime? completeTime)
         {
             CompleteTime = completeTime;
-            return Task.CompletedTask;
-        }
-        public Task SetBusinessNumber(string number)
-        {
-            BusinessNumber = number;
             return Task.CompletedTask;
         }
         public Task AddExecutionPointer(WkExecutionPointer wkExecutionPointer)

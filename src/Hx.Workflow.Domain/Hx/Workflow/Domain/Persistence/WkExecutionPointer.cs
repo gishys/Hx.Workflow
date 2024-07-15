@@ -59,8 +59,6 @@ namespace Hx.Workflow.Domain.Persistence
             string outcome,
             PointerStatus status,
             string scope,
-            string recipient,
-            Guid recipientId,
             DateTime? commitmentDeadline,
             Guid? tenantId = null
             )
@@ -84,8 +82,6 @@ namespace Hx.Workflow.Domain.Persistence
             Status = status;
             Scope = scope;
             TenantId = tenantId;
-            Recipient = recipient;
-            RecipientId = recipientId;
             CommitmentDeadline = commitmentDeadline;
             ExtensionAttributes = new List<WkExtensionAttribute>();
             WkCandidates = new List<ExePointerCandidate>();

@@ -102,9 +102,9 @@ namespace Hx.Workflow.Api
         }
         [HttpGet]
         [Route("workflow/mywkinstances")]
-        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(Guid[]? ids, string? businessNumber)
+        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(Guid[]? ids, string? reference)
         {
-            return _workflowAppService.GetMyWkInstanceAsync(userIds: ids, businessNumber: businessNumber);
+            return _workflowAppService.GetMyWkInstanceAsync(userIds: ids, reference: reference);
         }
         [HttpGet]
         [Route("workflow/candidate/{wkInstanceId}")]
@@ -135,6 +135,16 @@ namespace Hx.Workflow.Api
         public Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
             return _workflowAppService.GetInstanceNodesAsync(workflowId);
+        }
+        [HttpPut]
+        public Task ReceiveInstanceAsync(Guid workflowId)
+        {
+            return _workflowAppService.RecipientInstanceAsync(workflowId);
+        }
+        [HttpPut]
+        public Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input)
+        {
+            return _workflowAppService.UpdateInstanceBusinessDataAsync(input);
         }
     }
 }

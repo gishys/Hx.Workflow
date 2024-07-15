@@ -8,14 +8,14 @@ using Volo.Abp.DependencyInjection;
 
 namespace Hx.Workflow.Domain.BusinessModule
 {
-    public class BusinessNumberManager : ISingletonDependency
+    public class ReferenceManager : ISingletonDependency
     {
         private IWkInstanceRepository WkInstanceRepository { get; }
-        private readonly IDistributedCache<BusinessNumberCache> AppointmentStockCache;
+        private readonly IDistributedCache<ReferenceCache> AppointmentStockCache;
         static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        public BusinessNumberManager(
+        public ReferenceManager(
             IWkInstanceRepository wkInstanceRepository,
-            IDistributedCache<BusinessNumberCache> appointmentStockCache)
+            IDistributedCache<ReferenceCache> appointmentStockCache)
         {
             WkInstanceRepository = wkInstanceRepository;
             AppointmentStockCache = appointmentStockCache;
@@ -30,7 +30,7 @@ namespace Hx.Workflow.Domain.BusinessModule
                     async () =>
                     {
                         var maxNumber = await WkInstanceRepository.GetMaxNumberAsync();
-                        return new BusinessNumberCache(key, maxNumber);
+                        return new ReferenceCache(key, maxNumber);
                     },
                     () => new DistributedCacheEntryOptions()
                     {

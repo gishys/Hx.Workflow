@@ -17,13 +17,13 @@ namespace Hx.Workflow.Domain.Repositories
         Task<WkExecutionPointer> GetPointerAsync(Guid pointerId);
         Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> id,
-            string businessNumber,
+            string reference,
             WorkflowStatus? status,
             int skipCount,
             int maxResultCount);
         Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
-            string businessNumber,
+            string reference,
             WorkflowStatus? status);
         Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
@@ -34,5 +34,12 @@ namespace Hx.Workflow.Domain.Repositories
         /// <returns></returns>
         Task<int> GetMaxNumberAsync();
         Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId);
+        /// <summary>
+        /// 流程实例添加业务数据
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        Task UpdateDataAsync(Guid workflowId, IDictionary<string, object> data);
     }
 }

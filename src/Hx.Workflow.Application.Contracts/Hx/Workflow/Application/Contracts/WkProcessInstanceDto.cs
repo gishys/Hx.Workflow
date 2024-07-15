@@ -16,7 +16,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 受理编号
         /// </summary>
-        public string BusinessNumber { get; set; }
+        public string Reference { get; set; }
         /// <summary>
         /// 业务名称
         /// </summary>

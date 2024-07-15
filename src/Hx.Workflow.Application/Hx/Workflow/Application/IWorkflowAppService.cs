@@ -16,7 +16,7 @@ namespace Hx.Workflow.Application
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
-            string businessNumber = null,
+            string reference = null,
             ICollection<Guid> userIds = null,
             int skipCount = 0,
             int maxResultCount = 20);
@@ -40,5 +40,19 @@ namespace Hx.Workflow.Application
         Task RecipientInstanceAsync(Guid workflowId);
         Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId);
         Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId);
+        /// <summary>
+        /// 接收流程实例
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        Task ReceiveInstanceAsync(Guid workflowId);
+        /// <summary>
+        /// 流程实例添加业务数据
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input);
     }
 }

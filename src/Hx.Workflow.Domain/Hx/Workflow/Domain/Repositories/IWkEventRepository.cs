@@ -23,5 +23,11 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="eventTime"></param>
         /// <returns></returns>
         Task<List<Guid>> GetRunnableEventsAsync(DateTime eventTime);
+        /// <summary>
+        /// Get event entity by event key
+        /// </summary>
+        /// <param name="eventKey"></param>
+        /// <returns></returns>
+        Task<WkEvent> GetByEventKeyAsync(string eventKey);
     }
 }

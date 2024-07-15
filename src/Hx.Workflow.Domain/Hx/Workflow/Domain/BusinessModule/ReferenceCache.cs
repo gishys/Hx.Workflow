@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Hx.Workflow.Domain.BusinessModule
 {
-    public class BusinessNumberCache
+    public class ReferenceCache
     {
-        public BusinessNumberCache(string businessType, int count)
+        public ReferenceCache(string businessType, int count)
         {
             BusinessType = businessType;
             Count = count;

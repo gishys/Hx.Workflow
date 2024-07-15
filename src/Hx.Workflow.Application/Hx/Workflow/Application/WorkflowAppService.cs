@@ -157,7 +157,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             WorkflowStatus? status = WorkflowStatus.Runnable,
-            string businessNumber = null,
+            string reference = null,
             ICollection<Guid> userIds = null,
             int skipCount = 0,
             int maxResultCount = 20)
@@ -169,11 +169,11 @@ namespace Hx.Workflow.Application
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,
-                businessNumber,
+                reference,
                 status,
                 skipCount,
                 maxResultCount);
-            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds, businessNumber, status);
+            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds, reference, status);
             foreach (var instance in instances)
             {
                 var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
@@ -183,7 +183,7 @@ namespace Hx.Workflow.Application
                 {
                     Id = instance.Id,
                     EarlyWarning = GetEarlyWarning(businessData, instance),
-                    BusinessNumber = instance.BusinessNumber,
+                    Reference = instance.Reference,
                     ProcessName = businessData.ProcessName,
                     Located = businessData.Located,
                     ProcessingStepName = step.DisplayName,
@@ -250,7 +250,7 @@ namespace Hx.Workflow.Application
             {
                 Id = instance.Id,
                 DefinitionId = instance.WkDefinition.Id,
-                BusinessNumber = instance.BusinessNumber,
+                Reference = instance.Reference,
                 Receiver = pointer.Recipient,
                 ReceiveTime = pointer.StartTime,
                 RegistrationCategory = instance.WkDefinition.BusinessType,
@@ -338,6 +338,32 @@ namespace Hx.Workflow.Application
         {
             var entitys = await _wkInstanceRepository.GetCandidatesAsync(wkInstanceId);
             return ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkCandidateDto>>(entitys);
+        }
+        /// <summary>
+        /// 接收流程实例
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        public virtual async Task ReceiveInstanceAsync(Guid workflowId)
+        {
+            if (!CurrentUser.Id.HasValue)
+                throw new UserFriendlyException("未获取到当前登录用户！");
+            await _wkInstanceRepository.RecipientExePointerAsync(workflowId, CurrentUser.Id.Value);
+        }
+        /// <summary>
+        /// 流程实例添加业务数据
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public virtual async Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input)
+        {
+            var data = new Dictionary<string, object>() {
+                { "ProcessName", input.ProcessName },
+                { "Located", input.Located }
+                };
+            await _wkInstanceRepository.UpdateDataAsync(input.WorkflowId, data);
         }
     }
 }

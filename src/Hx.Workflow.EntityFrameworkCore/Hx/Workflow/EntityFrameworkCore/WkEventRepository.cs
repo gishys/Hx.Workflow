@@ -43,5 +43,16 @@ namespace Hx.Workflow.EntityFrameworkCore
                           where !x.IsProcessed && x.Time <= eventTime
                           select x.Id).ToListAsync();
         }
+        /// <summary>
+        /// Get event entity by event key
+        /// </summary>
+        /// <param name="eventKey"></param>
+        /// <returns></returns>
+        public virtual async Task<WkEvent> GetByEventKeyAsync(string eventKey)
+        {
+            return await (from x in await GetDbSetAsync()
+                          where x.Key == eventKey
+                          select x).FirstOrDefaultAsync();
+        }
     }
 }

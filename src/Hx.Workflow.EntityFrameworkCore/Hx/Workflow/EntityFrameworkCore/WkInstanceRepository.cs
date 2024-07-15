@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,7 +76,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> ids,
-            string businessNumber,
+            string reference,
             WorkflowStatus? status,
             int skipCount,
             int maxResultCount)
@@ -87,19 +87,19 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(x => x.Nodes)
                 .Include(x => x.WkAuditors)
                 .WhereIf(status != null, d => d.Status == status)
-                .WhereIf(businessNumber != null, d => d.BusinessNumber.Contains(businessNumber))
+                .WhereIf(reference != null, d => d.Reference.Contains(reference))
                 .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)) ||
                 d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
-            string businessNumber,
+            string reference,
             WorkflowStatus? status)
         {
             var queryable = (await GetDbSetAsync())
                 .WhereIf(status != null, d => d.Status == status)
-                .WhereIf(businessNumber != null, d => d.BusinessNumber.Contains(businessNumber))
+                .WhereIf(reference != null, d => d.Reference.Contains(reference))
                 .Where(d => d.WkAuditors.Any(a => ids.Any(id => id == a.UserId)) ||
                 d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.CountAsync();
@@ -156,8 +156,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             int maxNumber = dbSet
                 .AsEnumerable()
                 .Where(d => d.CreateTime.ToString("d") == DateTime.Now.ToString("d"))
-                .OrderByDescending(d => int.Parse(IntRegex().Match(d.BusinessNumber.Right(5)).Value))
-                .Select(d => int.Parse(IntRegex().Match(d.BusinessNumber.Right(5)).Value))
+                .OrderByDescending(d => int.Parse(IntRegex().Match(d.Reference.Right(5)).Value))
+                .Select(d => int.Parse(IntRegex().Match(d.Reference.Right(5)).Value))
                 .FirstOrDefault();
             return maxNumber;
         }
@@ -176,6 +176,19 @@ namespace Hx.Workflow.EntityFrameworkCore
             var candidate = exePointer.WkCandidates.First(d => d.CandidateId == currentUserId);
             await exePointer.SetRecipientInfo(candidate.UserName, currentUserId);
             return await UpdateAsync(instance);
+        }
+        /// <summary>
+        /// 流程实例添加业务数据
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async Task UpdateDataAsync(Guid workflowId, IDictionary<string, object> data)
+        {
+            var instance = await FindAsync(workflowId);
+            var instanceData = JsonSerializer.Deserialize<IDictionary<string, object>>(instance.Data);
+            await instance.SetData(JsonSerializer.Serialize(instanceData.Cancat(data)));
+            await UpdateAsync(instance);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Hx.Workflow.Domain
         private readonly IWkErrorRepository _wkErrorRepository;
         private readonly IGuidGenerator _guidGenerator;
         private readonly ICurrentUser _currentUser;
-        private readonly BusinessNumberManager BusinessNumberManager;
+        private readonly ReferenceManager ReferenceManager;
         public HxPersistenceProvider(
             IWkSubscriptionRepository wkSubscriptionRepository,
             IUnitOfWorkManager unitOfWorkManager,
@@ -37,7 +37,7 @@ namespace Hx.Workflow.Domain
             IWkErrorRepository wkErrorRepository,
             IGuidGenerator guidGenerator,
             ICurrentUser currentUser,
-            BusinessNumberManager businessNumberManager)
+            ReferenceManager referenceManager)
         {
             _wkSubscriptionRepository = wkSubscriptionRepository;
             _unitOfWorkManager = unitOfWorkManager;
@@ -47,7 +47,7 @@ namespace Hx.Workflow.Domain
             _wkErrorRepository = wkErrorRepository;
             _guidGenerator = guidGenerator;
             _currentUser = currentUser;
-            BusinessNumberManager = businessNumberManager;
+            ReferenceManager = referenceManager;
         }
 
         public bool SupportsScheduledCommands { get; }
@@ -68,9 +68,6 @@ namespace Hx.Workflow.Domain
             using (var uow = _unitOfWorkManager.Begin())
             {
                 newEvent.Id = _guidGenerator.Create().ToString();
-                var eventData = newEvent.EventData as ActivityResult;
-                eventData.Data = (eventData.Data as IDictionary<string, object>).Cancat(new Dictionary<string, object>() { { "SubmitterId", _currentUser.Id } });
-                newEvent.EventData = eventData;
                 var persistable = newEvent.ToPersistable();
                 var entity = await _wkEventRepository.InsertAsync(persistable);
                 await uow.SaveChangesAsync();
@@ -86,9 +83,15 @@ namespace Hx.Workflow.Domain
         public async Task<string> CreateNewWorkflow(WorkflowInstance workflow, CancellationToken cancellationToken = default)
         {
             workflow.Id = _guidGenerator.Create().ToString();
-            var businessNumber = await BusinessNumberManager.GetMaxNumber();
-            var persistData = new WkInstancePersistData(businessNumber, _currentUser.UserName, _currentUser.Id.HasValue ? _currentUser.Id.Value : Guid.Empty);
-            var wkInstance = await workflow.ToPersistable(persistData);
+            workflow.Reference = await ReferenceManager.GetMaxNumber();
+            var wkInstance = await workflow.ToPersistable();
+            if (wkInstance.ExecutionPointers.Count > 0 && _currentUser.Id.HasValue)
+            {
+                foreach (var executionPointer in wkInstance.ExecutionPointers)
+                {
+                    await executionPointer.SetRecipientInfo(_currentUser.UserName, _currentUser.Id.Value);
+                }
+            }
             return (await _wkInstanceRepository.InsertAsync(wkInstance)).Id.ToString();
         }
         public void EnsureStoreExists()
@@ -233,8 +236,7 @@ namespace Hx.Workflow.Domain
                 var existingEntity = await _wkInstanceRepository.FindAsync(uid);
                 if (existingEntity == null)
                     return;
-                var persistData = new WkInstancePersistData(existingEntity.BusinessNumber, _currentUser.UserName, _currentUser.Id.HasValue ? _currentUser.Id.Value : Guid.Empty);
-                var persistable = await workflow.ToPersistable(persistData, existingEntity);
+                var persistable = await workflow.ToPersistable(existingEntity);
                 await _wkInstanceRepository.UpdateAsync(persistable);
                 await uow.CompleteAsync();
             }
@@ -247,8 +249,7 @@ namespace Hx.Workflow.Domain
                 var existingEntity = await _wkInstanceRepository.FindAsync(uid);
                 if (existingEntity == null)
                     return;
-                var persistData = new WkInstancePersistData(existingEntity.BusinessNumber, _currentUser.UserName, _currentUser.Id.HasValue ? _currentUser.Id.Value : Guid.Empty);
-                var persistable = await workflow.ToPersistable(persistData, existingEntity);
+                var persistable = await workflow.ToPersistable(existingEntity);
                 await _wkInstanceRepository.UpdateAsync(persistable);
                 //需要确认
                 foreach (var subscription in subscriptions)

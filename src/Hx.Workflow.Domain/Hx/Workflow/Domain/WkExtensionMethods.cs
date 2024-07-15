@@ -140,7 +140,7 @@ namespace Hx.Workflow.Domain
             result.ExternalWorkerId = instance.ExternalWorkerId;
             return result;
         }
-        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstancePersistData persistData, WkInstance persistable = null)
+        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstance persistable = null)
         {
             var createTime = DateTime.SpecifyKind(instance.CreateTime, DateTimeKind.Unspecified);
             DateTime? completeTime = instance.CompleteTime.HasValue ? DateTime.SpecifyKind(instance.CompleteTime.Value, DateTimeKind.Unspecified) : null;
@@ -156,14 +156,12 @@ namespace Hx.Workflow.Domain
                     instance.Status,
                     JsonConvert.SerializeObject(instance.Data, SerializerSettings),
                     createTime,
-                    completeTime,
-                    persistData.BusinessNumber);
+                    completeTime);
             }
             else
             {
                 await persistable.SetVersion(instance.Version);
                 await persistable.SetDescription(instance.Description);
-                await persistable.SetReference(instance.Reference);
                 await persistable.SetNextExecution(instance.NextExecution);
                 await persistable.SetStatus(instance.Status);
                 await persistable.SetData(JsonConvert.SerializeObject(instance.Data, SerializerSettings));
@@ -199,8 +197,6 @@ namespace Hx.Workflow.Domain
                         JsonConvert.SerializeObject(exe.Outcome, SerializerSettings),
                         exe.Status,
                         string.Join(';', exe.Scope),
-                        persistData.UserName,
-                        persistData.UserId,
                         eventPointerEventData?.CommitmentDeadline);
                     await persistable.AddExecutionPointer(epTemp);
                 }
@@ -225,19 +221,6 @@ namespace Hx.Workflow.Domain
                     await epTemp.SetStatus(exe.Status);
                     await epTemp.SetScope(string.Join(';', exe.Scope));
                     var eventData = exe.EventData as ActivityResult;
-                    if (eventData != null)
-                    {
-                        var data = eventData.Data as IDictionary<string, object>;
-                        if (data != null)
-                        {
-                            if (data.ContainsKey("SubmitterId"))
-                            {
-                                if (data["SubmitterId"] != null)
-                                    persistData.UserId = new Guid(data["SubmitterId"] as string);
-                            }
-                        }
-                    }
-                    await epTemp.SetSubmitterInfo(persistData.UserName, persistData.UserId);
                     await epTemp.SetCommitmentDeadline(eventPointerEventData?.CommitmentDeadline);
                 }
                 foreach (var attr in exe.ExtensionAttributes)
