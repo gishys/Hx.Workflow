@@ -16,7 +16,6 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
     public class WorkflowAppService : HxWorkflowAppServiceBase, IWorkflowAppService
     {
         private readonly IWkStepBodyRespository _wkStepBody;
