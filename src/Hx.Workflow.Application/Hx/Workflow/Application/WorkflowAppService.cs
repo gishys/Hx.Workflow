@@ -4,6 +4,7 @@ using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
+    [Authorize]
     public class WorkflowAppService : HxWorkflowAppServiceBase, IWorkflowAppService
     {
         private readonly IWkStepBodyRespository _wkStepBody;
@@ -194,7 +196,7 @@ namespace Hx.Workflow.Application
                     BusinessType = instance.WkDefinition.BusinessType,
                     BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                     ProcessType = instance.WkDefinition.ProcessType,
-                    IsSign = instance.WkAuditors.Any(a => userIds.Any(id => id == a.UserId)) || userIds.Any(id => id == pointer.RecipientId),
+                    IsSign = userIds.Any(id => id == pointer.RecipientId),
                 };
                 result.Add(processInstance);
             }
