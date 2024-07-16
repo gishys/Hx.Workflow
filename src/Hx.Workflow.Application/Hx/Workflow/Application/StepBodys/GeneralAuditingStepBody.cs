@@ -159,8 +159,7 @@ namespace Hx.Workflow.Application.StepBodys
             var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionId);
             if (auditorQueryEntity != null)
             {
-                var auditTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
-                await auditorQueryEntity.Audit(auditStatus, auditTime, Remark);
+                await auditorQueryEntity.Audit(auditStatus, DateTime.Now, Remark);
                 await _wkAuditor.UpdateAsync(auditorQueryEntity);
             }
         }

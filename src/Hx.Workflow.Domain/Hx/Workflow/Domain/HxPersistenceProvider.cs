@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Guids;
+using Volo.Abp.Timing;
 using Volo.Abp.Uow;
 using Volo.Abp.Users;
 using WorkflowCore.Models;
@@ -28,6 +29,7 @@ namespace Hx.Workflow.Domain
         private readonly IGuidGenerator _guidGenerator;
         private readonly ICurrentUser _currentUser;
         private readonly ReferenceManager ReferenceManager;
+        private readonly IClock _clock;
         public HxPersistenceProvider(
             IWkSubscriptionRepository wkSubscriptionRepository,
             IUnitOfWorkManager unitOfWorkManager,
@@ -37,7 +39,8 @@ namespace Hx.Workflow.Domain
             IWkErrorRepository wkErrorRepository,
             IGuidGenerator guidGenerator,
             ICurrentUser currentUser,
-            ReferenceManager referenceManager)
+            ReferenceManager referenceManager,
+            IClock clock)
         {
             _wkSubscriptionRepository = wkSubscriptionRepository;
             _unitOfWorkManager = unitOfWorkManager;
@@ -48,6 +51,7 @@ namespace Hx.Workflow.Domain
             _guidGenerator = guidGenerator;
             _currentUser = currentUser;
             ReferenceManager = referenceManager;
+            _clock = clock;
         }
 
         public bool SupportsScheduledCommands { get; }
@@ -112,9 +116,8 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<string>> GetEvents(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            DateTime asOfTime = DateTime.SpecifyKind(asOf, DateTimeKind.Unspecified);
             var raw = await _wkEventRepository
-                .GetEventsAsync(eventName, eventKey, asOfTime);
+                .GetEventsAsync(eventName, eventKey, asOf);
             var result = new List<string>();
             foreach (var s in raw)
                 result.Add(s.Id.ToString());
@@ -122,9 +125,8 @@ namespace Hx.Workflow.Domain
         }
         public async Task<EventSubscription> GetFirstOpenSubscription(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            DateTime asOfTime = DateTime.SpecifyKind(asOf, DateTimeKind.Unspecified);
             var raw = await _wkSubscriptionRepository
-                .GetSubcriptionAsync(eventName, eventKey, asOfTime);
+                .GetSubcriptionAsync(eventName, eventKey, asOf);
             return raw?.FirstOrDefault()?.ToEventSubscription();
         }
         public async Task<WkExecutionPointer> GetPersistedExecutionPointer(string id)
@@ -141,14 +143,14 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<string>> GetRunnableEvents(DateTime asAt, CancellationToken cancellationToken = default)
         {
-            DateTime asAtTime = DateTime.SpecifyKind(asAt, DateTimeKind.Unspecified);
+            DateTime asAtTime = asAt;
             return from p in await
                    _wkEventRepository.GetRunnableEventsAsync(asAtTime)
                    select p.ToString();
         }
         public async Task<IEnumerable<string>> GetRunnableInstances(DateTime asAt, CancellationToken cancellationToken = default)
         {
-            DateTime asAtTime = DateTime.SpecifyKind(asAt, DateTimeKind.Unspecified);
+            DateTime asAtTime = asAt;
             return from p in await
                    _wkInstanceRepository.GetRunnableInstancesAsync(asAtTime)
                    select p.ToString();
@@ -160,8 +162,7 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            DateTime asOfTime = DateTime.SpecifyKind(asOf, DateTimeKind.Unspecified);
-            var subs = await _wkSubscriptionRepository.GetSubcriptionAsync(eventName, eventKey, asOfTime);
+            var subs = await _wkSubscriptionRepository.GetSubcriptionAsync(eventName, eventKey, asOf);
             return from x in subs select x.ToEventSubscription();
         }
         public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)
@@ -173,17 +174,15 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<WorkflowInstance>> GetWorkflowInstances(WorkflowStatus? status, string type, DateTime? createdFrom, DateTime? createdTo, int skip, int take)
         {
-            DateTime? createdFromTime = createdFrom.HasValue ? DateTime.SpecifyKind(createdFrom.Value, DateTimeKind.Unspecified) : null;
-            DateTime? createdToTime = createdFrom.HasValue ? DateTime.SpecifyKind(createdTo.Value, DateTimeKind.Unspecified) : null;
             var query = await _wkInstanceRepository.GetDetails();
             if (status.HasValue)
                 query = query.Where(x => x.Status == status.Value);
             if (!string.IsNullOrEmpty(type))
                 query = query.Where(x => x.WkDifinitionId == new Guid(type));
             if (createdFrom.HasValue)
-                query = query.Where(x => x.CreateTime >= createdFromTime.Value);
+                query = query.Where(x => x.CreateTime >= createdFrom.Value);
             if (createdTo.HasValue)
-                query = query.Where(x => x.CreateTime <= createdToTime.Value);
+                query = query.Where(x => x.CreateTime <= createdTo.Value);
 
             var rawResult = query.Skip(skip).Take(take).ToList();
             if (rawResult == null)
@@ -296,8 +295,7 @@ namespace Hx.Workflow.Domain
             await existingEntity.SetExternalWorkerId(workerId);
             if (expiry > new DateTime(9999, 12, 31))
                 expiry = new DateTime(9999, 12, 31);
-            DateTime expiryTime = DateTime.SpecifyKind(expiry, DateTimeKind.Unspecified);
-            await existingEntity.SetExternalTokenExpiry(expiryTime);
+            await existingEntity.SetExternalTokenExpiry(expiry);
             await _wkSubscriptionRepository.UpdateAsync(existingEntity);
             return true;
         }

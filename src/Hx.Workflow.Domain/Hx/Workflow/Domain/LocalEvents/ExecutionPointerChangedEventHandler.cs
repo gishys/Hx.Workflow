@@ -1,5 +1,7 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Entities.Events;
@@ -14,17 +16,17 @@ namespace Hx.Workflow.Domain.LocalEvents
           ITransientDependency
     {
         private readonly IWkExecutionPointerRepository _wkExecutionPointer;
-        private readonly IIdentityUserRepository _identityUserRepository;
         private readonly IWkEventRepository _eventRepository;
+        private readonly IServiceProvider _serviceProvider;
         public ExecutionPointerChangedEventHandler(
             IWkExecutionPointerRepository wkExecutionPointer,
-            IIdentityUserRepository identityUserRepository,
-            IWkEventRepository wkEventRepository
+            IWkEventRepository wkEventRepository,
+            IServiceProvider serviceProvider
             )
         {
             _wkExecutionPointer = wkExecutionPointer;
-            _identityUserRepository = identityUserRepository;
             _eventRepository = wkEventRepository;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task HandleEventAsync(
@@ -35,8 +37,14 @@ namespace Hx.Workflow.Domain.LocalEvents
                 var wkEvent = await _eventRepository.GetByEventKeyAsync($"{eventData.Entity.Id}");
                 if (wkEvent != null && wkEvent.CreatorId.HasValue)
                 {
-                    var creator = await _identityUserRepository.FindAsync(wkEvent.CreatorId.Value, false);
-                    await eventData.Entity.SetSubmitterInfo(creator.Name, creator.Id);
+                    var userRepository = _serviceProvider.GetService<IIdentityUserRepository>();
+                    string userName = null;
+                    if (userRepository != null)
+                    {
+                        var creator = await userRepository.FindAsync(wkEvent.CreatorId.Value, false);
+                        userName = creator.UserName;
+                    }
+                    await eventData.Entity.SetSubmitterInfo(userName, wkEvent.CreatorId.Value);
                     await _wkExecutionPointer.UpdateAsync(eventData.Entity);
                 }
             }

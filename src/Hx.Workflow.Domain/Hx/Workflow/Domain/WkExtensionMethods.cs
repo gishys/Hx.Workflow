@@ -14,11 +14,10 @@ namespace Hx.Workflow.Domain
         private static JsonSerializerSettings SerializerSettings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All };
         internal static WkExecutionError ToPersistable(this ExecutionError instance)
         {
-            var errorTime = DateTime.SpecifyKind(instance.ErrorTime, DateTimeKind.Unspecified);
             return new WkExecutionError(
                 new Guid(instance.WorkflowId),
                 new Guid(instance.ExecutionPointerId),
-                errorTime,
+                instance.ErrorTime,
                 instance.Message);
         }
         internal static WorkflowInstance ToWorkflowInstance(this WkInstance instance)
@@ -32,10 +31,8 @@ namespace Hx.Workflow.Domain
             result.Version = instance.Version;
             result.WorkflowDefinitionId = instance.WkDifinitionId.ToString();
             result.Status = instance.Status;
-            result.CreateTime = DateTime.SpecifyKind(instance.CreateTime, DateTimeKind.Unspecified);
-            if (instance.CompleteTime.HasValue)
-                result.CompleteTime = DateTime.SpecifyKind(instance.CompleteTime.Value, DateTimeKind.Unspecified);
-
+            result.CreateTime = instance.CreateTime;
+            result.CompleteTime = instance.CompleteTime;
             result.ExecutionPointers = new ExecutionPointerCollection(instance.ExecutionPointers.Count + 8);
 
             foreach (var ep in instance.ExecutionPointers)
@@ -45,18 +42,11 @@ namespace Hx.Workflow.Domain
                 pointer.Id = ep.Id.ToString();
                 pointer.StepId = ep.StepId;
                 pointer.Active = ep.Active;
-
-                if (ep.SleepUntil.HasValue)
-                    pointer.SleepUntil = DateTime.SpecifyKind(ep.SleepUntil.Value, DateTimeKind.Unspecified);
+                pointer.SleepUntil = ep.SleepUntil;
 
                 pointer.PersistenceData = JsonConvert.DeserializeObject(ep.PersistenceData ?? string.Empty, SerializerSettings);
-
-                if (ep.StartTime.HasValue)
-                    pointer.StartTime = DateTime.SpecifyKind(ep.StartTime.Value, DateTimeKind.Unspecified);
-
-                if (ep.EndTime.HasValue)
-                    pointer.EndTime = DateTime.SpecifyKind(ep.EndTime.Value, DateTimeKind.Unspecified);
-
+                pointer.StartTime = ep.StartTime;
+                pointer.EndTime = ep.EndTime;
                 pointer.StepName = ep.StepName;
 
                 pointer.RetryCount = ep.RetryCount;
@@ -92,7 +82,7 @@ namespace Hx.Workflow.Domain
             result.Id = instance.Id.ToString();
             result.EventKey = instance.Key;
             result.EventName = instance.Name;
-            result.EventTime = DateTime.SpecifyKind(instance.Time, DateTimeKind.Unspecified);
+            result.EventTime = result.EventTime;
             result.IsProcessed = instance.IsProcessed;
             result.EventData = JsonConvert.DeserializeObject(instance.Data, SerializerSettings);
             return result;
@@ -104,7 +94,7 @@ namespace Hx.Workflow.Domain
                     instance.EventName,
                     instance.EventKey,
                     JsonConvert.SerializeObject(instance.EventData, SerializerSettings),
-                    DateTime.SpecifyKind(instance.EventTime, DateTimeKind.Unspecified),
+                    instance.EventTime,
                     instance.IsProcessed
                     );
         }
@@ -117,7 +107,7 @@ namespace Hx.Workflow.Domain
                 new Guid(instance.ExecutionPointerId),
                 instance.EventName,
                 instance.EventKey,
-                DateTime.SpecifyKind(instance.SubscribeAsOf, DateTimeKind.Unspecified),
+                instance.SubscribeAsOf,
                 JsonConvert.SerializeObject(instance.SubscriptionData, SerializerSettings),
                 instance.ExternalToken,
                 instance.ExternalWorkerId,
@@ -133,7 +123,7 @@ namespace Hx.Workflow.Domain
             result.StepId = instance.StepId;
             result.ExecutionPointerId = instance.ExecutionPointerId.ToString();
             result.WorkflowId = instance.WorkflowId.ToString();
-            result.SubscribeAsOf = DateTime.SpecifyKind(instance.SubscribeAsOf, DateTimeKind.Unspecified);
+            result.SubscribeAsOf = result.SubscribeAsOf;
             result.SubscriptionData = JsonConvert.DeserializeObject(instance.SubscriptionData, SerializerSettings);
             result.ExternalToken = instance.ExternalToken;
             result.ExternalTokenExpiry = instance.ExternalTokenExpiry;
@@ -142,8 +132,6 @@ namespace Hx.Workflow.Domain
         }
         internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstance persistable = null)
         {
-            var createTime = DateTime.SpecifyKind(instance.CreateTime, DateTimeKind.Unspecified);
-            DateTime? completeTime = instance.CompleteTime.HasValue ? DateTime.SpecifyKind(instance.CompleteTime.Value, DateTimeKind.Unspecified) : null;
             if (persistable == null)
             {
                 persistable = new WkInstance(
@@ -155,8 +143,8 @@ namespace Hx.Workflow.Domain
                     instance.NextExecution,
                     instance.Status,
                     JsonConvert.SerializeObject(instance.Data, SerializerSettings),
-                    createTime,
-                    completeTime);
+                    instance.CreateTime,
+                    instance.CompleteTime);
             }
             else
             {
@@ -165,15 +153,12 @@ namespace Hx.Workflow.Domain
                 await persistable.SetNextExecution(instance.NextExecution);
                 await persistable.SetStatus(instance.Status);
                 await persistable.SetData(JsonConvert.SerializeObject(instance.Data, SerializerSettings));
-                await persistable.SetCreateTime(createTime);
-                await persistable.SetCompleteTime(completeTime);
+                await persistable.SetCreateTime(instance.CreateTime);
+                await persistable.SetCompleteTime(instance.CompleteTime);
             }
 
             foreach (var exe in instance.ExecutionPointers)
             {
-                DateTime? startTime = exe.StartTime.HasValue ? DateTime.SpecifyKind(exe.StartTime.Value, DateTimeKind.Unspecified) : null;
-                DateTime? endTime = exe.EndTime.HasValue ? DateTime.SpecifyKind(exe.EndTime.Value, DateTimeKind.Unspecified) : null;
-                DateTime? sleepUntil = exe.SleepUntil.HasValue ? DateTime.SpecifyKind(exe.SleepUntil.Value, DateTimeKind.Unspecified) : null;
                 var eventPointerEventData = System.Text.Json.JsonSerializer.Deserialize<WkPointerEventData>(System.Text.Json.JsonSerializer.Serialize(exe.ExtensionAttributes));
                 var epTemp = persistable.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == exe.Id);
                 if (epTemp == null)
@@ -181,10 +166,10 @@ namespace Hx.Workflow.Domain
                     epTemp = new WkExecutionPointer(
                         exe.StepId,
                         exe.Active,
-                        sleepUntil,
+                        exe.SleepUntil,
                         JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings),
-                        startTime,
-                        endTime,
+                        exe.StartTime,
+                        exe.EndTime,
                         exe.EventName,
                         exe.EventKey,
                         exe.EventPublished,
@@ -204,10 +189,10 @@ namespace Hx.Workflow.Domain
                 {
                     await epTemp.SetStepId(exe.StepId);
                     await epTemp.SetActive(exe.Active);
-                    await epTemp.SetSleepUntil(sleepUntil);
+                    await epTemp.SetSleepUntil(exe.SleepUntil);
                     await epTemp.SetPersistenceData(JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings));
-                    await epTemp.SetStartTime(startTime);
-                    await epTemp.SetEndTime(endTime);
+                    await epTemp.SetStartTime(exe.StartTime);
+                    await epTemp.SetEndTime(exe.EndTime);
                     await epTemp.SetEventName(exe.EventName);
                     await epTemp.SetEventKey(exe.EventKey);
                     await epTemp.SetEventPublished(exe.EventPublished);

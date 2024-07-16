@@ -137,11 +137,13 @@ namespace Hx.Workflow.Api
             return _workflowAppService.GetInstanceNodesAsync(workflowId);
         }
         [HttpPut]
+        [Route("instance/receive")]
         public Task ReceiveInstanceAsync(Guid workflowId)
         {
             return _workflowAppService.RecipientInstanceAsync(workflowId);
         }
         [HttpPut]
+        [Route("instance/businessdata")]
         public Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input)
         {
             return _workflowAppService.UpdateInstanceBusinessDataAsync(input);

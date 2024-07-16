@@ -46,13 +46,13 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
                 t.Property(p => p.ConcurrencyStamp).HasColumnName("CONCURRENCYSTAMP");
-                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");
-                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.LastModifierId).HasColumnName("LASTMODIFIERID");
                 t.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
-                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
                 t.HasMany(d => d.Nodes)
                 .WithOne(d => d.WkDefinition)
@@ -82,20 +82,20 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.WorkflowId).HasColumnName("WORKFLOWID");
                 d.Property(d => d.ExecutionPointerId).HasColumnName("EXECUTIONPOINTERID");
                 d.Property(d => d.Status).HasColumnName("STATUS").HasPrecision(1);
-                d.Property(d => d.AuditTime).HasColumnName("AUDITTIME").HasColumnType("timestamp without time zone");
+                d.Property(d => d.AuditTime).HasColumnName("AUDITTIME").HasColumnType("timestamp with time zone");
                 d.Property(d => d.Remark).HasColumnName("REMARK").HasMaxLength(WkAuditorConsts.MaxRemarkLength);
 
                 d.Property(d => d.UserId).HasColumnName("USERID");
                 d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkAuditorConsts.MaxUserNameLength);
                 d.Property(d => d.TenantId).HasColumnName("TENANTID");
 
-                d.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
+                d.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
                 d.Property(p => p.CreatorId).HasColumnName("CREATORID");
-                d.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp without time zone");
+                d.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp with time zone");
                 d.Property(p => p.LastModifierId).HasColumnName("LASTMODIFIERID");
                 d.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
                 d.Property(p => p.DeleterId).HasColumnName("DELETERID");
-                d.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp without time zone");
+                d.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
                 d.HasOne(d => d.Workflow)
                 .WithMany(d=>d.WkAuditors)
@@ -225,13 +225,13 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.TypeFullName).HasColumnName("TYPEFULLNAME").HasMaxLength(WkStepBodyConsts.MaxTypeFullName);
                 t.Property(d => d.AssemblyFullName).HasColumnName("ASSEMBLYFULLNAME").HasMaxLength(WkStepBodyConsts.MaxAssemblyFullName);
 
-                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");
-                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.LastModifierId).HasColumnName("LASTMODIFIERID");
                 t.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
-                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
                 t.HasMany(d => d.Inputs)
                 .WithOne()
@@ -255,11 +255,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Name).HasColumnName("EVENTNAME").HasMaxLength(WkEventConsts.MaxName);
                 t.Property(d => d.Key).HasColumnName("EVENTKEY").HasMaxLength(WkEventConsts.MaxKey);
                 t.Property(d => d.Data).HasColumnName("EVENTDATA").HasMaxLength(WkEventConsts.MaxData);
-                t.Property(d => d.Time).HasColumnName("EVENTTIME").HasColumnType("timestamp without time zone");
+                t.Property(d => d.Time).HasColumnName("EVENTTIME").HasColumnType("timestamp with time zone");
                 t.Property(d => d.IsProcessed).HasColumnName("ISPROCESSED");
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
 
-                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");
             });
             builder.Entity<WkExecutionError>(t =>
@@ -268,7 +268,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkInstanceId).HasColumnName("WKINSTANCEID");
                 t.Property(d => d.WkExecutionPointerId).HasColumnName("WKEXECUTIONPOINTERID");
-                t.Property(d => d.ErrorTime).HasColumnName("ERRORTIME").HasColumnType("timestamp without time zone");
+                t.Property(d => d.ErrorTime).HasColumnName("ERRORTIME").HasColumnType("timestamp with time zone");
                 t.Property(d => d.Message).HasColumnName("MESSAGE").HasMaxLength(WkExecutionErrorConsts.MaxMessage);
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
             });
@@ -289,11 +289,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.WkInstanceId).HasColumnName("WKINSTANCEID");
                 t.Property(d => d.StepId).HasColumnName("STEPID");
                 t.Property(d => d.Active).HasColumnName("ACTIVE");
-                t.Property(d => d.SleepUntil).HasColumnName("SLEEPUNTIL").HasColumnType("timestamp without time zone");
+                t.Property(d => d.SleepUntil).HasColumnName("SLEEPUNTIL").HasColumnType("timestamp with time zone");
 
                 t.Property(d => d.PersistenceData).HasColumnName("PERSISTENCEDATA").HasMaxLength(WkExecutionPointerConsts.MaxPersistenceData);
-                t.Property(d => d.StartTime).HasColumnName("STARTTIME").HasColumnType("timestamp without time zone");
-                t.Property(d => d.EndTime).HasColumnName("ENDTIME").HasColumnType("timestamp without time zone");
+                t.Property(d => d.StartTime).HasColumnName("STARTTIME").HasColumnType("timestamp with time zone");
+                t.Property(d => d.EndTime).HasColumnName("ENDTIME").HasColumnType("timestamp with time zone");
                 t.Property(d => d.EventName).HasColumnName("EVENTNAME").HasMaxLength(WkExecutionPointerConsts.MaxEventName);
                 t.Property(d => d.EventKey).HasColumnName("EVENTKEY").HasMaxLength(WkExecutionPointerConsts.MaxEventKey);
 
@@ -314,15 +314,15 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.RecipientId).HasColumnName("RECIPIENTID");
                 t.Property(d => d.Submitter).HasColumnName("SUBMITTER").HasMaxLength(WkExecutionPointerConsts.SubmitterMaxLength);
                 t.Property(d => d.SubmitterId).HasColumnName("SUBMITTERID");
-                t.Property(p => p.CommitmentDeadline).HasColumnName("COMMITMENTDEADLINE").HasColumnType("timestamp without time zone");
+                t.Property(p => p.CommitmentDeadline).HasColumnName("COMMITMENTDEADLINE").HasColumnType("timestamp with time zone");
 
-                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");
-                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.LastModifierId).HasColumnName("LASTMODIFIERID");
                 t.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
-                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
                 t.HasMany(d => d.ExtensionAttributes)
                 .WithOne(d => d.WkExecutionPointer)
@@ -364,20 +364,20 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.NextExecution).HasColumnName("NEXTEXECUTION");
                 t.Property(d => d.Status).HasColumnName("STATUS").HasPrecision(1);
                 t.Property(d => d.Data).HasColumnName("DATA").HasMaxLength(WkInstanceConsts.Data);
-                t.Property(d => d.CreateTime).HasColumnName("CREATETIME").HasColumnType("timestamp without time zone");
-                t.Property(d => d.CompleteTime).HasColumnName("COMPLETETIME").HasColumnType("timestamp without time zone");
+                t.Property(d => d.CreateTime).HasColumnName("CREATETIME").HasColumnType("timestamp with time zone");
+                t.Property(d => d.CompleteTime).HasColumnName("COMPLETETIME").HasColumnType("timestamp with time zone");
 
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
 
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
                 t.Property(p => p.ConcurrencyStamp).HasColumnName("CONCURRENCYSTAMP");
-                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");
-                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.LastModifierId).HasColumnName("LASTMODIFIERID");
                 t.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
-                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp without time zone");
+                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
                 t.HasOne(d => d.WkDefinition)
                 .WithMany()
@@ -401,12 +401,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.EventName).HasColumnName("EVENTNAME").HasMaxLength(WkSubscriptionConsts.EventName);
 
                 t.Property(d => d.EventKey).HasColumnName("EVENTKEY").HasMaxLength(WkSubscriptionConsts.EventKey);
-                t.Property(d => d.SubscribeAsOf).HasColumnName("SUBSCRIBEASOF").HasColumnType("timestamp without time zone");
+                t.Property(d => d.SubscribeAsOf).HasColumnName("SUBSCRIBEASOF").HasColumnType("timestamp with time zone");
                 t.Property(d => d.SubscriptionData).HasColumnName("SUBSCRIPTIONDATA").HasMaxLength(WkSubscriptionConsts.SubscriptionData);
                 t.Property(d => d.ExternalToken).HasColumnName("EXTERNALTOKEN").HasMaxLength(WkSubscriptionConsts.ExternalToken);
                 t.Property(d => d.ExternalWorkerId).HasColumnName("EXTERNALWORKERID").HasMaxLength(WkSubscriptionConsts.ExternalWorkerId);
 
-                t.Property(d => d.ExternalTokenExpiry).HasColumnName("EXTERNALTOKENEXPIRY").HasColumnType("timestamp without time zone");
+                t.Property(d => d.ExternalTokenExpiry).HasColumnName("EXTERNALTOKENEXPIRY").HasColumnType("timestamp with time zone");
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
             });
         }

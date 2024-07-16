@@ -2,6 +2,7 @@
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.StepBodys;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.PostgreSql;
 using Volo.Abp.Modularity;
@@ -15,6 +16,7 @@ namespace Hx.Workflow.EntityFrameworkCore
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             context.Services.AddAbpDbContext<WkDbContext>(
                 options =>
                 {
