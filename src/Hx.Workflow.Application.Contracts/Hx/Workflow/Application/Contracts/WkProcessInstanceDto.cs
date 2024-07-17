@@ -65,5 +65,13 @@ namespace Hx.Workflow.Application.Contracts
         /// 是否已签收
         /// </summary>
         public bool IsSign {  get; set; }
+        /// <summary>
+        /// 正在运行
+        /// </summary>
+        public bool IsProcessed {  get; set; }
+        /// <summary>
+        /// 可办理
+        /// </summary>
+        public bool CanHandle { get; set; }
     }
 }

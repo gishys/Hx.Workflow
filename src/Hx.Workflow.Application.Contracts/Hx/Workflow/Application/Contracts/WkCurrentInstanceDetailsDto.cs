@@ -18,5 +18,13 @@ namespace Hx.Workflow.Application.Contracts
         public WkExecutionPointerDto CurrentExecutionPointer { get; set; }
         public string ProcessName { get; set; }
         public string Located { get; set; }
+        /// <summary>
+        /// 正在运行
+        /// </summary>
+        public bool IsProcessed { get; set; }
+        /// <summary>
+        /// 可办理
+        /// </summary>
+        public bool CanHandle {  get; set; }
     }
 }

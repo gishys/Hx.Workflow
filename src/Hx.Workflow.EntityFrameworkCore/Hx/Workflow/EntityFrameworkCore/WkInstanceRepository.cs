@@ -88,7 +88,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(x => x.WkAuditors)
                 .WhereIf(status != null, d => d.Status == status)
                 .WhereIf(reference != null, d => d.Reference.Contains(reference))
-                .Where(d => d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
+                .Where(d => d.WkAuditors.Any(a => ids.Any(user => user == a.UserId)) ||
+                d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(
@@ -99,7 +100,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             var queryable = (await GetDbSetAsync())
                 .WhereIf(status != null, d => d.Status == status)
                 .WhereIf(reference != null, d => d.Reference.Contains(reference))
-                .Where(d => d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
+                .Where(d => d.WkAuditors.Any(a => ids.Any(user => user == a.UserId)) ||
+                d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
             return await queryable.CountAsync();
         }
         public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)

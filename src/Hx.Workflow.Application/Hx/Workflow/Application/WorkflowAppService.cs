@@ -196,6 +196,8 @@ namespace Hx.Workflow.Application
                     BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                     ProcessType = instance.WkDefinition.ProcessType,
                     IsSign = userIds.Any(id => id == pointer.RecipientId),
+                    IsProcessed = instance.NextExecution != null,
+                    CanHandle = CurrentUser.Id.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == CurrentUser.Id.Value),
                 };
                 result.Add(processInstance);
             }
@@ -259,6 +261,8 @@ namespace Hx.Workflow.Application
                 CurrentExecutionPointer = currentPointerDto,
                 ProcessName = businessData.ProcessName,
                 Located = businessData.Located,
+                IsProcessed = instance.NextExecution != null,
+                CanHandle = CurrentUser.Id.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == CurrentUser.Id),
             };
         }
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
