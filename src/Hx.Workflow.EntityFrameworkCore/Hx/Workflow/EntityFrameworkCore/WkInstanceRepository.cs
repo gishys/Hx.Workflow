@@ -84,6 +84,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             var queryable = (await GetDbSetAsync())
                 .Include(x => x.ExecutionPointers)
                 .ThenInclude(x => x.WkCandidates)
+                .Include(x => x.ExecutionPointers)
+                .ThenInclude(x => x.WkSubscriptions)
                 .Include(x => x.WkDefinition)
                 .ThenInclude(x => x.Nodes)
                 .Include(x => x.WkAuditors)

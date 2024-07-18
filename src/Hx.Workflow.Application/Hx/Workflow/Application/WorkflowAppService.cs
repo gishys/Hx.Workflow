@@ -167,6 +167,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = [CurrentUser.Id.Value];
             }
+            userIds = [new Guid("3a13ccf2-b9db-ebbb-bca6-214b40a79473")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,
@@ -196,7 +197,7 @@ namespace Hx.Workflow.Application
                     BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                     ProcessType = instance.WkDefinition.ProcessType,
                     IsSign = userIds.Any(id => id == pointer.RecipientId),
-                    IsProcessed = instance.NextExecution != null,
+                    IsProcessed = pointer.WkSubscriptions.Any(d => d.ExternalToken != null),
                     CanHandle = CurrentUser.Id.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == CurrentUser.Id.Value),
                 };
                 result.Add(processInstance);
@@ -261,7 +262,7 @@ namespace Hx.Workflow.Application
                 CurrentExecutionPointer = currentPointerDto,
                 ProcessName = businessData.ProcessName,
                 Located = businessData.Located,
-                IsProcessed = instance.NextExecution != null,
+                IsProcessed = pointer.WkSubscriptions.Any(d => d.ExternalToken != null),
                 CanHandle = CurrentUser.Id.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == CurrentUser.Id),
             };
         }
