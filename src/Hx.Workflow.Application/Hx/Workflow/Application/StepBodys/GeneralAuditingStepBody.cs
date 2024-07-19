@@ -65,7 +65,7 @@ namespace Hx.Workflow.Application.StepBodys
                 if (pointer == null)
                     throw new UserFriendlyException("获取流程节点失败！");
                 List<WkNodeCandidate> dcandidate = null;
-                if (pointer.StepNodeType == StepNodeType.Activity)
+                if (pointer.StepNodeType == StepNodeType.Activity || pointer.StepNodeType == StepNodeType.End)
                 {
                     if (!string.IsNullOrEmpty(Candidates))
                     {

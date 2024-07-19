@@ -69,9 +69,5 @@ namespace Hx.Workflow.Application.Contracts
         /// 正在运行
         /// </summary>
         public bool IsProcessed {  get; set; }
-        /// <summary>
-        /// 可办理
-        /// </summary>
-        public bool CanHandle { get; set; }
     }
 }
