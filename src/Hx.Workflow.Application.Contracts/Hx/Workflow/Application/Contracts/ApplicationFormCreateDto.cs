@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
+using System.Collections.Generic;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -26,5 +27,6 @@ namespace Hx.Workflow.Application.Contracts
         /// application type
         /// </summary>
         public ApplicationType ApplicationType { get; set; } = ApplicationType.Form;
+        public ICollection<WkParamCreateDto> Params { get; set; }
     }
 }

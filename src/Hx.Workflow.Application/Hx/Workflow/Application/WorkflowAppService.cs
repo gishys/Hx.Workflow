@@ -249,6 +249,7 @@ namespace Hx.Workflow.Application
             currentPointerDto.StepDisplayName = step.DisplayName;
             var errors = await _errorRepository.GetListByIdAsync(workflowId, pointerId);
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
+            currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());
             return new WkCurrentInstanceDetailsDto()
             {
                 Id = instance.Id,

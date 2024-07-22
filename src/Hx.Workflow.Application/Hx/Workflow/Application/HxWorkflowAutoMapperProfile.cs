@@ -36,6 +36,7 @@ namespace Hx.Workflow.Application
             CreateMap<WkExecutionPointer, WkExecutionPointerDto>(MemberList.None)
                 .ForMember(d => d.Status, d => d.MapFrom(f => (int)f.Status));
             CreateMap<WkExecutionError, WkExecutionErrorDto>(MemberList.Destination);
+            CreateMap<WkParam, WkParamDto>(MemberList.Destination);
         }
     }
 }

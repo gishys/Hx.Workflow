@@ -1,5 +1,7 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Entities;
 
@@ -7,29 +9,30 @@ namespace Hx.Workflow.Domain
 {
     public class ApplicationForm : Entity<Guid>
     {
-        public Guid? WkNodeId { get; protected set; }
-        public WkNode WkNode { get; protected set; }
+        public virtual Guid? WkNodeId { get; protected set; }
+        public virtual WkNode WkNode { get; protected set; }
         /// <summary>
         /// if null is root
         /// </summary>
-        public Guid? ParentId { get; protected set; }
+        public virtual Guid? ParentId { get; protected set; }
         /// <summary>
         /// example:001.001.001
         /// </summary>
-        public string Code { get; protected set; }
+        public virtual string Code { get; protected set; }
         /// <summary>
         /// application name
         /// </summary>
-        public string Name { get; protected set; }
+        public virtual string Name { get; protected set; }
         /// <summary>
         /// application node type
         /// </summary>
-        public string DisplayName { get; protected set; }
+        public virtual string DisplayName { get; protected set; }
         /// <summary>
         /// application type
         /// </summary>
-        public ApplicationType ApplicationType { get;protected set; }
-        public int SequenceNumber {  get; protected set; }
+        public virtual ApplicationType ApplicationType { get; protected set; }
+        public virtual int SequenceNumber { get; protected set; }
+        public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public ApplicationForm()
         { }
         public ApplicationForm(
@@ -51,6 +54,11 @@ namespace Hx.Workflow.Domain
         public Task SetName(string name)
         {
             Name = name;
+            return Task.CompletedTask;
+        }
+        public Task AddParam(WkParam param)
+        {
+            Params.Add(param);
             return Task.CompletedTask;
         }
     }

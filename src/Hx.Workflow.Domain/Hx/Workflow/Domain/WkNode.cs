@@ -69,6 +69,7 @@ namespace Hx.Workflow.Domain
         /// 节点条件
         /// </summary>
         public virtual ICollection<WkConditionNode> NextNodes { get; protected set; }
+        public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public WkNode()
         { }
         public WkNode(
@@ -124,6 +125,11 @@ namespace Hx.Workflow.Domain
         public Task AddNextNode(WkConditionNode node)
         {
             NextNodes.Add(node);
+            return Task.CompletedTask;
+        }
+        public Task AddParam(WkParam param)
+        {
+            Params.Add(param);
             return Task.CompletedTask;
         }
     }

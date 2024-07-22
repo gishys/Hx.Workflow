@@ -57,6 +57,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 节点执行者集合
         /// </summary>
-        public virtual ICollection<WkCandidateDto> WkCandidates { get; protected set; }
+        public virtual ICollection<WkCandidateDto> WkCandidates { get; set; }
+        public virtual ICollection<WkParamDto> Params { get; set; }
     }
 }

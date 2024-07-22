@@ -98,7 +98,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
                 d.HasOne(d => d.Workflow)
-                .WithMany(d=>d.WkAuditors)
+                .WithMany(d => d.WkAuditors)
                 .HasForeignKey(d => d.WorkflowId)
                 .HasConstraintName("Pk_WkAuditor_WkInstance");
 
@@ -152,6 +152,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .HasForeignKey(d => d.WkNodeId)
                 .HasConstraintName("Pk_WkNode_OutcomeSteps")
                 .OnDelete(DeleteBehavior.Cascade);
+
+                t.OwnsMany(p => p.Params, param =>
+                {
+                    param.ToJson();
+                });
             });
             builder.Entity<WkNodeCandidate>(d =>
             {
@@ -205,6 +210,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(ApplicationFormConsts.MaxName);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(ApplicationFormConsts.MaxDisplayName);
                 t.Property(d => d.ApplicationType).HasColumnName("APPLICATIONTYPE").HasPrecision(1);
+
+                t.OwnsMany(p => p.Params, param =>
+                {
+                    param.ToJson();
+                });
             });
             builder.Entity<WkPoint>(t =>
             {

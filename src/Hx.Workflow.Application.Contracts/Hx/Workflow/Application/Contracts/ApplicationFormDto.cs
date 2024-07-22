@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
+using System.Collections.Generic;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -26,5 +27,6 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public ApplicationType ApplicationType { get; set; }
         public int SequenceNumber { get; set; }
+        public virtual ICollection<WkParamDto> Params { get; set; }
     }
 }
