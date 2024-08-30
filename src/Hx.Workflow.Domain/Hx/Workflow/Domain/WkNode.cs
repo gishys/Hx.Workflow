@@ -69,6 +69,10 @@ namespace Hx.Workflow.Domain
         /// 节点条件
         /// </summary>
         public virtual ICollection<WkConditionNode> NextNodes { get; protected set; }
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int SortNumber { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public WkNode()
         { }

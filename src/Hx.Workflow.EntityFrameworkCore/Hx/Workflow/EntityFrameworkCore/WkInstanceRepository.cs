@@ -77,7 +77,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> ids,
             string reference,
-            WorkflowStatus? status,
+            MyWorkState? state,
             int skipCount,
             int maxResultCount)
         {
@@ -89,19 +89,59 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(x => x.WkDefinition)
                 .ThenInclude(x => x.Nodes)
                 .Include(x => x.WkAuditors)
-                .WhereIf(status != null, d => d.Status == status)
-                .WhereIf(reference != null, d => d.Reference.Contains(reference))
-                .Where(d => d.WkAuditors.Any(a => ids.Any(user => user == a.UserId)) ||
-                d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
+                .WhereIf(state == MyWorkState.BeingProcessed, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
+                .WhereIf(state == MyWorkState.WaitingReceipt, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ParentState == ExeCandidateState.WaitingReceipt)))
+                .WhereIf(state == MyWorkState.Pending, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ParentState == ExeCandidateState.Pending)))
+                .WhereIf(state == MyWorkState.Participation, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
+                .WhereIf(state == MyWorkState.Entrusted, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Entrusted)))
+                .WhereIf(state == MyWorkState.Handled, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
+                .WhereIf(state == MyWorkState.Follow, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.Follow == true)))
+                .WhereIf(state == MyWorkState.Suspended, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && d.Status == WorkflowStatus.Suspended)
+                .WhereIf(state == MyWorkState.Countersign, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Countersign)))
+                .WhereIf(state == MyWorkState.CarbonCopy, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.CarbonCopy)))
+                .WhereIf(state == MyWorkState.Abnormal, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
+                .WhereIf(reference != null, d => d.Reference.Contains(reference));
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
             string reference,
-            WorkflowStatus? status)
+            MyWorkState? state)
         {
             var queryable = (await GetDbSetAsync())
-                .WhereIf(status != null, d => d.Status == status)
+                .WhereIf(state == MyWorkState.BeingProcessed, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
+                .WhereIf(state == MyWorkState.WaitingReceipt, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ParentState == ExeCandidateState.WaitingReceipt)))
+                .WhereIf(state == MyWorkState.Pending, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ParentState == ExeCandidateState.Pending)))
+                .WhereIf(state == MyWorkState.Participation, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
+                .WhereIf(state == MyWorkState.Entrusted, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Entrusted)))
+                .WhereIf(state == MyWorkState.Handled, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
+                .WhereIf(state == MyWorkState.Follow, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
+                .WhereIf(state == MyWorkState.Suspended, d =>
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && d.Status == WorkflowStatus.Suspended)
+                .WhereIf(state == MyWorkState.Countersign, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Countersign)))
+                .WhereIf(state == MyWorkState.CarbonCopy, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.CarbonCopy)))
+                .WhereIf(state == MyWorkState.Abnormal, d =>
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(reference != null, d => d.Reference.Contains(reference))
                 .Where(d => d.WkAuditors.Any(a => ids.Any(user => user == a.UserId)) ||
                 d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
@@ -177,6 +217,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             }
             exePointer.WkCandidates.RemoveAll(d => d.CandidateId != currentUserId);
             var candidate = exePointer.WkCandidates.First(d => d.CandidateId == currentUserId);
+            candidate.SetParentState(ExeCandidateState.Pending);
             await exePointer.SetRecipientInfo(candidate.UserName, currentUserId);
             return await UpdateAsync(instance);
         }

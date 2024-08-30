@@ -119,7 +119,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.LimitTime).HasColumnName("LIMITTIME");
                 t.Property(d => d.NodeFormType).HasColumnName("NODEFORMTYPE").HasPrecision(1);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkNodeConsts.MaxDisplayName);
-
+                t.Property(p => p.SortNumber).HasColumnName("SORTNUMBER").HasComment("排序");
                 t.HasMany(d => d.ApplicationForms)
                 .WithOne(d => d.WkNode)
                 .HasForeignKey(d => d.WkNodeId)
@@ -360,6 +360,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
                 d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
                 d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
+                d.Property(d => d.ParentState).HasColumnName("PARENTSTATE");
+                d.Property(d => d.CandidateType).HasColumnName("CANDIDATETYPE");
+                d.Property(d => d.Follow).HasColumnName("FOLLOW");
             });
             builder.Entity<WkInstance>(t =>
             {

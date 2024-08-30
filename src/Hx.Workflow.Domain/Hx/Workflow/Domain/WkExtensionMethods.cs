@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Shared;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -234,6 +235,8 @@ namespace Hx.Workflow.Domain
                     node.CandidateId,
                     node.UserName,
                     node.DisplayUserName,
+                    ExeCandidateType.Host,
+                    ExeCandidateState.WaitingReceipt,
                     node.DefaultSelection
                     ));
             }

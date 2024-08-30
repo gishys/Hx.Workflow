@@ -126,6 +126,17 @@ namespace Hx.Workflow.Application.StepBodys
                     if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
                         throw new UserFriendlyException("参数DecideBranching错误！");
                 }
+                foreach (var item in executionPointer.WkCandidates)
+                {
+                    if (eventPointerEventData.ExecutionType == StepExecutionType.Next)
+                    {
+                        item.SetParentState(ExeCandidateState.Completed);
+                    }
+                    else
+                    {
+                        item.SetParentState(ExeCandidateState.BeRolledBack);
+                    }
+                }
                 var auditStatus = eventPointerEventData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
                 await Audit(eventData.Data, executionPointer.Id, auditStatus);
             }

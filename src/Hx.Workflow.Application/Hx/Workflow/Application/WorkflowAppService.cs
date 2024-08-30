@@ -4,9 +4,9 @@ using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
-using Microsoft.AspNetCore.Authorization;
-using System;
+using Hx.Workflow.Domain.Shared;
 using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -24,13 +24,15 @@ namespace Hx.Workflow.Application
         private readonly IWkDefinitionRespository _wkDefinition;
         private readonly IWkInstanceRepository _wkInstanceRepository;
         private readonly IWkErrorRepository _errorRepository;
+        private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository;
         public WorkflowAppService(
             IWkStepBodyRespository wkStepBody,
             HxWorkflowManager hxWorkflowManager,
             IWkAuditorRespository wkAuditor,
             IWkDefinitionRespository wkDefinition,
             IWkInstanceRepository wkInstanceRepository,
-            IWkErrorRepository errorRepository)
+            IWkErrorRepository errorRepository,
+            IWkExecutionPointerRepository wkExecutionPointerRepository)
         {
             _wkStepBody = wkStepBody;
             _hxWorkflowManager = hxWorkflowManager;
@@ -38,6 +40,7 @@ namespace Hx.Workflow.Application
             _wkDefinition = wkDefinition;
             _wkInstanceRepository = wkInstanceRepository;
             _errorRepository = errorRepository;
+            _wkExecutionPointerRepository = wkExecutionPointerRepository;
         }
         /// <summary>
         /// 创建流程模版
@@ -157,7 +160,7 @@ namespace Hx.Workflow.Application
         /// <param name="maxResultCount"></param>
         /// <returns></returns>
         public virtual async Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
-            WorkflowStatus? status = WorkflowStatus.Runnable,
+            MyWorkState? status = null,
             string reference = null,
             ICollection<Guid> userIds = null,
             int skipCount = 0,
@@ -219,6 +222,12 @@ namespace Hx.Workflow.Application
             }
             return earlyWarning;
         }
+        /// <summary>
+        /// 签收实例
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
         public virtual async Task RecipientInstanceAsync(Guid workflowId)
         {
             if (CurrentUser.Id.HasValue)
@@ -230,6 +239,12 @@ namespace Hx.Workflow.Application
                 throw new UserFriendlyException("未获取到当前登录用户！");
             }
         }
+        /// <summary>
+        /// 获得实例详细信息
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <param name="pointerId"></param>
+        /// <returns></returns>
         public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId);
@@ -268,6 +283,11 @@ namespace Hx.Workflow.Application
                 && CurrentUser.Id.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == CurrentUser.Id),
             };
         }
+        /// <summary>
+        /// 获得实例节点
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId);
@@ -334,7 +354,13 @@ namespace Hx.Workflow.Application
             var resultEntity = await _wkInstanceRepository.UpdateCandidateAsync(
                 entity.WkInstanceId,
                 entity.WkExecutionPointerId,
-                wkCandidates as ICollection<ExePointerCandidate>);
+                entity.WkCandidates.Select(d =>
+                new ExePointerCandidate(
+                    d.CandidateId,
+                    d.UserName,
+                    d.DisplayUserName,
+                    ExeCandidateType.Host,
+                    ExeCandidateState.WaitingReceipt)).ToList());
             return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
         }
         /// <summary>
@@ -372,6 +398,25 @@ namespace Hx.Workflow.Application
                 { "Located", input.Located }
                 };
             await _wkInstanceRepository.UpdateDataAsync(input.WorkflowId, data);
+        }
+        /// <summary>
+        /// 关注实例（取消关注）
+        /// </summary>
+        /// <param name="pointerId"></param>
+        /// <param name="follow"></param>
+        /// <returns></returns>
+        public virtual async Task FollowAsync(Guid pointerId, bool follow)
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                var pointer = await _wkExecutionPointerRepository.FindAsync(pointerId);
+                var exeCandidate = pointer.WkCandidates.Where(d => d.CandidateId == CurrentUser.Id.Value).FirstOrDefault();
+                if (exeCandidate != null)
+                {
+                    await exeCandidate.SetFollow(follow);
+                    await _wkExecutionPointerRepository.UpdateAsync(pointer);
+                }
+            }
         }
     }
 }

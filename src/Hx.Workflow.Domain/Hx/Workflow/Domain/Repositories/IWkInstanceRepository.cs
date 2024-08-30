@@ -1,10 +1,10 @@
 ﻿using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories;
-using WorkflowCore.Models;
 
 namespace Hx.Workflow.Domain.Repositories
 {
@@ -18,13 +18,13 @@ namespace Hx.Workflow.Domain.Repositories
         Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> id,
             string reference,
-            WorkflowStatus? status,
+            MyWorkState? state,
             int skipCount,
             int maxResultCount);
         Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
             string reference,
-            WorkflowStatus? status);
+            MyWorkState? state);
         Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
             Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates);

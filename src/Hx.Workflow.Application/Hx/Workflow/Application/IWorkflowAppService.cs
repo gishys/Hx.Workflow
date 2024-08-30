@@ -1,4 +1,5 @@
 ﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Hx.Workflow.Application
         Task<string> StartAsync(StartWorkflowInput input);
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
-            WorkflowStatus? status = WorkflowStatus.Runnable,
+            MyWorkState? status = null,
             string reference = null,
             ICollection<Guid> userIds = null,
             int skipCount = 0,
