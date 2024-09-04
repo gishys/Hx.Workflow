@@ -55,6 +55,10 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public virtual ICollection<WkConditionNodeDto> NextNodes { get; set; }
         /// <summary>
+        /// 排序
+        /// </summary>
+        public int SortNumber { get; set; }
+        /// <summary>
         /// 节点执行者集合
         /// </summary>
         public virtual ICollection<WkCandidateDto> WkCandidates { get; set; }

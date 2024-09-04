@@ -82,6 +82,7 @@ namespace Hx.Workflow.Domain
             StepNodeType stepNodeType,
             int version,
             NodeFormType nodeFormType,
+            int sortNumber,
             int? limitTime = null)
         {
             Name = name;
@@ -90,6 +91,7 @@ namespace Hx.Workflow.Domain
             Version = version;
             NodeFormType = nodeFormType;
             LimitTime = limitTime;
+            SortNumber = sortNumber;
             Position = new List<WkPoint>();
             NextNodes = new List<WkConditionNode>();
             OutcomeSteps = new List<WkNodePara>();

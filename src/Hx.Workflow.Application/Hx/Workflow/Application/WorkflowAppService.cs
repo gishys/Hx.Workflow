@@ -20,7 +20,6 @@ namespace Hx.Workflow.Application
     {
         private readonly IWkStepBodyRespository _wkStepBody;
         private readonly HxWorkflowManager _hxWorkflowManager;
-        private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkDefinitionRespository _wkDefinition;
         private readonly IWkInstanceRepository _wkInstanceRepository;
         private readonly IWkErrorRepository _errorRepository;
@@ -28,7 +27,6 @@ namespace Hx.Workflow.Application
         public WorkflowAppService(
             IWkStepBodyRespository wkStepBody,
             HxWorkflowManager hxWorkflowManager,
-            IWkAuditorRespository wkAuditor,
             IWkDefinitionRespository wkDefinition,
             IWkInstanceRepository wkInstanceRepository,
             IWkErrorRepository errorRepository,
@@ -36,7 +34,6 @@ namespace Hx.Workflow.Application
         {
             _wkStepBody = wkStepBody;
             _hxWorkflowManager = hxWorkflowManager;
-            _wkAuditor = wkAuditor;
             _wkDefinition = wkDefinition;
             _wkInstanceRepository = wkInstanceRepository;
             _errorRepository = errorRepository;
@@ -103,7 +100,10 @@ namespace Hx.Workflow.Application
         public virtual async Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1)
         {
             var entity = await _wkDefinition.GetDefinitionAsync(id, version);
-            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
+            var result = ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
+            if (result != null && result.Nodes.Count > 0)
+                result.Nodes = result.Nodes.OrderBy(n => n.SortNumber).ToList();
+            return result;
         }
         /// <summary>
         /// 获取全部流程模版
@@ -170,7 +170,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = [CurrentUser.Id.Value];
             }
-            //userIds = [new Guid("3a13ccf2-b9db-ebbb-bca6-214b40a79473")];
+            //userIds = [new Guid("3a13eb66-2cd5-3814-f180-d3bbe3add134")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,
@@ -292,8 +292,10 @@ namespace Hx.Workflow.Application
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId);
             var result = new List<WkNodeTreeDto>();
-            foreach (var node in instance.ExecutionPointers.OrderBy(d => d.StepId))
+            string preId = null;
+            while (instance.ExecutionPointers.Any(d => d.PredecessorId == preId))
             {
+                var node = instance.ExecutionPointers.First(d => d.PredecessorId == preId);
                 result.Add(new WkNodeTreeDto()
                 {
                     Key = node.Id,
@@ -302,6 +304,7 @@ namespace Hx.Workflow.Application
                     Name = node.StepName,
                     Receiver = node.Recipient
                 });
+                preId = node.Id.ToString();
             }
             return result;
         }
@@ -344,11 +347,11 @@ namespace Hx.Workflow.Application
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(resultEntity);
         }
         /// <summary>
-        /// 更新实例候选人
+        /// 更新实例候选人（委托、抄送、会签）
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public virtual async Task<WkInstancesDto> UpdateInstanceAsync(WkInstanceUpdateDto entity)
+        public virtual async Task<WkInstancesDto> UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity)
         {
             var wkCandidates = entity.WkCandidates.ToWkCandidate();
             var resultEntity = await _wkInstanceRepository.UpdateCandidateAsync(
@@ -359,8 +362,8 @@ namespace Hx.Workflow.Application
                     d.CandidateId,
                     d.UserName,
                     d.DisplayUserName,
-                    ExeCandidateType.Host,
-                    ExeCandidateState.WaitingReceipt)).ToList());
+                    entity.CandidateType,
+                    ExeCandidateState.WaitingReceipt)).ToList(), entity.CandidateType);
             return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
         }
         /// <summary>
@@ -372,18 +375,6 @@ namespace Hx.Workflow.Application
         {
             var entitys = await _wkInstanceRepository.GetCandidatesAsync(wkInstanceId);
             return ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkCandidateDto>>(entitys);
-        }
-        /// <summary>
-        /// 接收流程实例
-        /// </summary>
-        /// <param name="workflowId"></param>
-        /// <returns></returns>
-        /// <exception cref="UserFriendlyException"></exception>
-        public virtual async Task ReceiveInstanceAsync(Guid workflowId)
-        {
-            if (!CurrentUser.Id.HasValue)
-                throw new UserFriendlyException("未获取到当前登录用户！");
-            await _wkInstanceRepository.RecipientExePointerAsync(workflowId, CurrentUser.Id.Value);
         }
         /// <summary>
         /// 流程实例添加业务数据

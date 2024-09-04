@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
@@ -10,6 +11,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Identity;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -88,18 +90,6 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
                     var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
-                    var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionPointer.Id);
-                    if (auditorQueryEntity == null)
-                    {
-                        var auditorInstance =
-                            new WkAuditor(
-                                instance.Id,
-                                executionPointer.Id,
-                                defCandidate.UserName,
-                                userId: defCandidate.CandidateId,
-                                status: EnumAuditStatus.UnAudited);
-                        await _wkAuditor.InsertAsync(auditorInstance);
-                    }
                     dcandidate = [new(defCandidate.CandidateId, defCandidate.UserName, defCandidate.DisplayUserName, defCandidate.DefaultSelection)];
                 }
                 if (dcandidate != null)
@@ -107,7 +97,12 @@ namespace Hx.Workflow.Application.StepBodys
                     await _wkInstance.UpdateCandidateAsync(
                         instance.Id,
                         executionPointer.Id,
-                        dcandidate.ToCandidates());
+                        dcandidate.ToCandidates(),
+                        ExeCandidateType.Host);
+                }
+                else
+                {
+                    throw new UserFriendlyException("未传入正确的接收者!");
                 }
                 var effectiveData = DateTime.MinValue;
                 var executionResult = ExecutionResult.WaitForActivity(
@@ -126,7 +121,18 @@ namespace Hx.Workflow.Application.StepBodys
                     if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
                         throw new UserFriendlyException("参数DecideBranching错误！");
                 }
-                foreach (var item in executionPointer.WkCandidates)
+                EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;
+                if (eventPointerEventData.ExecutionType == StepExecutionType.Next)
+                {
+                    auditStatus = EnumAuditStatus.Pass;
+                    await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.Completed);
+                }
+                else
+                {
+                    await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
+                }
+                await Audit(eventData.Data, instance.Id, executionPointer, new Guid(Candidates), auditStatus);
+                foreach (var item in executionPointer.WkCandidates.Where(d => d.CandidateId == new Guid(Candidates)))
                 {
                     if (eventPointerEventData.ExecutionType == StepExecutionType.Next)
                     {
@@ -137,8 +143,19 @@ namespace Hx.Workflow.Application.StepBodys
                         item.SetParentState(ExeCandidateState.BeRolledBack);
                     }
                 }
-                var auditStatus = eventPointerEventData.ExecutionType == StepExecutionType.Next ? EnumAuditStatus.Pass : EnumAuditStatus.Unapprove;
-                await Audit(eventData.Data, executionPointer.Id, auditStatus);
+                if (executionPointer.WkCandidates.Any(d =>
+                (d.CandidateType == ExeCandidateType.Countersign ||
+                d.CandidateType == ExeCandidateType.Host) &&
+                (d.ParentState == ExeCandidateState.Pending ||
+                d.ParentState == ExeCandidateState.Waiting ||
+                d.ParentState == ExeCandidateState.WaitingReceipt)))
+                {
+                    var effectiveData = DateTime.MinValue;
+                    var executionResult = ExecutionResult.WaitForActivity(
+                        context.ExecutionPointer.Id,
+                        null,
+                        effectiveData);
+                }
             }
             else
             {
@@ -165,17 +182,20 @@ namespace Hx.Workflow.Application.StepBodys
                 }
             }
         }
-        private async Task Audit(object data, Guid executionId, EnumAuditStatus auditStatus)
+        private async Task Audit(object data, Guid instanceId, WkExecutionPointer execution, Guid candicateId, EnumAuditStatus auditStatus)
         {
             string Remark = null;
             if (data != null)
                 AnalysisEventData(ref Remark, data);
-            var auditorQueryEntity = await _wkAuditor.GetAuditorAsync(executionId);
-            if (auditorQueryEntity != null)
-            {
-                await auditorQueryEntity.Audit(auditStatus, DateTime.Now, Remark);
-                await _wkAuditor.UpdateAsync(auditorQueryEntity);
-            }
+            var user = execution.WkCandidates.First(d => d.CandidateId == candicateId);
+            var auditorInstance =
+            new WkAuditor(
+                instanceId,
+                execution.Id,
+                user.UserName,
+                userId: user.CandidateId,
+                status: auditStatus);
+            await _wkAuditor.InsertAsync(auditorInstance);
         }
     }
 }

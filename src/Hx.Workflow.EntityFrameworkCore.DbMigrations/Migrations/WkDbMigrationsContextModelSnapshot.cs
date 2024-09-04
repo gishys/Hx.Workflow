@@ -117,6 +117,10 @@ namespace Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("CANDIDATEID");
 
+                    b.Property<int>("CandidateType")
+                        .HasColumnType("integer")
+                        .HasColumnName("CANDIDATETYPE");
+
                     b.Property<bool>("DefaultSelection")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -127,6 +131,14 @@ namespace Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("DISPLAYUSERNAME");
+
+                    b.Property<bool?>("Follow")
+                        .HasColumnType("boolean")
+                        .HasColumnName("FOLLOW");
+
+                    b.Property<int>("ParentState")
+                        .HasColumnType("integer")
+                        .HasColumnName("PARENTSTATE");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(100)
@@ -896,6 +908,11 @@ namespace Migrations
                         .HasPrecision(1)
                         .HasColumnType("integer")
                         .HasColumnName("NODEFORMTYPE");
+
+                    b.Property<int>("SortNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("SORTNUMBER")
+                        .HasComment("排序");
 
                     b.Property<int>("StepNodeType")
                         .HasPrecision(1)

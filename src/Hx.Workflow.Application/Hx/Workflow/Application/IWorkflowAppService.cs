@@ -42,18 +42,24 @@ namespace Hx.Workflow.Application
         Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId);
         Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId);
         /// <summary>
-        /// 接收流程实例
-        /// </summary>
-        /// <param name="workflowId"></param>
-        /// <returns></returns>
-        /// <exception cref="UserFriendlyException"></exception>
-        Task ReceiveInstanceAsync(Guid workflowId);
-        /// <summary>
         /// 流程实例添加业务数据
         /// </summary>
         /// <param name="workflowId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
         Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input);
+        /// <summary>
+        /// 关注实例（取消关注）
+        /// </summary>
+        /// <param name="pointerId"></param>
+        /// <param name="follow"></param>
+        /// <returns></returns>
+        Task FollowAsync(Guid pointerId, bool follow);
+        /// <summary>
+        /// 更新实例候选人（委托、抄送、会签）
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        Task<WkInstancesDto> UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity);
     }
 }

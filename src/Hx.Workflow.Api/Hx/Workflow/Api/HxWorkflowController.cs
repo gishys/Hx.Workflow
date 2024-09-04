@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Application;
 using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -102,9 +103,14 @@ namespace Hx.Workflow.Api
         }
         [HttpGet]
         [Route("workflow/mywkinstances")]
-        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(Guid[]? ids, string? reference)
+        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
+            MyWorkState? status = null,
+            string reference = null,
+            ICollection<Guid> userIds = null,
+            int skipCount = 0,
+            int maxResultCount = 20)
         {
-            return _workflowAppService.GetMyWkInstanceAsync(userIds: ids, reference: reference);
+            return _workflowAppService.GetMyWkInstanceAsync(status, reference, userIds, skipCount, maxResultCount);
         }
         [HttpGet]
         [Route("workflow/candidate/{wkInstanceId}")]
@@ -147,6 +153,18 @@ namespace Hx.Workflow.Api
         public Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input)
         {
             return _workflowAppService.UpdateInstanceBusinessDataAsync(input);
+        }
+        [HttpPut]
+        [Route("instance/follow")]
+        public Task FollowAsync(Guid pointerId, bool follow)
+        {
+            return _workflowAppService.FollowAsync(pointerId, follow);
+        }
+        [HttpPut]
+        [Route("instance/candidate")]
+        public Task UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity)
+        {
+            return _workflowAppService.UpdateInstanceCandidatesAsync(entity);
         }
     }
 }

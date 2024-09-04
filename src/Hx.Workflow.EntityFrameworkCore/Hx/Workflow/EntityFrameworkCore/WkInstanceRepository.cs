@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Formats.Tar;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text.Json;
@@ -174,7 +175,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             return new Collection<ExePointerCandidate>();
         }
         public virtual async Task<WkInstance> UpdateCandidateAsync(
-            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates)
+            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExeCandidateType type)
         {
             var dbSet = await GetDbSetAsync();
             var updateEntity = await dbSet
@@ -185,7 +186,39 @@ namespace Hx.Workflow.EntityFrameworkCore
             {
                 var executionPointer = updateEntity.ExecutionPointers.FirstOrDefault(d => d.Id == executionPointerId);
                 if (executionPointer != null)
-                    await executionPointer.AddCandidates(wkCandidates);
+                {
+                    if (type == ExeCandidateType.CarbonCopy || type == ExeCandidateType.Countersign)
+                        await executionPointer.AddCandidates(wkCandidates);
+                    else
+                    {
+                        executionPointer.WkCandidates.RemoveAll(_ => true);
+                        await executionPointer.AddCandidates(wkCandidates);
+                    }
+                }
+            }
+            return await UpdateAsync(updateEntity);
+        }
+        /// <summary>
+        /// 修改候选人办理状态
+        /// </summary>
+        /// <param name="wkinstanceId"></param>
+        /// <param name="executionPointerId"></param>
+        /// <param name="parentState"></param>
+        /// <returns></returns>
+        public virtual async Task<WkInstance> UpdateCandidateAsync(Guid wkinstanceId, Guid executionPointerId, ExeCandidateState parentState)
+        {
+            var dbSet = await GetDbSetAsync();
+            var updateEntity = await dbSet
+                .Include(d => d.ExecutionPointers)
+                .ThenInclude(d => d.WkCandidates)
+                .FirstOrDefaultAsync(d => d.Id == wkinstanceId);
+            if (updateEntity != null)
+            {
+                var executionPointer = updateEntity.ExecutionPointers.FirstOrDefault(d => d.Id == executionPointerId);
+                foreach (var item in executionPointer.WkCandidates)
+                {
+                    item.SetParentState(parentState);
+                }
             }
             return await UpdateAsync(updateEntity);
         }

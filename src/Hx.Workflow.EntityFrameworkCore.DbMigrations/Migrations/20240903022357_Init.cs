@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Migrations
 {
     /// <inheritdoc />
-    public partial class Init1 : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -176,6 +176,7 @@ namespace Migrations
                     VERSION = table.Column<int>(type: "integer", nullable: false),
                     LIMITTIME = table.Column<int>(type: "integer", nullable: true),
                     NODEFORMTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
+                    SORTNUMBER = table.Column<int>(type: "integer", nullable: false, comment: "排序"),
                     Params = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
@@ -389,6 +390,9 @@ namespace Migrations
                 {
                     NODEID = table.Column<Guid>(type: "uuid", nullable: false),
                     CANDIDATEID = table.Column<Guid>(type: "uuid", nullable: false),
+                    CANDIDATETYPE = table.Column<int>(type: "integer", nullable: false),
+                    PARENTSTATE = table.Column<int>(type: "integer", nullable: false),
+                    FOLLOW = table.Column<bool>(type: "boolean", nullable: true),
                     USERNAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     DISPLAYUSERNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     DEFAULTSELECTION = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)

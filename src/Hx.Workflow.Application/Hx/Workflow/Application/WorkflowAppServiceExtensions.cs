@@ -18,6 +18,7 @@ namespace Hx.Workflow.Application
                         node.StepNodeType,
                         node.Version,
                         node.NodeFormType,
+                        node.SortNumber,
                         node.LimitTime);
                 if (node.NextNodes?.Count > 0)
                 {

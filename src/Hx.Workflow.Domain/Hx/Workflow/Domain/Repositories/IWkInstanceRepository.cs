@@ -27,7 +27,15 @@ namespace Hx.Workflow.Domain.Repositories
             MyWorkState? state);
         Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
-            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates);
+            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExeCandidateType type);
+        /// <summary>
+        /// 修改候选人办理状态
+        /// </summary>
+        /// <param name="wkinstanceId"></param>
+        /// <param name="executionPointerId"></param>
+        /// <param name="parentState"></param>
+        /// <returns></returns>
+        Task<WkInstance> UpdateCandidateAsync(Guid wkinstanceId, Guid executionPointerId, ExeCandidateState parentState);
         /// <summary>
         /// 获取当天编号最大值
         /// </summary>

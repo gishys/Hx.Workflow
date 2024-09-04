@@ -37,7 +37,6 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             return (await GetDbSetAsync())
                 .IncludeDetials(true)
-                .OrderBy(d => d.SortNumber)
                 .FirstOrDefault(x => x.Id == id && x.Version == version);
         }
         /// <summary>
