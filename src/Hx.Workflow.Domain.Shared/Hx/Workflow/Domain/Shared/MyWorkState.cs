@@ -17,7 +17,7 @@ namespace Hx.Workflow.Domain.Shared
         /// </summary>
         WaitingReceipt = 2,
         /// <summary>
-        /// 我的代办件
+        /// 我的待办件
         /// </summary>
         Pending = 3,
         /// <summary>
