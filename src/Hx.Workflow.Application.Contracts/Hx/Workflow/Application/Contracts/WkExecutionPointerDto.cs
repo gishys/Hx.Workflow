@@ -23,5 +23,6 @@ namespace Hx.Workflow.Application.Contracts
         public ICollection<WkParamDto> Params { get; set; }
         public ICollection<ApplicationFormDto> Forms { get; set; }
         public ICollection<WkExecutionErrorDto> Errors { get; set; }
+        public WkPointerCandidateDto CurrentCandidateInfo { get; set; }
     }
 }

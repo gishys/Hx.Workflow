@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using WorkflowCore.Models;
+using SharpYaml;
+using Volo.Abp.ObjectMapping;
 
 namespace Hx.Workflow.Application
 {
@@ -265,6 +267,11 @@ namespace Hx.Workflow.Application
             var errors = await _errorRepository.GetListByIdAsync(workflowId, pointerId);
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
             currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());
+            if (CurrentUser.Id.HasValue)
+            {
+                var currentCandidateInfo = pointer.WkCandidates.First(d => d.CandidateId == CurrentUser.Id);
+                currentPointerDto.CurrentCandidateInfo = ObjectMapper.Map<ExePointerCandidate, WkPointerCandidateDto>(currentCandidateInfo);
+            }
             return new WkCurrentInstanceDetailsDto()
             {
                 Id = instance.Id,
@@ -302,9 +309,67 @@ namespace Hx.Workflow.Application
                     Title = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName).DisplayName,
                     Selected = node.Active || node.Status == PointerStatus.WaitingForEvent,
                     Name = node.StepName,
-                    Receiver = node.Recipient
+                    Receiver = node.Recipient,
+                    CommitmentDeadline = node.CommitmentDeadline,
+                    Status = (int)node.Status,
+                    WkCandidates = ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
                 });
                 preId = node.Id.ToString();
+            }
+            return result;
+        }
+        /// <summary>
+        /// 获得实例节点
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        public virtual async Task<List<WkNodeTreeDto>> GetInstanceAllNodesAsync(Guid workflowId)
+        {
+            var instance = await _wkInstanceRepository.FindAsync(workflowId);
+            var result = new List<WkNodeTreeDto>();
+            string preId = null;
+            WkExecutionPointer currentNode = null;
+            while (instance.ExecutionPointers.Any(d => d.PredecessorId == preId))
+            {
+                var node = instance.ExecutionPointers.First(d => d.PredecessorId == preId);
+                result.Add(new WkNodeTreeDto()
+                {
+                    Key = node.Id,
+                    Title = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName).DisplayName,
+                    Selected = node.Active || node.Status == PointerStatus.WaitingForEvent,
+                    Name = node.StepName,
+                    Receiver = node.Recipient,
+                    CommitmentDeadline = node.CommitmentDeadline,
+                    Status = (int)node.Status,
+                    WkCandidates = ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
+                });
+                preId = node.Id.ToString();
+                currentNode = node;
+            }
+            if (currentNode.Status != PointerStatus.Complete)
+            {
+                var entity = await _wkDefinition.GetDefinitionAsync(instance.WkDifinitionId, instance.Version);
+                var node = entity.Nodes.First(d => d.Name == currentNode.StepName);
+                do
+                {
+                    var nextNode = node.NextNodes.FirstOrDefault(n => n.NodeType == 1);
+                    if (nextNode != null)
+                    {
+                        node = entity.Nodes.First(d => d.Name == nextNode.NextNodeName);
+                        result.Add(new WkNodeTreeDto()
+                        {
+                            Key = node.Id,
+                            Title = node.DisplayName,
+                            Selected = false,
+                            Name = node.Name,
+                            Receiver = null,
+                            CommitmentDeadline = null,
+                            Status = 20,
+                            WkCandidates = ObjectMapper.Map<ICollection<WkNodeCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
+                        });
+                    }
+                }
+                while (node.NextNodes.Any(n => n.NodeType == 1));
             }
             return result;
         }

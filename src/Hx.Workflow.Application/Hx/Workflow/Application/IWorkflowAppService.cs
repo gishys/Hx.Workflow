@@ -61,5 +61,6 @@ namespace Hx.Workflow.Application
         /// <param name="entity"></param>
         /// <returns></returns>
         Task<WkInstancesDto> UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity);
+        Task<List<WkNodeTreeDto>> GetInstanceAllNodesAsync(Guid workflowId);
     }
 }

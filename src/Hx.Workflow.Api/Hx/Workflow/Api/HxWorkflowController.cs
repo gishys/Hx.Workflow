@@ -142,6 +142,12 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.GetInstanceNodesAsync(workflowId);
         }
+        [HttpGet]
+        [Route("workflow/workflowinstanceallnodes")]
+        public Task<List<WkNodeTreeDto>> GetInstanceAllNodesAsync(Guid workflowId)
+        {
+            return _workflowAppService.GetInstanceAllNodesAsync(workflowId);
+        }
         [HttpPut]
         [Route("instance/receive")]
         public Task ReceiveInstanceAsync(Guid workflowId)
