@@ -12,7 +12,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 执行者类型
         /// </summary>
-        public ExeCandidateType CandidateType { get; set; }
+        public ExePersonnelOperateType ExeOperateType { get; set; }
         public ICollection<WkCandidateUpdateDto> WkCandidates { get; set; }
     }
 }

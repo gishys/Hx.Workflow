@@ -99,7 +99,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Participation, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(state == MyWorkState.Entrusted, d =>
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Entrusted)))
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.Entrusted)))
                 .WhereIf(state == MyWorkState.Handled, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
                 .WhereIf(state == MyWorkState.Follow, d =>
@@ -107,9 +107,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Suspended, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && d.Status == WorkflowStatus.Suspended)
                 .WhereIf(state == MyWorkState.Countersign, d =>
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Countersign)))
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.Countersign)))
                 .WhereIf(state == MyWorkState.CarbonCopy, d =>
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.CarbonCopy)))
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.CarbonCopy)))
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(reference != null, d => d.Reference.Contains(reference));
@@ -130,7 +130,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Participation, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(state == MyWorkState.Entrusted, d =>
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Entrusted)))
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.Entrusted)))
                 .WhereIf(state == MyWorkState.Handled, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
                 .WhereIf(state == MyWorkState.Follow, d =>
@@ -138,9 +138,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Suspended, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && d.Status == WorkflowStatus.Suspended)
                 .WhereIf(state == MyWorkState.Countersign, d =>
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.Countersign)))
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.Countersign)))
                 .WhereIf(state == MyWorkState.CarbonCopy, d =>
-                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.CandidateType == ExeCandidateType.CarbonCopy)))
+                d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.CarbonCopy)))
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(reference != null, d => d.Reference.Contains(reference))
@@ -175,7 +175,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             return new Collection<ExePointerCandidate>();
         }
         public virtual async Task<WkInstance> UpdateCandidateAsync(
-            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExeCandidateType type)
+            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExePersonnelOperateType type)
         {
             var dbSet = await GetDbSetAsync();
             var updateEntity = await dbSet
@@ -187,7 +187,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 var executionPointer = updateEntity.ExecutionPointers.FirstOrDefault(d => d.Id == executionPointerId);
                 if (executionPointer != null)
                 {
-                    if (type == ExeCandidateType.CarbonCopy || type == ExeCandidateType.Countersign)
+                    if (type == ExePersonnelOperateType.CarbonCopy || type == ExePersonnelOperateType.Countersign)
                         await executionPointer.AddCandidates(wkCandidates);
                     else
                     {

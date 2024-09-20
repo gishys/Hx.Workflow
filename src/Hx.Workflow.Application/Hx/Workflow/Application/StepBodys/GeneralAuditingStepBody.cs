@@ -98,7 +98,7 @@ namespace Hx.Workflow.Application.StepBodys
                         instance.Id,
                         executionPointer.Id,
                         dcandidate.ToCandidates(),
-                        ExeCandidateType.Host);
+                        ExePersonnelOperateType.Host);
                 }
                 else
                 {
@@ -144,8 +144,8 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                 }
                 if (executionPointer.WkCandidates.Any(d =>
-                (d.CandidateType == ExeCandidateType.Countersign ||
-                d.CandidateType == ExeCandidateType.Host) &&
+                (d.ExeOperateType == ExePersonnelOperateType.Countersign ||
+                d.ExeOperateType == ExePersonnelOperateType.Host) &&
                 (d.ParentState == ExeCandidateState.Pending ||
                 d.ParentState == ExeCandidateState.Waiting ||
                 d.ParentState == ExeCandidateState.WaitingReceipt)))

@@ -361,7 +361,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
                 d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
                 d.Property(d => d.ParentState).HasColumnName("PARENTSTATE");
-                d.Property(d => d.CandidateType).HasColumnName("CANDIDATETYPE");
+                d.Property(d => d.ExeOperateType).HasColumnName("EXEOPERATETYPE");
+                d.Property(d => d.ExecutorType).HasColumnName("EXECUTORTYPE");
                 d.Property(d => d.Follow).HasColumnName("FOLLOW");
             });
             builder.Entity<WkInstance>(t =>

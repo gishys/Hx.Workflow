@@ -6,23 +6,22 @@ using System.Threading.Tasks;
 
 namespace Hx.Workflow.Domain.Shared
 {
-    public enum ExeCandidateType
+    /// <summary>
+    /// 参与者类型
+    /// </summary>
+    public enum WkParticipantType
     {
         /// <summary>
-        /// 主办
+        /// 角色
         /// </summary>
-        Host = 1,
+        Role = 1,
         /// <summary>
-        /// 抄送
+        /// 职员
         /// </summary>
-        CarbonCopy = 2,
+        Worker = 2,
         /// <summary>
-        /// 会签
+        /// 岗位
         /// </summary>
-        Countersign = 3,
-        /// <summary>
-        /// 委托
-        /// </summary>
-        Entrusted = 4,
+        Post = 3,
     }
 }

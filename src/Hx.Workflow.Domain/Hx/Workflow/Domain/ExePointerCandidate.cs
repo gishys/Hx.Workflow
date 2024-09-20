@@ -12,29 +12,33 @@ namespace Hx.Workflow.Domain
             Guid candidateId,
             string userName,
             string displayUserName,
-            ExeCandidateType candidateType,
+            ExePersonnelOperateType exeOperateType,
             ExeCandidateState parentState,
             bool defaultSelection = false)
             : base(candidateId, userName, displayUserName, defaultSelection)
         {
-            CandidateType = candidateType;
+            ExeOperateType = exeOperateType;
             ParentState = parentState;
         }
         /// <summary>
-        /// 执行者类型
+        /// 执行操作类型
         /// </summary>
-        public ExeCandidateType CandidateType { get; protected set; }
+        public ExePersonnelOperateType ExeOperateType { get; protected set; }
         /// <summary>
         /// 执行者状态
         /// </summary>
         public ExeCandidateState ParentState { get; protected set; }
         /// <summary>
+        /// 执行者类型
+        /// </summary>
+        public WkParticipantType ExecutorType {  get; protected set; }
+        /// <summary>
         /// 关注
         /// </summary>
         public bool? Follow { get; protected set; }
-        public void SetCandidateType(ExeCandidateType candidateType)
+        public void SetCandidateType(ExePersonnelOperateType exeOperateType)
         {
-            CandidateType = candidateType;
+            ExeOperateType = exeOperateType;
         }
         public void SetParentState(ExeCandidateState parentState)
         {

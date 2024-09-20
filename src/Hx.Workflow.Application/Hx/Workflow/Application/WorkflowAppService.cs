@@ -267,6 +267,22 @@ namespace Hx.Workflow.Application
             var errors = await _errorRepository.GetListByIdAsync(workflowId, pointerId);
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
             currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());
+            currentPointerDto.NextPointers = [];
+            if (!string.IsNullOrEmpty(pointer.PredecessorId))
+            {
+                var prePointer = instance.ExecutionPointers.First(d => d.Id.ToString() == pointer.PredecessorId);
+                foreach (var next in step.NextNodes)
+                {
+                    currentPointerDto.NextPointers.Add(new WkNextPointerDto()
+                    {
+                        Selectable = true,
+                        PreviousStep = prePointer.StepName == next.NextNodeName,
+                        Label = instance.WkDefinition.Nodes.First(d => d.Name == next.NextNodeName).DisplayName,
+                        NextNodeName = next.NextNodeName,
+                        NodeType = next.NodeType,
+                    });
+                }
+            }
             if (CurrentUser.Id.HasValue)
             {
                 var currentCandidateInfo = pointer.WkCandidates.First(d => d.CandidateId == CurrentUser.Id);
@@ -291,7 +307,7 @@ namespace Hx.Workflow.Application
             };
         }
         /// <summary>
-        /// 获得实例节点
+        /// 获得实例节点（包含已完成及正在办理的节点）
         /// </summary>
         /// <param name="workflowId"></param>
         /// <returns></returns>
@@ -319,7 +335,7 @@ namespace Hx.Workflow.Application
             return result;
         }
         /// <summary>
-        /// 获得实例节点
+        /// 获得实例节点（流程所有节点）
         /// </summary>
         /// <param name="workflowId"></param>
         /// <returns></returns>
@@ -352,7 +368,7 @@ namespace Hx.Workflow.Application
                 var node = entity.Nodes.First(d => d.Name == currentNode.StepName);
                 do
                 {
-                    var nextNode = node.NextNodes.FirstOrDefault(n => n.NodeType == 1);
+                    var nextNode = node.NextNodes.FirstOrDefault(n => n.NodeType == WkRoleNodeType.Forward);
                     if (nextNode != null)
                     {
                         node = entity.Nodes.First(d => d.Name == nextNode.NextNodeName);
@@ -369,7 +385,7 @@ namespace Hx.Workflow.Application
                         });
                     }
                 }
-                while (node.NextNodes.Any(n => n.NodeType == 1));
+                while (node.NextNodes.Any(n => n.NodeType == WkRoleNodeType.Forward));
             }
             return result;
         }
@@ -427,8 +443,8 @@ namespace Hx.Workflow.Application
                     d.CandidateId,
                     d.UserName,
                     d.DisplayUserName,
-                    entity.CandidateType,
-                    ExeCandidateState.WaitingReceipt)).ToList(), entity.CandidateType);
+                    entity.ExeOperateType,
+                    ExeCandidateState.WaitingReceipt)).ToList(), entity.ExeOperateType);
             return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
         }
         /// <summary>

@@ -235,7 +235,7 @@ namespace Hx.Workflow.Domain
                     node.CandidateId,
                     node.UserName,
                     node.DisplayUserName,
-                    ExeCandidateType.Host,
+                    ExePersonnelOperateType.Host,
                     ExeCandidateState.WaitingReceipt,
                     node.DefaultSelection
                     ));

@@ -27,7 +27,7 @@ namespace Hx.Workflow.Domain.Repositories
             MyWorkState? state);
         Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
-            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExeCandidateType type);
+            Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExePersonnelOperateType type);
         /// <summary>
         /// 修改候选人办理状态
         /// </summary>
