@@ -96,7 +96,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                             updateCandidate = new DefinitionCandidate(
                                 candidate.CandidateId,
                                 candidate.UserName,
-                                candidate.DisplayUserName);
+                                candidate.DisplayUserName,
+                                candidate.ExecutorType,
+                                candidate.DefaultSelection);
                             updateCnadidates.Add(updateCandidate);
                         }
                         await updateCandidate.SetSelection(true);

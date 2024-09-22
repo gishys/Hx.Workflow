@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hx.Workflow.Domain.Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +12,17 @@ namespace Hx.Workflow
     {
         public Candidate()
         { }
-        public Candidate(Guid candidateId, string userName, string displayUserName, bool defaultSelection = false)
+        public Candidate(
+            Guid candidateId, 
+            string userName, 
+            string displayUserName, 
+            WkParticipantType executorType, 
+            bool defaultSelection = false)
         {
             CandidateId = candidateId;
             UserName = userName;
             DisplayUserName = displayUserName;
+            ExecutorType= executorType;
             DefaultSelection = defaultSelection;
         }
         public Guid NodeId { get; protected set; }
@@ -23,6 +30,10 @@ namespace Hx.Workflow
         public string UserName { get; protected set; }
         public string DisplayUserName { get; protected set; }
         public bool DefaultSelection { get; protected set; }
+        /// <summary>
+        /// 执行者类型
+        /// </summary>
+        public WkParticipantType ExecutorType { get; protected set; }
         public override object[] GetKeys()
         {
             return [NodeId, CandidateId];

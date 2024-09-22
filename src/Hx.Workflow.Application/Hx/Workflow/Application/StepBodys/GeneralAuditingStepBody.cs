@@ -90,7 +90,26 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
                     var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
-                    dcandidate = [new(defCandidate.CandidateId, defCandidate.UserName, defCandidate.DisplayUserName, defCandidate.DefaultSelection)];
+                    dcandidate = [new(
+                        defCandidate.CandidateId,
+                        defCandidate.UserName,
+                        defCandidate.DisplayUserName,
+                        defCandidate.ExecutorType,
+                        defCandidate.DefaultSelection)];
+                }
+                //回退逻辑
+                var preNode = instance.ExecutionPointers.First(d => d.Id.ToString() == executionPointer.PredecessorId);
+                if (preNode.WkCandidates.Any(d => d.ParentState == ExeCandidateState.BeRolledBack))
+                {
+                    var beRolledBackNode = instance.ExecutionPointers.First(d => d.Id.ToString() == preNode.PredecessorId);
+                    var targetNode = instance.ExecutionPointers.First(d => d.StepName == beRolledBackNode.StepName);
+                    dcandidate = targetNode.WkCandidates.Select(d =>
+                    new WkNodeCandidate(
+                        d.CandidateId,
+                        d.UserName,
+                        d.DisplayUserName,
+                        d.ExecutorType,
+                        d.DefaultSelection)).ToList();
                 }
                 if (dcandidate != null)
                 {

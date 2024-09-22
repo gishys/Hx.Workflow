@@ -237,8 +237,8 @@ namespace Hx.Workflow.Domain
                     node.DisplayUserName,
                     ExePersonnelOperateType.Host,
                     ExeCandidateState.WaitingReceipt,
-                    node.DefaultSelection
-                    ));
+                    node.ExecutorType,
+                    node.DefaultSelection));
             }
             return candidates;
         }

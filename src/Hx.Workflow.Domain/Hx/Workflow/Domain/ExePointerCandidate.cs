@@ -14,8 +14,9 @@ namespace Hx.Workflow.Domain
             string displayUserName,
             ExePersonnelOperateType exeOperateType,
             ExeCandidateState parentState,
+            WkParticipantType executorType,
             bool defaultSelection = false)
-            : base(candidateId, userName, displayUserName, defaultSelection)
+            : base(candidateId, userName, displayUserName, executorType, defaultSelection)
         {
             ExeOperateType = exeOperateType;
             ParentState = parentState;
@@ -28,10 +29,6 @@ namespace Hx.Workflow.Domain
         /// 执行者状态
         /// </summary>
         public ExeCandidateState ParentState { get; protected set; }
-        /// <summary>
-        /// 执行者类型
-        /// </summary>
-        public WkParticipantType ExecutorType {  get; protected set; }
         /// <summary>
         /// 关注
         /// </summary>

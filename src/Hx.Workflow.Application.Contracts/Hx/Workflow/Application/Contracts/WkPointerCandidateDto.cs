@@ -19,10 +19,6 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public ExeCandidateState ParentState { get; set; }
         /// <summary>
-        /// 执行者类型
-        /// </summary>
-        public WkParticipantType ExecutorType { get; protected set; }
-        /// <summary>
         /// 关注
         /// </summary>
         public bool? Follow { get; set; }

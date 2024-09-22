@@ -74,6 +74,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.NodeId).HasColumnName("NODEID");
                 d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
                 d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
+                d.Property(d => d.ExecutorType).HasColumnName("EXECUTORTYPE");
                 d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
             });
             builder.Entity<WkAuditor>(d =>
@@ -166,6 +167,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.NodeId).HasColumnName("NODEID");
                 d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
                 d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
+                d.Property(d => d.ExecutorType).HasColumnName("EXECUTORTYPE");
                 d.Property(d => d.DefaultSelection).HasColumnName("DEFAULTSELECTION").HasDefaultValue(0);
             });
             builder.Entity<WkNodePara>(d =>

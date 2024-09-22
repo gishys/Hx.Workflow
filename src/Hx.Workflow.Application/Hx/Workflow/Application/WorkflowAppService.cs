@@ -66,6 +66,7 @@ namespace Hx.Workflow.Application
                     candidate.CandidateId,
                     candidate.UserName,
                     candidate.DisplayUserName,
+                    candidate.ExecutorType,
                     candidate.DefaultSelection));
             }
             var nodeEntitys = input.Nodes.ToWkNodes();
@@ -444,7 +445,8 @@ namespace Hx.Workflow.Application
                     d.UserName,
                     d.DisplayUserName,
                     entity.ExeOperateType,
-                    ExeCandidateState.WaitingReceipt)).ToList(), entity.ExeOperateType);
+                    ExeCandidateState.WaitingReceipt,
+                    entity.ExecutorType)).ToList(), entity.ExeOperateType);
             return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
         }
         /// <summary>

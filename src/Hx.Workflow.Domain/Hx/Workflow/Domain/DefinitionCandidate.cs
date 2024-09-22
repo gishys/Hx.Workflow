@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hx.Workflow.Domain.Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,13 @@ namespace Hx.Workflow.Domain
     {
         public DefinitionCandidate()
         { }
-        public DefinitionCandidate(Guid candidateId, string userName, string displayUserName, bool defaultSelection = false)
-            : base(candidateId, userName, displayUserName, defaultSelection)
-        {
-        }
+        public DefinitionCandidate(
+            Guid candidateId,
+            string userName, string
+            displayUserName,
+            WkParticipantType executorType,
+            bool defaultSelection = false)
+            : base(candidateId, userName, displayUserName, executorType, defaultSelection)
+        { }
     }
 }

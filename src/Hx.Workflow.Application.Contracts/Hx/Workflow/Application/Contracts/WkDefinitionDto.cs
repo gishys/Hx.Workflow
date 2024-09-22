@@ -51,5 +51,9 @@ namespace Hx.Workflow.Application.Contracts
         /// 节点集合
         /// </summary>
         public virtual ICollection<WkNodeDto> Nodes { get; set; }
+        /// <summary>
+        /// 后选者
+        /// </summary>
+        public ICollection<WkCandidateDto> WkCandidates { get; set; }
     }
 }

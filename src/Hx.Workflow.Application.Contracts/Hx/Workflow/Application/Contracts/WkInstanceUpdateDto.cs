@@ -10,9 +10,13 @@ namespace Hx.Workflow.Application.Contracts
         public Guid WkInstanceId { get; set; }
         public Guid WkExecutionPointerId { get; set; }
         /// <summary>
-        /// 执行者类型
+        /// 执行操作类型
         /// </summary>
         public ExePersonnelOperateType ExeOperateType { get; set; }
+        /// <summary>
+        /// 执行者类型
+        /// </summary>
+        public WkParticipantType ExecutorType { get; set; }
         public ICollection<WkCandidateUpdateDto> WkCandidates { get; set; }
     }
 }

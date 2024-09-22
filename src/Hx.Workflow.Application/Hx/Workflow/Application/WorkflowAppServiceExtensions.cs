@@ -73,6 +73,7 @@ namespace Hx.Workflow.Application
                             candidate.CandidateId,
                             candidate.UserName,
                             candidate.DisplayUserName,
+                            candidate.ExecutorType,
                             candidate.DefaultSelection));
                     }
                 }
@@ -113,7 +114,12 @@ namespace Hx.Workflow.Application
             var resultEntity = new List<Candidate>();
             foreach (var entity in inputs)
             {
-                resultEntity.Add(new Candidate(entity.CandidateId, entity.UserName, entity.DisplayUserName, entity.DefaultSelection));
+                resultEntity.Add(new Candidate(
+                    entity.CandidateId,
+                    entity.UserName,
+                    entity.DisplayUserName,
+                    entity.ExecutorType,
+                    entity.DefaultSelection));
             }
             return resultEntity;
         }
