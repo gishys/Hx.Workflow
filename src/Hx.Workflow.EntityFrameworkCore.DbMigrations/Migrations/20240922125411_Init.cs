@@ -112,7 +112,8 @@ namespace Migrations
                     CANDIDATEID = table.Column<Guid>(type: "uuid", nullable: false),
                     USERNAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     DISPLAYUSERNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    DEFAULTSELECTION = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    DEFAULTSELECTION = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    EXECUTORTYPE = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -305,7 +306,8 @@ namespace Migrations
                     CANDIDATEID = table.Column<Guid>(type: "uuid", nullable: false),
                     USERNAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     DISPLAYUSERNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    DEFAULTSELECTION = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    DEFAULTSELECTION = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    EXECUTORTYPE = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -390,12 +392,13 @@ namespace Migrations
                 {
                     NODEID = table.Column<Guid>(type: "uuid", nullable: false),
                     CANDIDATEID = table.Column<Guid>(type: "uuid", nullable: false),
-                    CANDIDATETYPE = table.Column<int>(type: "integer", nullable: false),
+                    EXEOPERATETYPE = table.Column<int>(type: "integer", nullable: false),
                     PARENTSTATE = table.Column<int>(type: "integer", nullable: false),
                     FOLLOW = table.Column<bool>(type: "boolean", nullable: true),
                     USERNAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     DISPLAYUSERNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    DEFAULTSELECTION = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    DEFAULTSELECTION = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    EXECUTORTYPE = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

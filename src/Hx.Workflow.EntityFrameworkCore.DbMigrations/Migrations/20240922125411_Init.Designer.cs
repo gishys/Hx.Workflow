@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Migrations
 {
     [DbContext(typeof(WkDbMigrationsContext))]
-    [Migration("20240903022357_Init")]
+    [Migration("20240922125411_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -97,6 +97,10 @@ namespace Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("DISPLAYUSERNAME");
 
+                    b.Property<int>("ExecutorType")
+                        .HasColumnType("integer")
+                        .HasColumnName("EXECUTORTYPE");
+
                     b.Property<string>("UserName")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -120,10 +124,6 @@ namespace Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("CANDIDATEID");
 
-                    b.Property<int>("CandidateType")
-                        .HasColumnType("integer")
-                        .HasColumnName("CANDIDATETYPE");
-
                     b.Property<bool>("DefaultSelection")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -134,6 +134,14 @@ namespace Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("DISPLAYUSERNAME");
+
+                    b.Property<int>("ExeOperateType")
+                        .HasColumnType("integer")
+                        .HasColumnName("EXEOPERATETYPE");
+
+                    b.Property<int>("ExecutorType")
+                        .HasColumnType("integer")
+                        .HasColumnName("EXECUTORTYPE");
 
                     b.Property<bool?>("Follow")
                         .HasColumnType("boolean")
@@ -965,6 +973,10 @@ namespace Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("DISPLAYUSERNAME");
+
+                    b.Property<int>("ExecutorType")
+                        .HasColumnType("integer")
+                        .HasColumnName("EXECUTORTYPE");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(100)

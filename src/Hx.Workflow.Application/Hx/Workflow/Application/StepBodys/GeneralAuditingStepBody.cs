@@ -11,7 +11,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Identity;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -98,18 +97,21 @@ namespace Hx.Workflow.Application.StepBodys
                         defCandidate.DefaultSelection)];
                 }
                 //回退逻辑
-                var preNode = instance.ExecutionPointers.First(d => d.Id.ToString() == executionPointer.PredecessorId);
-                if (preNode.WkCandidates.Any(d => d.ParentState == ExeCandidateState.BeRolledBack))
+                if (executionPointer.PredecessorId != null)
                 {
-                    var beRolledBackNode = instance.ExecutionPointers.First(d => d.Id.ToString() == preNode.PredecessorId);
-                    var targetNode = instance.ExecutionPointers.First(d => d.StepName == beRolledBackNode.StepName);
-                    dcandidate = targetNode.WkCandidates.Select(d =>
-                    new WkNodeCandidate(
-                        d.CandidateId,
-                        d.UserName,
-                        d.DisplayUserName,
-                        d.ExecutorType,
-                        d.DefaultSelection)).ToList();
+                    var preNode = instance.ExecutionPointers.First(d => d.Id.ToString() == executionPointer.PredecessorId);
+                    if (preNode.WkCandidates.Any(d => d.ParentState == ExeCandidateState.BeRolledBack))
+                    {
+                        var beRolledBackNode = instance.ExecutionPointers.First(d => d.Id.ToString() == preNode.PredecessorId);
+                        var targetNode = instance.ExecutionPointers.First(d => d.StepName == beRolledBackNode.StepName);
+                        dcandidate = targetNode.WkCandidates.Select(d =>
+                        new WkNodeCandidate(
+                            d.CandidateId,
+                            d.UserName,
+                            d.DisplayUserName,
+                            d.ExecutorType,
+                            d.DefaultSelection)).ToList();
+                    }
                 }
                 if (dcandidate != null)
                 {
@@ -138,7 +140,7 @@ namespace Hx.Workflow.Application.StepBodys
                 if (step.StepNodeType != StepNodeType.End)
                 {
                     if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
-                        throw new UserFriendlyException("参数DecideBranching错误！");
+                        throw new UserFriendlyException("参数DecideBranching的值不在下一步节点中！");
                 }
                 EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;
                 if (eventPointerEventData.ExecutionType == StepExecutionType.Next)

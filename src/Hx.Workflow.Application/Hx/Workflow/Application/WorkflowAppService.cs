@@ -269,20 +269,21 @@ namespace Hx.Workflow.Application
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
             currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());
             currentPointerDto.NextPointers = [];
+            WkExecutionPointer prePointer = null;
             if (!string.IsNullOrEmpty(pointer.PredecessorId))
             {
-                var prePointer = instance.ExecutionPointers.First(d => d.Id.ToString() == pointer.PredecessorId);
-                foreach (var next in step.NextNodes)
+                prePointer = instance.ExecutionPointers.First(d => d.Id.ToString() == pointer.PredecessorId);
+            }
+            foreach (var next in step.NextNodes)
+            {
+                currentPointerDto.NextPointers.Add(new WkNextPointerDto()
                 {
-                    currentPointerDto.NextPointers.Add(new WkNextPointerDto()
-                    {
-                        Selectable = true,
-                        PreviousStep = prePointer.StepName == next.NextNodeName,
-                        Label = instance.WkDefinition.Nodes.First(d => d.Name == next.NextNodeName).DisplayName,
-                        NextNodeName = next.NextNodeName,
-                        NodeType = next.NodeType,
-                    });
-                }
+                    Selectable = true,
+                    PreviousStep = prePointer != null && prePointer.StepName == next.NextNodeName,
+                    Label = instance.WkDefinition.Nodes.First(d => d.Name == next.NextNodeName).DisplayName,
+                    NextNodeName = next.NextNodeName,
+                    NodeType = next.NodeType,
+                });
             }
             if (CurrentUser.Id.HasValue)
             {
