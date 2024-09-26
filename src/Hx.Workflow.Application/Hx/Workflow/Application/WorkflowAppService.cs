@@ -15,6 +15,7 @@ using Volo.Abp.Application.Dtos;
 using WorkflowCore.Models;
 using SharpYaml;
 using Volo.Abp.ObjectMapping;
+using System.Reflection;
 
 namespace Hx.Workflow.Application
 {
@@ -436,18 +437,30 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkInstancesDto> UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity)
         {
-            var wkCandidates = entity.WkCandidates.ToWkCandidate();
-            var resultEntity = await _wkInstanceRepository.UpdateCandidateAsync(
-                entity.WkInstanceId,
-                entity.WkExecutionPointerId,
-                entity.WkCandidates.Select(d =>
+            var instance = await _wkInstanceRepository.FindAsync(entity.WkInstanceId);
+            WkExecutionPointer pointer = instance.ExecutionPointers.First(d => d.Id == entity.WkExecutionPointerId);
+            var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
+            if (pointer.Status != PointerStatus.WaitingForEvent)
+            {
+                throw new UserFriendlyException("当前流程环节不是活动节点！");
+            }
+            if (!entity.WkCandidates.All(id => step.WkCandidates.Any(d => d.CandidateId == id)))
+            {
+                throw new UserFriendlyException("选择的用户没有办理此节点的权限！");
+            }
+            var wkCandidates = step.WkCandidates.Where(d => entity.WkCandidates.Any(f => f == d.CandidateId)).Select(d =>
                 new ExePointerCandidate(
                     d.CandidateId,
                     d.UserName,
                     d.DisplayUserName,
                     entity.ExeOperateType,
                     ExeCandidateState.WaitingReceipt,
-                    entity.ExecutorType)).ToList(), entity.ExeOperateType);
+                    d.ExecutorType)).ToList();
+            var resultEntity = await _wkInstanceRepository.UpdateCandidateAsync(
+                entity.WkInstanceId,
+                entity.WkExecutionPointerId,
+                wkCandidates,
+                entity.ExeOperateType);
             return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
         }
         /// <summary>

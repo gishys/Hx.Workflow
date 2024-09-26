@@ -11,10 +11,10 @@ namespace Hx.Workflow.Domain.Shared
         /// <summary>
         /// 提交
         /// </summary>
-        Next = 1,
+        Forward = 1,
         /// <summary>
         /// 退回
         /// </summary>
-        BackOff = 2
+        RolledBack = 2
     }
 }

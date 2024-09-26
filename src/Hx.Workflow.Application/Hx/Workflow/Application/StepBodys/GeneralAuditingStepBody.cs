@@ -66,36 +66,7 @@ namespace Hx.Workflow.Application.StepBodys
                 if (pointer == null)
                     throw new UserFriendlyException("获取流程节点失败！");
                 List<WkNodeCandidate> dcandidate = null;
-                if (pointer.StepNodeType == StepNodeType.Activity || pointer.StepNodeType == StepNodeType.End)
-                {
-                    if (!string.IsNullOrEmpty(Candidates))
-                    {
-                        var tempCandidates = Candidates.Split(',');
-                        if (tempCandidates?.Length > 0)
-                        {
-                            dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
-                        }
-                        else
-                        {
-                            throw new UserFriendlyException("未传入正确的接收者！");
-                        }
-                    }
-                    else
-                    {
-                        throw new UserFriendlyException("未传入正确的接收者！");
-                    }
-                }
-                else if (pointer.StepNodeType == StepNodeType.Start)
-                {
-                    if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
-                    var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
-                    dcandidate = [new(
-                        defCandidate.CandidateId,
-                        defCandidate.UserName,
-                        defCandidate.DisplayUserName,
-                        defCandidate.ExecutorType,
-                        defCandidate.DefaultSelection)];
-                }
+                bool beRolledBack = false;
                 //回退逻辑
                 if (executionPointer.PredecessorId != null)
                 {
@@ -111,6 +82,40 @@ namespace Hx.Workflow.Application.StepBodys
                             d.DisplayUserName,
                             d.ExecutorType,
                             d.DefaultSelection)).ToList();
+                        beRolledBack = true;
+                    }
+                }
+                if (!beRolledBack)
+                {
+                    if (pointer.StepNodeType == StepNodeType.Activity || pointer.StepNodeType == StepNodeType.End)
+                    {
+                        if (!string.IsNullOrEmpty(Candidates))
+                        {
+                            var tempCandidates = Candidates.Split(',');
+                            if (tempCandidates?.Length > 0)
+                            {
+                                dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
+                            }
+                            else
+                            {
+                                throw new UserFriendlyException("未传入正确的接收者！");
+                            }
+                        }
+                        else
+                        {
+                            throw new UserFriendlyException("未传入正确的接收者！");
+                        }
+                    }
+                    else if (pointer.StepNodeType == StepNodeType.Start)
+                    {
+                        if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
+                        var defCandidate = definition.WkCandidates.First(d => d.CandidateId == candidateId);
+                        dcandidate = [new(
+                        defCandidate.CandidateId,
+                        defCandidate.UserName,
+                        defCandidate.DisplayUserName,
+                        defCandidate.ExecutorType,
+                        defCandidate.DefaultSelection)];
                     }
                 }
                 if (dcandidate != null)
@@ -143,7 +148,7 @@ namespace Hx.Workflow.Application.StepBodys
                         throw new UserFriendlyException("参数DecideBranching的值不在下一步节点中！");
                 }
                 EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;
-                if (eventPointerEventData.ExecutionType == StepExecutionType.Next)
+                if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
                 {
                     auditStatus = EnumAuditStatus.Pass;
                     await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.Completed);
@@ -155,7 +160,7 @@ namespace Hx.Workflow.Application.StepBodys
                 await Audit(eventData.Data, instance.Id, executionPointer, new Guid(Candidates), auditStatus);
                 foreach (var item in executionPointer.WkCandidates.Where(d => d.CandidateId == new Guid(Candidates)))
                 {
-                    if (eventPointerEventData.ExecutionType == StepExecutionType.Next)
+                    if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
                     {
                         item.SetParentState(ExeCandidateState.Completed);
                     }

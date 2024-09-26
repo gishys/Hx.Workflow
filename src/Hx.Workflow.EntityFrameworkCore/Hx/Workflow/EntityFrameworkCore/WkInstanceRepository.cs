@@ -187,7 +187,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 var executionPointer = updateEntity.ExecutionPointers.FirstOrDefault(d => d.Id == executionPointerId);
                 if (executionPointer != null)
                 {
-                    if (type == ExePersonnelOperateType.CarbonCopy || type == ExePersonnelOperateType.Countersign)
+                    if (
+                        type == ExePersonnelOperateType.CarbonCopy ||
+                        type == ExePersonnelOperateType.Countersign ||
+                        type == ExePersonnelOperateType.Notify)
                         await executionPointer.AddCandidates(wkCandidates);
                     else
                     {

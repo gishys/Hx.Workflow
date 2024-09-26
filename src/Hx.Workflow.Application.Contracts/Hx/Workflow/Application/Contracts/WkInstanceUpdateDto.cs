@@ -13,10 +13,6 @@ namespace Hx.Workflow.Application.Contracts
         /// 执行操作类型
         /// </summary>
         public ExePersonnelOperateType ExeOperateType { get; set; }
-        /// <summary>
-        /// 执行者类型
-        /// </summary>
-        public WkParticipantType ExecutorType { get; set; }
-        public ICollection<WkCandidateUpdateDto> WkCandidates { get; set; }
+        public List<Guid> WkCandidates { get; set; }
     }
 }
