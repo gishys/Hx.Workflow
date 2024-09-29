@@ -13,13 +13,7 @@ namespace Hx.Workflow.Application
             CreateMap<WkInstance, WkInstancesDto>(MemberList.None)
                 .ForMember(t => t.WkDefinitionName, s => s.MapFrom(p => p.WkDefinition.Title))
                 .ForMember(t => t.CreateTime, s => s.MapFrom(p => p.CreateTime))
-                .ForMember(t => t.CurrentStepName,
-                s => s.MapFrom(p => p.ExecutionPointers
-                .OrderBy(i => i.StepId).Last().StepName))
                 .ForMember(t => t.Status, s => s.MapFrom(p => p.Status))
-                .ForMember(t => t.StepStartTime,
-                s => s.MapFrom(p => p.ExecutionPointers
-                .OrderBy(i => i.StepId).Last().StartTime))
                 .ForMember(t => t.CompleteTime, s => s.MapFrom(p => p.CompleteTime))
                 .ForMember(t => t.Description, s => s.MapFrom(p => p.Description));
             CreateMap<WkStepBody, WkStepBodyDto>(MemberList.Destination);

@@ -174,7 +174,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = [CurrentUser.Id.Value];
             }
-            //userIds = [new Guid("3a13eb66-2cd5-3814-f180-d3bbe3add134")];
+            //userIds = [new Guid("3a140076-3f3e-0ae6-56ad-2c3f1c06508f")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,
@@ -186,8 +186,9 @@ namespace Hx.Workflow.Application
             foreach (var instance in instances)
             {
                 var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
-                var pointer = instance.ExecutionPointers.First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
-                var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
+                //如果节点不是已完成状态则获取当前节点（后续需要确定其他状态的含义）
+                WkExecutionPointer pointer = instance.ExecutionPointers.FirstOrDefault(d => d.Status != PointerStatus.Complete);
+                var step = pointer != null ? instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName) : null;
                 var processInstance = new WkProcessInstanceDto
                 {
                     Id = instance.Id,
@@ -195,17 +196,24 @@ namespace Hx.Workflow.Application
                     Reference = instance.Reference,
                     ProcessName = businessData.ProcessName,
                     Located = businessData.Located,
-                    ProcessingStepName = step.DisplayName,
-                    Recipient = pointer.Recipient,
-                    Submitter = pointer.Submitter,
+                    ProcessingStepName = step?.DisplayName,
+                    Recipient = pointer?.Recipient,
+                    Submitter = pointer?.Submitter,
                     ReceivingTime = instance.CreateTime,
                     State = instance.Status.ToString(),
                     BusinessType = instance.WkDefinition.BusinessType,
                     BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                     ProcessType = instance.WkDefinition.ProcessType,
-                    IsSign = instance.Status != WorkflowStatus.Runnable || userIds.Any(id => id == pointer.RecipientId),
-                    IsProcessed = pointer.WkSubscriptions.Any(d => d.ExternalToken != null),
+                    IsSign = instance.Status != WorkflowStatus.Runnable || (pointer != null ? userIds.Any(id => id == pointer.RecipientId) : true),
+                    IsProcessed = pointer != null ? pointer.WkSubscriptions.Any(d => d.ExternalToken != null) : false,
                 };
+                if (pointer == null)
+                {
+                    //开始节点接收人（创建人）
+                    processInstance.Recipient = instance.ExecutionPointers.FirstOrDefault(d => d.PredecessorId == null)?.Recipient;
+                    //最后一个节点的提交人
+                    processInstance.Submitter = instance.ExecutionPointers.LastOrDefault()?.Submitter;
+                }
                 result.Add(processInstance);
             }
             return new PagedResultDto<WkProcessInstanceDto>(count, result);
@@ -461,7 +469,10 @@ namespace Hx.Workflow.Application
                 entity.WkExecutionPointerId,
                 wkCandidates,
                 entity.ExeOperateType);
-            return ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
+            var result = ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
+            result.CurrentStepName = step.DisplayName;
+            result.StepStartTime = pointer.StartTime;
+            return result;
         }
         /// <summary>
         /// 通过实例Id获取可选择的人员

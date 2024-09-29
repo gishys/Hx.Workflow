@@ -181,6 +181,7 @@ namespace Hx.Workflow.Application.StepBodys
                         context.ExecutionPointer.Id,
                         null,
                         effectiveData);
+                    return executionResult;
                 }
             }
             else
