@@ -134,7 +134,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Handled, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
                 .WhereIf(state == MyWorkState.Follow, d =>
-                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.Follow == true)))
                 .WhereIf(state == MyWorkState.Suspended, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && d.Status == WorkflowStatus.Suspended)
                 .WhereIf(state == MyWorkState.Countersign, d =>
@@ -143,9 +143,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.CarbonCopy)))
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
-                .WhereIf(reference != null, d => d.Reference.Contains(reference))
-                .Where(d => d.WkAuditors.Any(a => ids.Any(user => user == a.UserId)) ||
-                d.ExecutionPointers.Any(a => (a.Status == PointerStatus.WaitingForEvent || a.Active) && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))));
+                .WhereIf(reference != null, d => d.Reference.Contains(reference));
             return await queryable.CountAsync();
         }
         public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)
@@ -169,7 +167,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             && d.Status == WorkflowStatus.Runnable);
             if (instance != null)
             {
-                var currentPointer = instance.ExecutionPointers.First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
+                var currentPointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
                 return currentPointer.WkCandidates;
             }
             return new Collection<ExePointerCandidate>();
@@ -246,7 +244,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId)
         {
             var instance = await FindAsync(workflowId);
-            var exePointer = instance.ExecutionPointers.First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
+            var exePointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             if (!exePointer.WkCandidates.Any(d => d.CandidateId == currentUserId))
             {
                 throw new UserFriendlyException("没有权限接收实例！");

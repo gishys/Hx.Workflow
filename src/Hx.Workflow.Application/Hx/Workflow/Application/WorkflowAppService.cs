@@ -242,9 +242,11 @@ namespace Hx.Workflow.Application
         /// <exception cref="UserFriendlyException"></exception>
         public virtual async Task RecipientInstanceAsync(Guid workflowId)
         {
-            if (CurrentUser.Id.HasValue)
+            var userId = CurrentUser.Id;
+            //Guid? userId = new Guid("3a140076-3f3e-0ae6-56ad-2c3f1c06508f");
+            if (userId.HasValue)
             {
-                await _wkInstanceRepository.RecipientExePointerAsync(workflowId, CurrentUser.Id.Value);
+                await _wkInstanceRepository.RecipientExePointerAsync(workflowId, userId.Value);
             }
             else
             {
@@ -268,7 +270,7 @@ namespace Hx.Workflow.Application
             }
             else
             {
-                pointer = instance.ExecutionPointers.First(d => d.Active || d.Status == PointerStatus.WaitingForEvent);
+                pointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             }
             var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
             var currentPointerDto = ObjectMapper.Map<WkExecutionPointer, WkExecutionPointerDto>(pointer);
@@ -312,7 +314,7 @@ namespace Hx.Workflow.Application
                 ProcessName = businessData.ProcessName,
                 Located = businessData.Located,
                 CanHandle = instance.Status == WorkflowStatus.Runnable &&
-                (pointer.Active || pointer.Status == PointerStatus.WaitingForEvent)
+                pointer.Status != PointerStatus.Complete
                 && pointer.WkSubscriptions.Any(d => d.ExternalToken == null)
                 && CurrentUser.Id.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == CurrentUser.Id),
             };
@@ -334,7 +336,7 @@ namespace Hx.Workflow.Application
                 {
                     Key = node.Id,
                     Title = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName).DisplayName,
-                    Selected = node.Active || node.Status == PointerStatus.WaitingForEvent,
+                    Selected = node.Status != PointerStatus.Complete,
                     Name = node.StepName,
                     Receiver = node.Recipient,
                     CommitmentDeadline = node.CommitmentDeadline,
@@ -363,7 +365,7 @@ namespace Hx.Workflow.Application
                 {
                     Key = node.Id,
                     Title = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName).DisplayName,
-                    Selected = node.Active || node.Status == PointerStatus.WaitingForEvent,
+                    Selected = node.Status != PointerStatus.Complete,
                     Name = node.StepName,
                     Receiver = node.Recipient,
                     CommitmentDeadline = node.CommitmentDeadline,
