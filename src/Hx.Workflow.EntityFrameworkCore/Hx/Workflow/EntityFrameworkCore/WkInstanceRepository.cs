@@ -75,6 +75,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                    .ThenInclude(x => x.ExtensionAttributes)
                    .ToListAsync();
         }
+        public virtual async Task<WkInstance> GetByReferenceAsync(string reference)
+        {
+            return await (await GetDbSetAsync())
+                .IncludeDetials(true)
+                .FirstOrDefaultAsync(d => d.Reference == reference);
+        }
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> ids,
             string reference,
@@ -112,7 +118,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.CarbonCopy)))
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
-                .WhereIf(reference != null, d => d.Reference.Contains(reference));
+                .WhereIf(reference != null, d => d.Reference.Contains(reference))
+                .OrderByDescending(d => d.CreateTime);
             return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(

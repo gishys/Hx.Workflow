@@ -172,5 +172,17 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.UpdateInstanceCandidatesAsync(entity);
         }
+        /// <summary>
+        /// 通过业务编号或者实例
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <param name="userIds"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/mywkinstance")]
+        public Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference)
+        {
+            return _workflowAppService.GetWkInstanceAsync(reference);
+        }
     }
 }

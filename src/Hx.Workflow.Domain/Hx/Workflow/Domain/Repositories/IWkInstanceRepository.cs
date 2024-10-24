@@ -49,5 +49,6 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="data"></param>
         /// <returns></returns>
         Task UpdateDataAsync(Guid workflowId, IDictionary<string, object> data);
+        Task<WkInstance> GetByReferenceAsync(string reference);
     }
 }

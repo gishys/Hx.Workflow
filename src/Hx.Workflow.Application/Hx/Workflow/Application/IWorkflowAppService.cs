@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
-using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
@@ -62,5 +61,12 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         Task<WkInstancesDto> UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity);
         Task<List<WkNodeTreeDto>> GetInstanceAllNodesAsync(Guid workflowId);
+        /// <summary>
+        /// 通过业务编号或者实例
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <param name="userIds"></param>
+        /// <returns></returns>
+        Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference);
     }
 }
