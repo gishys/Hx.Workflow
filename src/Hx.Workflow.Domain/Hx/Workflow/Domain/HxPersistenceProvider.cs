@@ -17,6 +17,7 @@ using Volo.Abp.Guids;
 using Volo.Abp.Timing;
 using Volo.Abp.Uow;
 using Volo.Abp.Users;
+using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Domain
@@ -102,16 +103,7 @@ namespace Hx.Workflow.Domain
                     {
                         foreach (var m in node.Materials.OrderBy(d => d.SequenceNumber))
                         {
-                            await exePointer.AddMaterails(new WkExecutionPointerMaterials(
-                                workflow.Reference,
-                                m.AttachReceiveType,
-                                m.ReferenceType,
-                                m.CatalogueName,
-                                m.SequenceNumber,
-                                m.IsRequired,
-                                m.IsStatic,
-                                m.IsVerification,
-                                m.VerificationPassed));
+                            await exePointer.AddMaterails(CreateExePointerMaterials(m, workflow.Reference));
                         }
                     }
                 }
@@ -124,6 +116,29 @@ namespace Hx.Workflow.Domain
                 }
             }
             return (await _wkInstanceRepository.InsertAsync(wkInstance)).Id.ToString();
+        }
+        private WkExecutionPointerMaterials CreateExePointerMaterials(WkNodeMaterials materials, string reference)
+        {
+            var em = new WkExecutionPointerMaterials(
+                                reference,
+                                materials.AttachReceiveType,
+                                materials.ReferenceType,
+                                materials.CatalogueName,
+                                materials.SequenceNumber,
+                                materials.IsRequired,
+                                materials.IsStatic,
+                                materials.IsVerification,
+                                materials.VerificationPassed);
+            List<WkExecutionPointerMaterials> ms = new List<WkExecutionPointerMaterials>();
+            if (materials.Children != null)
+            {
+                foreach (var m in materials.Children)
+                {
+                    WkExecutionPointerMaterials nm = CreateExePointerMaterials(m, reference);
+                    ms.Add(nm);
+                }
+            }
+            return em;
         }
         public void EnsureStoreExists()
         {

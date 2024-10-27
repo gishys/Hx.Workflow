@@ -98,6 +98,7 @@ namespace Hx.Workflow.Domain
             OutcomeSteps = new List<WkNodePara>();
             WkCandidates = new List<WkNodeCandidate>();
             ApplicationForms = new List<ApplicationForm>();
+            Materials = new List<WkNodeMaterials>();
         }
         public Task SetStepName(string name)
         {
