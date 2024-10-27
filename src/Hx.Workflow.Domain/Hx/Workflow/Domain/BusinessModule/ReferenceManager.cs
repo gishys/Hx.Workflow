@@ -12,7 +12,7 @@ namespace Hx.Workflow.Domain.BusinessModule
     {
         private IWkInstanceRepository WkInstanceRepository { get; }
         private readonly IDistributedCache<ReferenceCache> AppointmentStockCache;
-        static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         public ReferenceManager(
             IWkInstanceRepository wkInstanceRepository,
             IDistributedCache<ReferenceCache> appointmentStockCache)

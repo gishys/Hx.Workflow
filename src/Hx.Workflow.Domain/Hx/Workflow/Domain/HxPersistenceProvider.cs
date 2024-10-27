@@ -1,11 +1,14 @@
-﻿using Hx.Workflow.Domain.BusinessModule;
+﻿using Hx.Workflow.Application.BusinessModule;
+using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
+using SharpYaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -88,12 +91,36 @@ namespace Hx.Workflow.Domain
         {
             workflow.Id = _guidGenerator.Create().ToString();
             workflow.Reference = await ReferenceManager.GetMaxNumber();
+            WkDefinition definition = await _wkDefinitionRespository.GetDefinitionAsync(new Guid(workflow.WorkflowDefinitionId), workflow.Version);
             var wkInstance = await workflow.ToPersistable();
-            if (wkInstance.ExecutionPointers.Count > 0 && _currentUser.Id.HasValue)
+            if (wkInstance.ExecutionPointers.Count > 0)
             {
-                foreach (var executionPointer in wkInstance.ExecutionPointers)
+                foreach (var exePointer in wkInstance.ExecutionPointers)
                 {
-                    await executionPointer.SetRecipientInfo(_currentUser.UserName, _currentUser.Id.Value);
+                    WkNode node = definition.Nodes.FirstOrDefault(d => d.Name == exePointer.StepName);
+                    if (node != null)
+                    {
+                        foreach (var m in node.Materials.OrderBy(d => d.SequenceNumber))
+                        {
+                            await exePointer.AddMaterails(new WkExecutionPointerMaterials(
+                                workflow.Reference,
+                                m.AttachReceiveType,
+                                m.ReferenceType,
+                                m.CatalogueName,
+                                m.SequenceNumber,
+                                m.IsRequired,
+                                m.IsStatic,
+                                m.IsVerification,
+                                m.VerificationPassed));
+                        }
+                    }
+                }
+                if (_currentUser.Id.HasValue)
+                {
+                    foreach (var executionPointer in wkInstance.ExecutionPointers)
+                    {
+                        await executionPointer.SetRecipientInfo(_currentUser.UserName, _currentUser.Id.Value);
+                    }
                 }
             }
             return (await _wkInstanceRepository.InsertAsync(wkInstance)).Id.ToString();

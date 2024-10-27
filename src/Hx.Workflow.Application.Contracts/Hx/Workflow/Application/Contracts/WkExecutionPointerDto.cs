@@ -25,5 +25,6 @@ namespace Hx.Workflow.Application.Contracts
         public ICollection<WkExecutionErrorDto> Errors { get; set; }
         public WkPointerCandidateDto CurrentCandidateInfo { get; set; }
         public ICollection<WkNextPointerDto> NextPointers { get; set; }
+        public ICollection<WkExecutionPointerMaterialsDto> Materials { get; set; }
     }
 }

@@ -38,6 +38,7 @@ namespace Hx.Workflow.Domain.Persistence
         public DateTime? CommitmentDeadline { get; protected set; }
         public ICollection<WkSubscription> WkSubscriptions { get; protected set; }
         public ICollection<ExePointerCandidate> WkCandidates { get; protected set; }
+        public virtual ICollection<WkExecutionPointerMaterials> Materials { get; protected set; } = new List<WkExecutionPointerMaterials>();
         public WkExecutionPointer()
         { }
         public WkExecutionPointer(
@@ -206,6 +207,11 @@ namespace Hx.Workflow.Domain.Persistence
         public Task SetCommitmentDeadline(DateTime? commitmentDeadline)
         {
             CommitmentDeadline = commitmentDeadline;
+            return Task.CompletedTask;
+        }
+        public Task AddMaterails(WkExecutionPointerMaterials materials)
+        {
+            Materials.Add(materials);
             return Task.CompletedTask;
         }
     }

@@ -74,6 +74,7 @@ namespace Hx.Workflow.Domain
         /// </summary>
         public int SortNumber { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
+        public virtual ICollection<WkNodeMaterials> Materials { get; protected set; } = new List<WkNodeMaterials>();
         public WkNode()
         { }
         public WkNode(
@@ -136,6 +137,11 @@ namespace Hx.Workflow.Domain
         public Task AddParam(WkParam param)
         {
             Params.Add(param);
+            return Task.CompletedTask;
+        }
+        public Task AddMaterails(WkNodeMaterials materials)
+        {
+            Materials.Add(materials);
             return Task.CompletedTask;
         }
     }

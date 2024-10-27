@@ -158,6 +158,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 {
                     param.ToJson();
                 });
+                t.OwnsMany(p => p.Materials, param =>
+                {
+                    param.ToJson();
+                    param.OwnsMany(d => d.Children, cparam =>
+                    {
+                        cparam.ToJson();
+                    });
+                });
             });
             builder.Entity<WkNodeCandidate>(d =>
             {
@@ -335,6 +343,15 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
                 t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
+
+                t.OwnsMany(p => p.Materials, param =>
+                {
+                    param.ToJson();
+                    param.OwnsMany(d => d.Children, cparam =>
+                    {
+                        cparam.ToJson();
+                    });
+                });
 
                 t.HasMany(d => d.ExtensionAttributes)
                 .WithOne(d => d.WkExecutionPointer)

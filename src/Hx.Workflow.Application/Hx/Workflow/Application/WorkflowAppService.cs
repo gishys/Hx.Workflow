@@ -191,7 +191,7 @@ namespace Hx.Workflow.Application
             return new PagedResultDto<WkProcessInstanceDto>(count, result);
         }
         /// <summary>
-        /// 通过业务编号或者实例
+        /// 通过业务编号获得实例详细信息
         /// </summary>
         /// <param name="reference"></param>
         /// <param name="userIds"></param>
