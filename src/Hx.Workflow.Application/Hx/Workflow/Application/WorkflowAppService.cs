@@ -445,5 +445,15 @@ namespace Hx.Workflow.Application
                 }
             }
         }
+        /// <summary>
+        /// 标记初始化物料
+        /// </summary>
+        /// <param name="wkinstanceId"></param>
+        /// <param name="executionPointerId"></param>
+        /// <returns></returns>
+        public virtual async Task InitMaterialsAsync(Guid executionPointerId)
+        {
+            await _wkExecutionPointerRepository.InitMaterialsAsync(executionPointerId);
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Application;
 using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -183,6 +184,18 @@ namespace Hx.Workflow.Api
         public Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference)
         {
             return _workflowAppService.GetWkInstanceAsync(reference);
+        }
+        /// <summary>
+        /// 标记初始化物料
+        /// </summary>
+        /// <param name="wkinstanceId"></param>
+        /// <param name="executionPointerId"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("workflow/mywkinstance/materials")]
+        public Task InitMaterialsAsync(Guid executionPointerId)
+        {
+            return _workflowAppService.InitMaterialsAsync(executionPointerId);
         }
     }
 }

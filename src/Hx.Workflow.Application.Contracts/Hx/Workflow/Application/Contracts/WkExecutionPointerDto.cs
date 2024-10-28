@@ -20,6 +20,7 @@ namespace Hx.Workflow.Application.Contracts
         public Guid RecipientId { get; set; }
         public string Submitter { get; set; }
         public Guid? SubmitterId { get; set; }
+        public bool? IsInitMaterials { get; set; }
         public ICollection<WkParamDto> Params { get; set; }
         public ICollection<ApplicationFormDto> Forms { get; set; }
         public ICollection<WkExecutionErrorDto> Errors { get; set; }

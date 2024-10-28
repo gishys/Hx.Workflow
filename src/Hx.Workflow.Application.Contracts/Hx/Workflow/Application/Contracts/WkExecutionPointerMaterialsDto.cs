@@ -35,15 +35,15 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 静态标识
         /// </summary>
-        public bool IsStatic { get; set; }
+        public bool? IsStatic { get; set; }
         /// <summary>
         /// 是否核验
         /// </summary>
-        public bool IsVerification { get; set; }
+        public bool? IsVerification { get; set; }
         /// <summary>
         /// 核验通过
         /// </summary>
-        public bool VerificationPassed { get; set; }
+        public bool? VerificationPassed { get; set; }
         /// <summary>
         /// 子文件夹
         /// </summary>

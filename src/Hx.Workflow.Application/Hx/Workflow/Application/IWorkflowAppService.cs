@@ -1,4 +1,5 @@
 ﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
@@ -68,5 +69,12 @@ namespace Hx.Workflow.Application
         /// <param name="userIds"></param>
         /// <returns></returns>
         Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference);
+        /// <summary>
+        /// 标记初始化物料
+        /// </summary>
+        /// <param name="wkinstanceId"></param>
+        /// <param name="executionPointerId"></param>
+        /// <returns></returns>
+        Task InitMaterialsAsync(Guid executionPointerId);
     }
 }

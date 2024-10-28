@@ -35,7 +35,7 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="executionPointerId"></param>
         /// <param name="parentState"></param>
         /// <returns></returns>
-        Task<WkInstance> UpdateCandidateAsync(Guid wkinstanceId, Guid executionPointerId, ExeCandidateState parentState);
+        Task UpdateCandidateAsync(Guid wkinstanceId, Guid executionPointerId, ExeCandidateState parentState);
         /// <summary>
         /// 获取当天编号最大值
         /// </summary>

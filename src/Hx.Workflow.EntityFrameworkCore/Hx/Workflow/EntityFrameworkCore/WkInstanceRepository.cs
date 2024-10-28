@@ -213,7 +213,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <param name="executionPointerId"></param>
         /// <param name="parentState"></param>
         /// <returns></returns>
-        public virtual async Task<WkInstance> UpdateCandidateAsync(Guid wkinstanceId, Guid executionPointerId, ExeCandidateState parentState)
+        public virtual async Task UpdateCandidateAsync(Guid wkinstanceId, Guid executionPointerId, ExeCandidateState parentState)
         {
             var dbSet = await GetDbSetAsync();
             var updateEntity = await dbSet
@@ -227,8 +227,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 {
                     item.SetParentState(parentState);
                 }
+                await UpdateAsync(updateEntity);
             }
-            return await UpdateAsync(updateEntity);
         }
         /// <summary>
         /// 获取当天编号最大值

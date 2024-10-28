@@ -36,6 +36,7 @@ namespace Hx.Workflow.Domain.Persistence
         public string Submitter { get; protected set; }
         public Guid? SubmitterId { get; protected set; }
         public DateTime? CommitmentDeadline { get; protected set; }
+        public bool? IsInitMaterials { get; protected set; }
         public ICollection<WkSubscription> WkSubscriptions { get; protected set; }
         public ICollection<ExePointerCandidate> WkCandidates { get; protected set; }
         public virtual ICollection<WkExecutionPointerMaterials> Materials { get; protected set; } = new List<WkExecutionPointerMaterials>();
@@ -212,6 +213,11 @@ namespace Hx.Workflow.Domain.Persistence
         public Task AddMaterails(WkExecutionPointerMaterials materials)
         {
             Materials.Add(materials);
+            return Task.CompletedTask;
+        }
+        public Task InitMaterials()
+        {
+            IsInitMaterials = true;
             return Task.CompletedTask;
         }
     }

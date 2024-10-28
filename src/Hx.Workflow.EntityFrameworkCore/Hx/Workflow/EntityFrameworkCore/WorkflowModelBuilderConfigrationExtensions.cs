@@ -334,6 +334,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.RecipientId).HasColumnName("RECIPIENTID");
                 t.Property(d => d.Submitter).HasColumnName("SUBMITTER").HasMaxLength(WkExecutionPointerConsts.SubmitterMaxLength);
                 t.Property(d => d.SubmitterId).HasColumnName("SUBMITTERID");
+                t.Property(p => p.IsInitMaterials).HasColumnName("ISINITMATERIALS");
                 t.Property(p => p.CommitmentDeadline).HasColumnName("COMMITMENTDEADLINE").HasColumnType("timestamp with time zone");
 
                 t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
