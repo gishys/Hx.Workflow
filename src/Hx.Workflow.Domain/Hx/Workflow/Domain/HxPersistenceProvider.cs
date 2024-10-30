@@ -168,7 +168,7 @@ namespace Hx.Workflow.Domain
         public async Task<EventSubscription> GetFirstOpenSubscription(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
             var raw = await _wkSubscriptionRepository
-                .GetSubcriptionAsync(eventName, eventKey, asOf);
+                .GetSubscriptionAsync(eventName, eventKey, asOf);
             return raw?.FirstOrDefault()?.ToEventSubscription();
         }
         public async Task<WkExecutionPointer> GetPersistedExecutionPointer(string id)
@@ -204,7 +204,7 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            var subs = await _wkSubscriptionRepository.GetSubcriptionAsync(eventName, eventKey, asOf);
+            var subs = await _wkSubscriptionRepository.GetSubscriptionAsync(eventName, eventKey, asOf);
             return from x in subs select x.ToEventSubscription();
         }
         public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)

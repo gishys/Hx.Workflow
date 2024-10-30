@@ -23,17 +23,20 @@ namespace Hx.Workflow.Domain.LocalEvents
         private readonly IWkEventRepository _eventRepository;
         private readonly IServiceProvider _serviceProvider;
         private readonly IHubContext<WorkflowInstanceHub> _workflowInstanceHub;
+        private readonly IWkSubscriptionRepository _wkSubscriptionRepository;
         public ExecutionPointerChangedEventHandler(
             IWkExecutionPointerRepository wkExecutionPointer,
             IWkEventRepository wkEventRepository,
             IServiceProvider serviceProvider,
-            IHubContext<WorkflowInstanceHub> workflowInstanceHub
+            IHubContext<WorkflowInstanceHub> workflowInstanceHub,
+            IWkSubscriptionRepository wkSubscriptionRepository
             )
         {
             _wkExecutionPointer = wkExecutionPointer;
             _eventRepository = wkEventRepository;
             _serviceProvider = serviceProvider;
             _workflowInstanceHub = workflowInstanceHub;
+            _wkSubscriptionRepository = wkSubscriptionRepository;
         }
 
         public async Task HandleEventAsync(
@@ -57,14 +60,16 @@ namespace Hx.Workflow.Domain.LocalEvents
             }
             //流程创建后通知客户端初始化完成
             if (eventData.Entity.Status != PointerStatus.Complete
-                && eventData.Entity.WkSubscriptions.Any(d => d.ExternalToken == null)
                 && eventData.Entity.StepId == 0)
             {
-                var wkEvent = await _eventRepository.GetByEventKeyAsync($"{eventData.Entity.Id}");
-                if (wkEvent != null && wkEvent.CreatorId.HasValue)
+                var subscriptions = await _wkSubscriptionRepository.GetSubscriptionsByExecutionPointerAsync(eventData.Entity.Id);
+                if (subscriptions.Any(d => d.ExternalToken == null))
                 {
-                    await _workflowInstanceHub.Clients.User(
-                        wkEvent.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted", eventData.Entity.WkInstanceId);
+                    if (eventData.Entity.WkInstance.CreatorId.HasValue)
+                    {
+                        await _workflowInstanceHub.Clients.User(
+                            eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted", eventData.Entity.WkInstanceId);
+                    }
                 }
             }
         }

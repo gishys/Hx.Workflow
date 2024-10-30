@@ -139,7 +139,23 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<string> StartAsync(StartWorkflowInput input)
         {
-            return await _hxWorkflowManager.StartWorlflowAsync(input.Id, input.Version, input.Inputs);
+            try
+            {
+                if (!input.Inputs.Any(d => d.Key == "Candidates" && Guid.TryParse(d.Value.ToString(), out _)))
+                {
+                    throw new UserFriendlyException("请传入有效的接收人Id！");
+                }
+                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version);
+                if (!entity.WkCandidates.Any(d => d.CandidateId == new Guid(input.Inputs["Candidates"].ToString())))
+                {
+                    throw new UserFriendlyException($"无权限，请在流程定义中配置Id为（{input.Inputs["Candidates"].ToString()}）的权限！");
+                }
+                return await _hxWorkflowManager.StartWorlflowAsync(input.Id, input.Version, input.Inputs);
+            }
+            catch (Exception ex)
+            {
+                throw new UserFriendlyException(ex.Message);
+            }
         }
         /// <summary>
         /// 开始活动

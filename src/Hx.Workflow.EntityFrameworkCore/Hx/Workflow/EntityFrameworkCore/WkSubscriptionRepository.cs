@@ -25,7 +25,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <param name="eventKey"></param>
         /// <param name="eventTime"></param>
         /// <returns></returns>
-        public virtual async Task<List<WkSubscription>> GetSubcriptionAsync(
+        public virtual async Task<List<WkSubscription>> GetSubscriptionAsync(
             string eventName, string eventKey, DateTime eventTime)
         {
             return await (await GetDbSetAsync()).Where(
@@ -37,6 +37,10 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<bool> AnyAsync(Guid id)
         {
             return await (await GetDbSetAsync()).AnyAsync(d => d.WorkflowId == id);
+        }
+        public virtual async Task<List<WkSubscription>> GetSubscriptionsByExecutionPointerAsync(Guid exeId)
+        {
+            return await (await GetDbSetAsync()).Where(d => d.ExecutionPointerId == exeId).ToListAsync();
         }
     }
 }

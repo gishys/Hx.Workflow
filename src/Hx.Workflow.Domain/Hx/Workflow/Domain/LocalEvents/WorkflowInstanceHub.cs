@@ -12,7 +12,7 @@ using Volo.Abp.Users;
 
 namespace Hx.Workflow.Domain.LocalEvents
 {
-    [Authorize]
+    //[Authorize]
     [HubRoute("/api/app/receivealarmmessage")]
     public class WorkflowInstanceHub : AbpHub, ITransientDependency
     {
