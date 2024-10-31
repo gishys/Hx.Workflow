@@ -12,8 +12,8 @@ using Volo.Abp.Users;
 
 namespace Hx.Workflow.Domain.LocalEvents
 {
-    //[Authorize]
-    [HubRoute("/api/app/receivealarmmessage")]
+    [Authorize]
+    [HubRoute("/api/app/workflowinstance")]
     public class WorkflowInstanceHub : AbpHub, ITransientDependency
     {
         public WorkflowInstanceHub()
@@ -22,9 +22,6 @@ namespace Hx.Workflow.Domain.LocalEvents
         [UnitOfWork]
         public override async Task OnConnectedAsync()
         {
-            if (CurrentUser.Id.HasValue)
-            {
-            }
             await base.OnConnectedAsync();
         }
         public override async Task OnDisconnectedAsync(Exception? exception)
