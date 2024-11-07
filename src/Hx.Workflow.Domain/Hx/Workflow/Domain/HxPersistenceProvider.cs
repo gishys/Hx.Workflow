@@ -96,17 +96,7 @@ namespace Hx.Workflow.Domain
             var wkInstance = await workflow.ToPersistable();
             if (wkInstance.ExecutionPointers.Count > 0)
             {
-                foreach (var exePointer in wkInstance.ExecutionPointers)
-                {
-                    WkNode node = definition.Nodes.FirstOrDefault(d => d.Name == exePointer.StepName);
-                    if (node != null)
-                    {
-                        foreach (var m in node.Materials.OrderBy(d => d.SequenceNumber))
-                        {
-                            await exePointer.AddMaterails(CreateExePointerMaterials(m, workflow.Reference));
-                        }
-                    }
-                }
+                wkInstance = await CreateExePointerMaterials(wkInstance, new Guid(workflow.WorkflowDefinitionId), workflow.Version, workflow.Reference);
                 if (_currentUser.Id.HasValue)
                 {
                     foreach (var executionPointer in wkInstance.ExecutionPointers)
@@ -130,15 +120,36 @@ namespace Hx.Workflow.Domain
                                 materials.IsVerification,
                                 materials.VerificationPassed);
             List<WkExecutionPointerMaterials> ms = new List<WkExecutionPointerMaterials>();
-            if (materials.Children != null)
+            if (materials.Children != null && materials.Children.Count > 0)
             {
                 foreach (var m in materials.Children)
                 {
                     WkExecutionPointerMaterials nm = CreateExePointerMaterials(m, reference);
                     ms.Add(nm);
                 }
+                ms.ForEach(em.AddChild);
             }
             return em;
+        }
+        private async Task<WkInstance> CreateExePointerMaterials(WkInstance wkInstance, Guid wkDefinitionId, int version, string reference)
+        {
+            WkDefinition definition = await _wkDefinitionRespository.GetDefinitionAsync(wkDefinitionId, version);
+            foreach (var exePointer in wkInstance.ExecutionPointers.Where(d => d.Status != PointerStatus.Complete))
+            {
+                WkNode node = definition.Nodes.FirstOrDefault(d => d.Name == exePointer.StepName);
+                if (node != null)
+                {
+                    foreach (var m in node.Materials.OrderBy(d => d.SequenceNumber))
+                    {
+                        if (!exePointer.Materials.Any(em =>
+                        em.Reference == reference &&
+                        em.ReferenceType == m.ReferenceType &&
+                        em.CatalogueName == m.CatalogueName))
+                            await exePointer.AddMaterails(CreateExePointerMaterials(m, reference));
+                    }
+                }
+            }
+            return wkInstance;
         }
         public void EnsureStoreExists()
         {
@@ -278,6 +289,7 @@ namespace Hx.Workflow.Domain
                 if (existingEntity == null)
                     return;
                 var persistable = await workflow.ToPersistable(existingEntity);
+                existingEntity = await CreateExePointerMaterials(existingEntity, new Guid(workflow.WorkflowDefinitionId), workflow.Version, workflow.Reference);
                 await _wkInstanceRepository.UpdateAsync(persistable);
                 await uow.CompleteAsync();
             }
@@ -291,6 +303,7 @@ namespace Hx.Workflow.Domain
                 if (existingEntity == null)
                     return;
                 var persistable = await workflow.ToPersistable(existingEntity);
+                existingEntity = await CreateExePointerMaterials(existingEntity, new Guid(workflow.WorkflowDefinitionId), workflow.Version, workflow.Reference);
                 await _wkInstanceRepository.UpdateAsync(persistable);
                 //需要确认
                 foreach (var subscription in subscriptions)
