@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Domain;
+﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
@@ -22,14 +23,17 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;
+        private readonly ILimitTimeManager _limitTimeManager;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
-            IWkDefinitionRespository wkDefinition)
+            IWkDefinitionRespository wkDefinition,
+            ILimitTimeManager limitTimeManager)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
+            _limitTimeManager = limitTimeManager;
         }
         /// <summary>
         /// 审核人
@@ -48,7 +52,7 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     var workflowData = new Dictionary<string, object>
                 {
-                    { "BusinessCommitmentDeadline", context.Workflow.CreateTime.AddMinutes((double)instance.WkDefinition.LimitTime) }
+                    { "BusinessCommitmentDeadline",  await _limitTimeManager.GetAsync(context.Workflow.CreateTime,instance.WkDefinition.LimitTime)}
                 };
                     context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
                 }
@@ -88,7 +92,6 @@ namespace Hx.Workflow.Application.StepBodys
                             {
                                 throw new UserFriendlyException($"在流程({instance.Id})中未找到Id为({preNode.PredecessorId})的节点！");
                             }
-                            //var targetNode = instance.ExecutionPointers.First(d => d.StepName == beRolledBackNode.StepName);
                             dcandidate = beRolledBackNode.WkCandidates.Select(d =>
                             new WkNodeCandidate(
                                 d.CandidateId,
