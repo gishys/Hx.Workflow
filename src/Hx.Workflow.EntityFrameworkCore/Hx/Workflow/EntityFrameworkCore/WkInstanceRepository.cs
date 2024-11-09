@@ -107,7 +107,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Entrusted, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.Entrusted)))
                 .WhereIf(state == MyWorkState.Handled, d =>
-                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
+                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId)) && a.StepId == 0 && a.Status == PointerStatus.WaitingForEvent))
                 .WhereIf(state == MyWorkState.Follow, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.Follow == true)))
                 .WhereIf(state == MyWorkState.Suspended, d =>

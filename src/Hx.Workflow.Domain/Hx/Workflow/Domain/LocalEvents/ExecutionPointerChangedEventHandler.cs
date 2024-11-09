@@ -1,17 +1,16 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Stats;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
-using System.Reflection;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Entities.Events;
 using Volo.Abp.EventBus;
 using Volo.Abp.Identity;
-using Volo.Abp.Users;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Domain.LocalEvents
@@ -24,12 +23,14 @@ namespace Hx.Workflow.Domain.LocalEvents
         private readonly IServiceProvider _serviceProvider;
         private readonly IHubContext<WorkflowInstanceHub> _workflowInstanceHub;
         private readonly IWkSubscriptionRepository _wkSubscriptionRepository;
+        private readonly IBusinessStatRepository _businessStatRepository;
         public ExecutionPointerChangedEventHandler(
             IWkExecutionPointerRepository wkExecutionPointer,
             IWkEventRepository wkEventRepository,
             IServiceProvider serviceProvider,
             IHubContext<WorkflowInstanceHub> workflowInstanceHub,
-            IWkSubscriptionRepository wkSubscriptionRepository
+            IWkSubscriptionRepository wkSubscriptionRepository,
+            IBusinessStatRepository businessStatRepository
             )
         {
             _wkExecutionPointer = wkExecutionPointer;
@@ -37,6 +38,7 @@ namespace Hx.Workflow.Domain.LocalEvents
             _serviceProvider = serviceProvider;
             _workflowInstanceHub = workflowInstanceHub;
             _wkSubscriptionRepository = wkSubscriptionRepository;
+            _businessStatRepository = businessStatRepository;
         }
 
         public async Task HandleEventAsync(
@@ -71,6 +73,107 @@ namespace Hx.Workflow.Domain.LocalEvents
                             eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted", eventData.Entity.WkInstanceId);
                     }
                 }
+            }
+            //统计业务
+            await UpdateTransactorStatAsync(eventData.Entity);
+        }
+        private async Task UpdateTransactorStatAsync(WkExecutionPointer pointer)
+        {
+            if (!pointer.CreatorId.HasValue)
+            {
+                return;
+            }
+            BusinessStat statEntity = null;
+            if (pointer.Status == PointerStatus.WaitingForEvent &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId &&
+                c.ParentState == ExeCandidateState.WaitingReceipt))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.WaitingReceipt.ToString());
+            }
+            else if (pointer.Status == PointerStatus.WaitingForEvent &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId &&
+                c.ParentState == ExeCandidateState.Pending))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Pending.ToString());
+            }
+            else if (pointer.Status == PointerStatus.WaitingForEvent)
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Participation.ToString());
+            }
+            else if (pointer.Status == PointerStatus.WaitingForEvent &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId &&
+                c.ExeOperateType == ExePersonnelOperateType.Entrusted))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Entrusted.ToString());
+            }
+            else if (pointer.Status == PointerStatus.WaitingForEvent &&
+                pointer.StepId == 0 &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Handled.ToString());
+            }
+            else if (pointer.Status == PointerStatus.WaitingForEvent &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId &&
+                c.Follow == true))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Follow.ToString());
+            }
+            else if (pointer.Status == PointerStatus.WaitingForEvent &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId &&
+                c.ExeOperateType == ExePersonnelOperateType.Countersign))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Countersign.ToString());
+            }
+            else if (pointer.Status == PointerStatus.WaitingForEvent &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId &&
+                c.ExeOperateType == ExePersonnelOperateType.CarbonCopy))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.CarbonCopy.ToString());
+            }
+            else if (pointer.Status == PointerStatus.Failed &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Abnormal.ToString());
+            }
+            else if (pointer.WkInstance.Status == WorkflowStatus.Suspended &&
+                pointer.WkCandidates.Any(c => c.CandidateId == pointer.CreatorId))
+            {
+                statEntity = await _businessStatRepository.GetAsync(
+                    pointer.CreatorId.Value,
+                    "TransactorStat",
+                    MyWorkState.Suspended.ToString());
+            }
+            if (statEntity != null)
+            {
+                await statEntity.SetStatistics(statEntity.Statistics + 1);
+                await _wkExecutionPointer.UpdateAsync(pointer);
             }
         }
     }

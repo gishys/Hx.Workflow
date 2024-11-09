@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -442,6 +443,18 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(d => d.ExternalTokenExpiry).HasColumnName("EXTERNALTOKENEXPIRY").HasColumnType("timestamp with time zone");
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
+            });
+            builder.Entity<BusinessStat>(t =>
+            {
+                t.ToTable(model.TablePrefix + "BUSINESSSTAT", model.Schema, tb => { tb.HasComment("统计"); });
+
+                t.Property(d => d.Id).HasColumnName("ID");
+                t.Property(d => d.StatType).HasColumnName("STATTYPE").HasMaxLength(50);
+                t.Property(d => d.PrimaryClassification).HasColumnName("PRIMARYCLASSIFICATION").HasMaxLength(50).IsRequired(false);
+                t.Property(d => d.SecondaryClassification).HasColumnName("SECONDARYCLASSIFICATION").HasMaxLength(50).IsRequired(false);
+                t.Property(d => d.ThreeLevelClassification).HasColumnName("THREELEVELCLASSIFICATION").HasMaxLength(50).IsRequired(false);
+                t.Property(d => d.Statistics).HasColumnName("STATISTICS").HasPrecision(10, 2);
+                t.Property(d => d.Owner).HasColumnName("OWNER");
             });
         }
     }

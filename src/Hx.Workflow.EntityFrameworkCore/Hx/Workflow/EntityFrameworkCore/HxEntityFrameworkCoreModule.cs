@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -24,6 +25,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                     options.AddRepository<WkDefinition, WkDefinitionRespository>();
                     options.AddRepository<WkStepBody, WkStepBodyRespository>();
                     options.AddRepository<WkAuditor, WkAuditorRespository>();
+                    options.AddRepository<BusinessStat, BusinessStatRepository>();
                 });
             Configure<AbpDbContextOptions>(options =>
             {

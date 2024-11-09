@@ -2,7 +2,7 @@
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
-using System.Linq;
+using Hx.Workflow.Domain.Stats;
 
 namespace Hx.Workflow.Application
 {
@@ -34,6 +34,7 @@ namespace Hx.Workflow.Application
             CreateMap<WkExecutionError, WkExecutionErrorDto>(MemberList.Destination);
             CreateMap<WkParam, WkParamDto>(MemberList.Destination);
             CreateMap<WkExecutionPointerMaterials, WkExecutionPointerMaterialsDto>(MemberList.Destination);
+            CreateMap<BusinessStat, BusinessStatDto>(MemberList.Destination);
         }
     }
 }

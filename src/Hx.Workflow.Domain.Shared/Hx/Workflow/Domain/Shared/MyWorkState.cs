@@ -37,7 +37,7 @@ namespace Hx.Workflow.Domain.Shared
         /// </summary>
         Follow = 7,
         /// <summary>
-        /// 我得挂起件
+        /// 我的挂起件
         /// </summary>
         Suspended = 8,
         /// <summary>
