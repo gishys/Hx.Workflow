@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Stats;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -76,5 +77,13 @@ namespace Hx.Workflow.Application
         /// <param name="executionPointerId"></param>
         /// <returns></returns>
         Task InitMaterialsAsync(Guid executionPointerId);
+        /// <summary>
+        /// 计算我的工作状态数量
+        /// </summary>
+        /// <param name="transactorId"></param>
+        /// <returns></returns>
+        Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid? transactorId);
+        Task<List<ProcessTypeStat>> GetBusinessTypeListAsync();
+        Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();
     }
 }

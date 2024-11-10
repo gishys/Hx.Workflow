@@ -16,6 +16,7 @@ using WorkflowCore.Models;
 using SharpYaml;
 using Volo.Abp.ObjectMapping;
 using System.Reflection;
+using Hx.Workflow.Domain.Stats;
 
 namespace Hx.Workflow.Application
 {
@@ -470,6 +471,66 @@ namespace Hx.Workflow.Application
         public virtual async Task InitMaterialsAsync(Guid executionPointerId)
         {
             await _wkExecutionPointerRepository.InitMaterialsAsync(executionPointerId);
+        }
+        /// <summary>
+        /// 计算我的工作状态数量
+        /// </summary>
+        /// <param name="transactorId"></param>
+        /// <returns></returns>
+        public virtual async Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid? transactorId)
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                transactorId = CurrentUser.Id.Value;
+            }
+            return await _wkInstanceRepository.GetProcessingStatusStatListAsync(transactorId.Value);
+        }
+        public virtual Task<List<ProcessTypeStat>> GetBusinessTypeListAsync()
+        {
+            return _wkInstanceRepository.GetBusinessTypeListAsync();
+        }
+        public virtual async Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync()
+        {
+            var result = await _wkInstanceRepository.GetProcessTypeStatListAsync();
+            // 创建一个包含所有月份的列表
+            var allMonths = Enumerable.Range(1, 12).Select(m => m.ToString().PadLeft(2, '0')).ToList();
+
+            // 创建一个字典来存储每个ProcessType的全年数据
+            var fullYearData = new Dictionary<string, List<ProcessTypeStat>>();
+
+            foreach (var item in result)
+            {
+                if (!fullYearData.ContainsKey(item.PClassification))
+                {
+                    fullYearData[item.PClassification] = new List<ProcessTypeStat>();
+                }
+                fullYearData[item.PClassification].Add(item);
+            }
+
+            // 确保每个ProcessType都包含全年的每个月份
+            var finalResult = new List<ProcessTypeStat>();
+            foreach (var processType in fullYearData.Keys)
+            {
+                foreach (var month in allMonths)
+                {
+                    var existingStat = fullYearData[processType].FirstOrDefault(s => s.SClassification == month);
+                    if (existingStat != null)
+                    {
+                        finalResult.Add(existingStat);
+                    }
+                    else
+                    {
+                        // 如果数据库中没有该月份的数据，则添加计数为0的条目
+                        finalResult.Add(new ProcessTypeStat
+                        {
+                            PClassification = processType,
+                            SClassification = month,
+                            Count = 0
+                        });
+                    }
+                }
+            }
+            return finalResult;
         }
     }
 }

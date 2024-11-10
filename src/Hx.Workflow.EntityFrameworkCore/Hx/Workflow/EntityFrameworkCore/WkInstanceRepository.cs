@@ -2,11 +2,11 @@
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Stats;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Formats.Tar;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text.Json;
@@ -81,6 +81,82 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .IncludeDetials(true)
                 .FirstOrDefaultAsync(d => d.Reference == reference);
         }
+        public virtual async Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid transactorId)
+        {
+            var result = new List<ProcessingStatusStat>();
+            var dbSet = await GetDbSetAsync();
+
+            var beingProcessed = await dbSet.Where(d => d.ExecutionPointers.Any(a =>
+                a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => transactorId == c.CandidateId))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "BeingProcessed", Count = beingProcessed });
+
+            var waitingReceipt = await dbSet.Where(d =>
+            d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c =>
+            c.CandidateId == transactorId && c.ParentState == ExeCandidateState.WaitingReceipt))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "WaitingReceipt", Count = waitingReceipt });
+
+            var pending = await dbSet.Where(d =>
+            d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c =>
+            c.CandidateId == transactorId && c.ParentState == ExeCandidateState.Pending))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Pending", Count = pending });
+            //所有我办理过的业务(不包含在办)
+            var participation = await dbSet.Where(d =>
+            d.ExecutionPointers.Any(a => a.Status == PointerStatus.Complete && a.WkCandidates.Any(c => c.CandidateId == transactorId))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Participation", Count = participation });
+
+            var entrusted = await dbSet.Where(d => d.ExecutionPointers.Any(a =>
+                a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => transactorId == c.CandidateId &&
+                c.ExeOperateType == ExePersonnelOperateType.Entrusted))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Entrusted", Count = entrusted });
+
+            var handled = await dbSet.Where(d =>
+            d.ExecutionPointers.Any(a => a.StepId == 0 && a.WkCandidates.Any(c => c.CandidateId == transactorId))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Handled", Count = handled });
+
+            var follow = await dbSet.Where(d =>
+            d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => c.CandidateId == transactorId && c.Follow == true))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Follow", Count = follow });
+
+            var suspended = await dbSet.Where(d => d.Status == WorkflowStatus.Suspended &&
+            d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => c.CandidateId == transactorId))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Suspended", Count = suspended });
+
+            var countersign = await dbSet.Where(d => d.ExecutionPointers.Any(a =>
+            a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => transactorId == c.CandidateId &&
+            c.ExeOperateType == ExePersonnelOperateType.Countersign))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Countersign", Count = countersign });
+
+            var carbonCopy = await dbSet.Where(d => d.ExecutionPointers.Any(a =>
+            a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => transactorId == c.CandidateId &&
+            c.ExeOperateType == ExePersonnelOperateType.CarbonCopy))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "CarbonCopy", Count = carbonCopy });
+
+            var abnormal = await dbSet.Where(d => d.ExecutionPointers.Any(a =>
+            a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => transactorId == c.CandidateId))).CountAsync();
+            result.Add(new ProcessingStatusStat() { TransactorId = transactorId, Status = "Abnormal", Count = abnormal });
+            return result;
+        }
+        public virtual async Task<List<ProcessTypeStat>> GetBusinessTypeListAsync()
+        {
+            var dbSet = await GetDbSetAsync();
+            var result = await dbSet.GroupBy(d => d.WkDefinition.BusinessType).Select(d => new ProcessTypeStat() { Count = d.Count(), PClassification = d.Key }).ToListAsync();
+            return result;
+        }
+        public virtual async Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync()
+        {
+            var dbSet = await GetDbSetAsync();
+            var result = await dbSet.GroupBy(d => new
+            {
+                d.WkDefinition.ProcessType,
+                Mouth = d.CreateTime.Month.ToString().PadLeft(2, '0'),
+            }).Select(d => new ProcessTypeStat()
+            {
+                Count = d.Count(),
+                PClassification = d.Key.ProcessType,
+                SClassification = d.Key.Mouth
+            }).ToListAsync();
+            return result;
+        }
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> ids,
             string reference,
@@ -107,7 +183,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Entrusted, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.Entrusted)))
                 .WhereIf(state == MyWorkState.Handled, d =>
-                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
+                d.ExecutionPointers.Any(a => a.StepId == 0 && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(state == MyWorkState.Follow, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.Follow == true)))
                 .WhereIf(state == MyWorkState.Suspended, d =>

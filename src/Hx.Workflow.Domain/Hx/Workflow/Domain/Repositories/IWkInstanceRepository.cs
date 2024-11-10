@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Stats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,5 +51,8 @@ namespace Hx.Workflow.Domain.Repositories
         /// <returns></returns>
         Task UpdateDataAsync(Guid workflowId, IDictionary<string, object> data);
         Task<WkInstance> GetByReferenceAsync(string reference);
+        Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid transactorId);
+        Task<List<ProcessTypeStat>> GetBusinessTypeListAsync();
+        Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();
     }
 }

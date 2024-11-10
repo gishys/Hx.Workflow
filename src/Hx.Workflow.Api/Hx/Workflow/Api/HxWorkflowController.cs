@@ -2,6 +2,7 @@
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Stats;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -196,6 +197,37 @@ namespace Hx.Workflow.Api
         public Task InitMaterialsAsync(Guid executionPointerId)
         {
             return _workflowAppService.InitMaterialsAsync(executionPointerId);
+        }
+        /// <summary>
+        /// 计算我的工作状态数量
+        /// </summary>
+        /// <param name="transactorId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/processingstatusstat")]
+        public Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid? transactorId)
+        {
+            return _workflowAppService.GetProcessingStatusStatListAsync(transactorId);
+        }
+        /// <summary>
+        /// 按登记类型统计
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/businesstypestat")]
+        public Task<List<ProcessTypeStat>> GetBusinessTypeListAsync()
+        {
+            return _workflowAppService.GetBusinessTypeListAsync();
+        }
+        /// <summary>
+        /// 按业务类型统计
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/processtypestat")]
+        public Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync()
+        {
+            return _workflowAppService.GetProcessTypeStatListAsync();
         }
     }
 }
