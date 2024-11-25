@@ -2,6 +2,7 @@
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -31,6 +32,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 await updateEntity.InitMaterials();
                 await UpdateAsync(updateEntity);
             }
+        }
+        public override async Task<WkExecutionPointer> FindAsync(Guid id, bool includeDetails = true, CancellationToken cancellationToken = default)
+        {
+            var dbSet = await GetDbSetAsync();
+            return await dbSet.Include(d => d.WkCandidates).FirstAsync(d => d.Id == id, cancellationToken: cancellationToken);
         }
     }
 }
