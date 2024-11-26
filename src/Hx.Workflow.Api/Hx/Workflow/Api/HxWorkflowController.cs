@@ -236,7 +236,7 @@ namespace Hx.Workflow.Api
         /// <param name="executionPointerId"></param>
         /// <param name="remark"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPut]
         [Route("workflow/audit")]
         public Task UpdateAuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark)
         {
