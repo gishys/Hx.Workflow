@@ -16,6 +16,7 @@ namespace Hx.Workflow.Application.Contracts
         public DateTime? ReceiveTime { get; set; }
         public DateTime BusinessCommitmentDeadline { get; set; }
         public WkExecutionPointerDto CurrentExecutionPointer { get; set; }
+        public ICollection<WkAuditorDto> WkAuditors {  get; set; }
         public string ProcessName { get; set; }
         public string Located { get; set; }
         /// <summary>

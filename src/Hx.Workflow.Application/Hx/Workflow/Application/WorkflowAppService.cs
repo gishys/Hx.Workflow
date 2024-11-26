@@ -555,6 +555,7 @@ namespace Hx.Workflow.Application
                     CurrentUser.UserName,
                     userId: CurrentUser.Id.Value,
                     status: EnumAuditStatus.Unapprove);
+                    await auditorInstance.Audit(DateTime.Now, remark);
                     await _wkAuditor.InsertAsync(auditorInstance);
                 }
             }

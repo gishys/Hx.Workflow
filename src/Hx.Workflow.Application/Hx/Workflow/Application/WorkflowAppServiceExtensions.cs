@@ -3,6 +3,7 @@ using Hx.Workflow.Application.BusinessModule;
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.StepBodys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -214,6 +215,7 @@ namespace Hx.Workflow.Application
                 CurrentExecutionPointer = currentPointerDto,
                 ProcessName = businessData.ProcessName,
                 Located = businessData.Located,
+                WkAuditors = ObjectMapper.Map<ICollection<WkAuditor>, ICollection<WkAuditorDto>>(instance.WkAuditors),
                 CanHandle = instance.Status == WorkflowStatus.Runnable &&
                 pointer.Status != PointerStatus.Complete
                 && pointer.WkSubscriptions.Any(d => d.ExternalToken == null)
