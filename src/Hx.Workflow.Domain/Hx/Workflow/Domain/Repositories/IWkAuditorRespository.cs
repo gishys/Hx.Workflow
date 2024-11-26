@@ -15,5 +15,6 @@ namespace Hx.Workflow.Domain.Repositories
             EnumAuditStatus status);
         Task<WkAuditor> GetAuditorAsync(Guid executionPointerId);
         Task<List<Guid>> GetWkInstanceIdsAsync(ICollection<Guid> userIds);
+        Task<WkAuditor> GetAuditorAsync(Guid executionPointerId, Guid userId);
     }
 }

@@ -250,14 +250,24 @@ namespace Hx.Workflow.Application.StepBodys
             {
                 throw new UserFriendlyException("无权限，请在流程定义中配置此人权限！");
             }
-            var auditorInstance =
-            new WkAuditor(
-                instanceId,
-                execution.Id,
-                user.UserName,
-                userId: user.CandidateId,
-                status: auditStatus);
-            await _wkAuditor.InsertAsync(auditorInstance);
+            var entity = await _wkAuditor.GetAuditorAsync(execution.Id, user.CandidateId);
+            if (entity == null)
+            {
+                var auditorInstance = new WkAuditor(
+                    instanceId,
+                    execution.Id,
+                    user.UserName,
+                    userId: user.CandidateId,
+                    status: auditStatus);
+                if (!string.IsNullOrEmpty(Remark))
+                    await auditorInstance.Audit(DateTime.Now, remark: Remark);
+                await _wkAuditor.InsertAsync(auditorInstance);
+            }
+            else
+            {
+                await entity.Audit(auditStatus);
+                await _wkAuditor.UpdateAsync(entity);
+            }
         }
     }
 }

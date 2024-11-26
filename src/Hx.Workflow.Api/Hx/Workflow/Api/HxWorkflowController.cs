@@ -3,6 +3,7 @@ using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.Stats;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -228,6 +229,18 @@ namespace Hx.Workflow.Api
         public Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync()
         {
             return _workflowAppService.GetProcessTypeStatListAsync();
+        }
+        /// <summary>
+        /// 审核
+        /// </summary>
+        /// <param name="executionPointerId"></param>
+        /// <param name="remark"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/audit")]
+        public Task UpdateAuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark)
+        {
+            return _workflowAppService.AuditAsync(wkInstanceId, executionPointerId, remark);
         }
     }
 }

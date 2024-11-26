@@ -34,6 +34,11 @@ namespace Hx.Workflow.EntityFrameworkCore
             var queryable = await GetDbSetAsync();
             return await queryable.FirstOrDefaultAsync(d => d.ExecutionPointerId == executionPointerId);
         }
+        public virtual async Task<WkAuditor> GetAuditorAsync(Guid executionPointerId, Guid userId)
+        {
+            var queryable = await GetDbSetAsync();
+            return await queryable.FirstOrDefaultAsync(d => d.ExecutionPointerId == executionPointerId && d.UserId == userId);
+        }
         public virtual async Task<List<Guid>> GetWkInstanceIdsAsync(ICollection<Guid> userIds)
         {
             var queryable = await GetDbSetAsync();

@@ -85,5 +85,6 @@ namespace Hx.Workflow.Application
         Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid? transactorId);
         Task<List<ProcessTypeStat>> GetBusinessTypeListAsync();
         Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();
+        Task AuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark);
     }
 }

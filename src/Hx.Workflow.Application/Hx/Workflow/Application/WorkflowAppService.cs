@@ -17,6 +17,8 @@ using SharpYaml;
 using Volo.Abp.ObjectMapping;
 using System.Reflection;
 using Hx.Workflow.Domain.Stats;
+using Hx.Workflow.Domain.StepBodys;
+using static Volo.Abp.Identity.Settings.IdentitySettingNames;
 
 namespace Hx.Workflow.Application
 {
@@ -28,13 +30,15 @@ namespace Hx.Workflow.Application
         private readonly IWkInstanceRepository _wkInstanceRepository;
         private readonly IWkErrorRepository _errorRepository;
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository;
+        private readonly IWkAuditorRespository _wkAuditor;
         public WorkflowAppService(
             IWkStepBodyRespository wkStepBody,
             HxWorkflowManager hxWorkflowManager,
             IWkDefinitionRespository wkDefinition,
             IWkInstanceRepository wkInstanceRepository,
             IWkErrorRepository errorRepository,
-            IWkExecutionPointerRepository wkExecutionPointerRepository)
+            IWkExecutionPointerRepository wkExecutionPointerRepository,
+            IWkAuditorRespository wkAuditor)
         {
             _wkStepBody = wkStepBody;
             _hxWorkflowManager = hxWorkflowManager;
@@ -42,6 +46,7 @@ namespace Hx.Workflow.Application
             _wkInstanceRepository = wkInstanceRepository;
             _errorRepository = errorRepository;
             _wkExecutionPointerRepository = wkExecutionPointerRepository;
+            _wkAuditor = wkAuditor;
         }
         /// <summary>
         /// 创建流程模版
@@ -531,6 +536,28 @@ namespace Hx.Workflow.Application
                 }
             }
             return finalResult;
+        }
+        public virtual async Task AuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark)
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                var entity = await _wkAuditor.GetAuditorAsync(executionPointerId, CurrentUser.Id.Value);
+                if (entity != null)
+                {
+                    await entity.Audit(DateTime.Now, remark);
+                    await _wkAuditor.UpdateAsync(entity);
+                }
+                else
+                {
+                    var auditorInstance = new WkAuditor(
+                    wkInstanceId,
+                    executionPointerId,
+                    CurrentUser.UserName,
+                    userId: CurrentUser.Id.Value,
+                    status: EnumAuditStatus.Unapprove);
+                    await _wkAuditor.InsertAsync(auditorInstance);
+                }
+            }
         }
     }
 }

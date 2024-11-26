@@ -36,13 +36,16 @@ namespace Hx.Workflow.Domain.StepBodys
             Status = status;
             TenantId = tenantId;
         }
+        public virtual Task Audit(EnumAuditStatus status)
+        {
+            Status = status;
+            return Task.CompletedTask;
+        }
         public virtual Task Audit(
-            EnumAuditStatus status,
             DateTime? auditTime,
             string remark
             )
         {
-            Status = status;
             AuditTime = auditTime;
             Remark = remark;
             return Task.CompletedTask;
