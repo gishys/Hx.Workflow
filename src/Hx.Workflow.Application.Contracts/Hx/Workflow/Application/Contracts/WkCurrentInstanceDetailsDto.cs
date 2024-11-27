@@ -18,6 +18,14 @@ namespace Hx.Workflow.Application.Contracts
         public WkExecutionPointerDto CurrentExecutionPointer { get; set; }
         public ICollection<WkAuditorDto> WkAuditors {  get; set; }
         public string ProcessName { get; set; }
+        /// <summary>
+        /// 业务类型
+        /// </summary>
+        public string BusinessType { get; set; }
+        /// <summary>
+        /// 流程类型
+        /// </summary>
+        public string ProcessType { get; set; }
         public string Located { get; set; }
         /// <summary>
         /// 可办理

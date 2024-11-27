@@ -242,5 +242,11 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.AuditAsync(wkInstanceId, executionPointerId, remark);
         }
+        [HttpGet]
+        [Route("workflow/audit")]
+        public Task<WkAuditorDto> GetAuditAsync(Guid executionPointerId)
+        {
+            return _workflowAppService.GetAuditAsync(executionPointerId);
+        }
     }
 }

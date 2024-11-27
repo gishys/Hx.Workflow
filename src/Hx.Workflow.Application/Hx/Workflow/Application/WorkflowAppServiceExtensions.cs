@@ -215,6 +215,8 @@ namespace Hx.Workflow.Application
                 CurrentExecutionPointer = currentPointerDto,
                 ProcessName = businessData.ProcessName,
                 Located = businessData.Located,
+                BusinessType = instance.WkDefinition.BusinessType,
+                ProcessType = instance.WkDefinition.ProcessType,
                 WkAuditors = ObjectMapper.Map<ICollection<WkAuditor>, ICollection<WkAuditorDto>>(instance.WkAuditors),
                 CanHandle = instance.Status == WorkflowStatus.Runnable &&
                 pointer.Status != PointerStatus.Complete

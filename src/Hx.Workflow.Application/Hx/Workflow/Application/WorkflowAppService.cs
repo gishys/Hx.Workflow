@@ -559,6 +559,22 @@ namespace Hx.Workflow.Application
                     await _wkAuditor.InsertAsync(auditorInstance);
                 }
             }
+            else
+            {
+                throw new UserFriendlyException("获取当前用户失败！");
+            }
+        }
+        public virtual async Task<WkAuditorDto> GetAuditAsync(Guid executionPointerId)
+        {
+            if (CurrentUser.Id.HasValue)
+            {
+                var entity = await _wkAuditor.GetAuditorAsync(executionPointerId, CurrentUser.Id.Value);
+                return ObjectMapper.Map<WkAuditor, WkAuditorDto>(entity);
+            }
+            else
+            {
+                throw new UserFriendlyException("获取当前用户失败！");
+            }
         }
     }
 }
