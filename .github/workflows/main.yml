@@ -16,36 +16,30 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '8.0.104'
-
+        
     - name: Build and pack NuGet packages
       run: |
         version=$(echo "${{ github.event.release.tag_name }}" | cut -c 2-)
         echo "Setting version to $version"
         dotnet build src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release
         dotnet pack src/Hx.Workflow.Application/Hx.Workflow.Application.csproj -c Release -o ./src/Hx.Workflow.Application /p:PackageVersion=$version
-
         dotnet build src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release
         dotnet pack src/Hx.Workflow.Application.Contracts/Hx.Workflow.Application.Contracts.csproj -c Release -o ./src/Hx.Workflow.Application.Contracts /p:PackageVersion=$version
-
         dotnet build src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release
         dotnet pack src/Hx.Workflow.Domain/Hx.Workflow.Domain.csproj -c Release -o ./src/Hx.Workflow.Domain /p:PackageVersion=$version
-
         dotnet build src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release
         dotnet pack src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release -o ./src/Hx.Workflow.Domain.Shared /p:PackageVersion=$version
-
         dotnet build src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release
         dotnet pack src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release -o ./src/Hx.Workflow.EntityFrameworkCore /p:PackageVersion=$version
-
         cp ./src/Hx.Workflow.Application/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Application.Contracts/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Domain/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Domain.Shared/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg $GITHUB_WORKSPACE
-
     - name: Push NuGet packages
       run: |
-        dotnet nuget push ./src/Hx.Workflow.Application/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
-        dotnet nuget push ./src/Hx.Workflow.Application.Contracts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
-        dotnet nuget push ./src/Hx.Workflow.Domain/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
-        dotnet nuget push ./src/Hx.Workflow.Domain.Shared/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
-        dotnet nuget push ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+       nuget push ./src/Hx.Workflow.Application/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
+       nuget push ./src/Hx.Workflow.Application.Contracts/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
+       nuget push ./src/Hx.Workflow.Domain/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
+       nuget push ./src/Hx.Workflow.Domain.Shared/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
+       nuget push ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
