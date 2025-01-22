@@ -1,17 +1,12 @@
-﻿using AutoMapper.Internal.Mappers;
-using Hx.Workflow.Application.BusinessModule;
-using Hx.Workflow.Application.Contracts;
+﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.StepBodys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
-using Volo.Abp.Users;
 using WorkflowCore.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Hx.Workflow.Application
 {
@@ -135,27 +130,23 @@ namespace Hx.Workflow.Application
         }
         public static WkProcessInstanceDto ToProcessInstanceDto(this WkInstance instance, ICollection<Guid> userIds)
         {
-            var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
+            var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             //如果节点不是已完成状态则获取当前节点（后续需要确定其他状态的含义）
             WkExecutionPointer pointer = instance.ExecutionPointers.FirstOrDefault(d => d.Status != PointerStatus.Complete);
             var step = pointer != null ? instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName) : null;
             var processInstance = new WkProcessInstanceDto
             {
                 Id = instance.Id,
-                EarlyWarning = GetEarlyWarning(businessData, instance),
                 Reference = instance.Reference,
-                ProcessName = businessData.ProcessName,
-                Located = businessData.Located,
                 ProcessingStepName = step?.DisplayName,
                 Recipient = pointer?.Recipient,
                 Submitter = pointer?.Submitter,
                 ReceivingTime = instance.CreateTime,
                 State = instance.Status.ToString(),
-                BusinessType = instance.WkDefinition.BusinessType,
-                BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                 ProcessType = instance.WkDefinition.ProcessType,
                 IsSign = instance.Status != WorkflowStatus.Runnable || (pointer != null ? userIds.Any(id => id == pointer.RecipientId) : true),
                 IsProcessed = pointer != null ? pointer.WkSubscriptions.Any(d => d.ExternalToken != null) : false,
+                Data = businessData
             };
             if (pointer == null)
             {
@@ -169,7 +160,7 @@ namespace Hx.Workflow.Application
         public static WkCurrentInstanceDetailsDto ToWkInstanceDetailsDto(
             this WkInstance instance,
             Volo.Abp.ObjectMapping.IObjectMapper ObjectMapper,
-            WkInstanceEventData businessData,
+            Dictionary<string, object> businessData,
             WkExecutionPointer pointer,
             Guid? currentUserId,
             List<WkExecutionError> errors
@@ -211,10 +202,7 @@ namespace Hx.Workflow.Application
                 Receiver = pointer.Recipient,
                 ReceiveTime = pointer.StartTime,
                 RegistrationCategory = instance.WkDefinition.BusinessType,
-                BusinessCommitmentDeadline = businessData.BusinessCommitmentDeadline,
                 CurrentExecutionPointer = currentPointerDto,
-                ProcessName = businessData.ProcessName,
-                Located = businessData.Located,
                 BusinessType = instance.WkDefinition.BusinessType,
                 ProcessType = instance.WkDefinition.ProcessType,
                 WkAuditors = ObjectMapper.Map<ICollection<WkAuditor>, ICollection<WkAuditorDto>>(instance.WkAuditors),
@@ -222,23 +210,34 @@ namespace Hx.Workflow.Application
                 pointer.Status != PointerStatus.Complete
                 && pointer.WkSubscriptions.Any(d => d.ExternalToken == null)
                 && currentUserId.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == currentUserId.Value),
+                Data = businessData,
             };
         }
-        private static string GetEarlyWarning(WkInstanceEventData businessData, WkInstance instance)
+        private static string GetEarlyWarning(DateTime businessCommitmentDeadline, WkInstance instance)
         {
             var earlyWarning = "green";
             if (instance.Status == WorkflowStatus.Runnable)
             {
-                if (businessData.BusinessCommitmentDeadline <= DateTime.Now)
+                if (businessCommitmentDeadline <= DateTime.Now)
                 {
                     earlyWarning = "red";
                 }
-                else if (businessData.BusinessCommitmentDeadline.AddHours(2) <= DateTime.Now)
+                else if (businessCommitmentDeadline.AddHours(2) <= DateTime.Now)
                 {
                     earlyWarning = "yellow";
                 }
             }
             return earlyWarning;
+        }
+        private static DateTime GetDateTime(Dictionary<string, object> data, string key)
+        {
+            DateTime time = DateTime.MinValue;
+            if (data.TryGetValue(key, out var valueStr))
+            {
+                if (DateTime.TryParse(valueStr.ToString(), out DateTime result))
+                    time = result;
+            }
+            return time;
         }
     }
 }

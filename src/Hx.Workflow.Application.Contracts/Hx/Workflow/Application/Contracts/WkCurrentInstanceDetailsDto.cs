@@ -14,10 +14,8 @@ namespace Hx.Workflow.Application.Contracts
         public string RegistrationCategory { get; set; }
         public string Receiver { get; set; }
         public DateTime? ReceiveTime { get; set; }
-        public DateTime BusinessCommitmentDeadline { get; set; }
         public WkExecutionPointerDto CurrentExecutionPointer { get; set; }
         public ICollection<WkAuditorDto> WkAuditors {  get; set; }
-        public string ProcessName { get; set; }
         /// <summary>
         /// 业务类型
         /// </summary>
@@ -26,10 +24,13 @@ namespace Hx.Workflow.Application.Contracts
         /// 流程类型
         /// </summary>
         public string ProcessType { get; set; }
-        public string Located { get; set; }
         /// <summary>
         /// 可办理
         /// </summary>
         public bool CanHandle {  get; set; }
+        /// <summary>
+        /// 业务数据
+        /// </summary>
+        public IDictionary<string,object> Data { get; set; }
     }
 }

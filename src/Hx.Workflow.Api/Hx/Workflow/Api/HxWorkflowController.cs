@@ -159,9 +159,9 @@ namespace Hx.Workflow.Api
         }
         [HttpPut]
         [Route("instance/businessdata")]
-        public Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input)
+        public Task UpdateInstanceBusinessDataAsync(Guid workflowId, [FromBody] IDictionary<string, object> data)
         {
-            return _workflowAppService.UpdateInstanceBusinessDataAsync(input);
+            return _workflowAppService.UpdateInstanceBusinessDataAsync(workflowId, data);
         }
         [HttpPut]
         [Route("instance/follow")]

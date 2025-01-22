@@ -10,21 +10,9 @@ namespace Hx.Workflow.Application.Contracts
     {
         public Guid Id { get; set; }
         /// <summary>
-        /// 预警
-        /// </summary>
-        public string EarlyWarning { get; set; }
-        /// <summary>
         /// 受理编号
         /// </summary>
         public string Reference { get; set; }
-        /// <summary>
-        /// 业务名称
-        /// </summary>
-        public string ProcessName { get; set; }
-        /// <summary>
-        /// 坐落
-        /// </summary>
-        public string Located { get; set; }
         /// <summary>
         /// 办理步骤
         /// </summary>
@@ -50,14 +38,6 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public string State { get; set; }
         /// <summary>
-        /// 业务类型
-        /// </summary>
-        public string BusinessType { get; set; }
-        /// <summary>
-        /// 业务限定日期
-        /// </summary>
-        public DateTime BusinessCommitmentDeadline { get; set; }
-        /// <summary>
         /// 流程类型
         /// </summary>
         public string ProcessType { get; set; }
@@ -69,5 +49,9 @@ namespace Hx.Workflow.Application.Contracts
         /// 正在运行
         /// </summary>
         public bool IsProcessed {  get; set; }
+        /// <summary>
+        /// 业务数据
+        /// </summary>
+        public IDictionary<string, object> Data { get; set; }
     }
 }

@@ -1,14 +1,9 @@
-﻿using Hx.Workflow.Application.BusinessModule;
-using Hx.Workflow.Domain.BusinessModule;
+﻿using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
-using Hx.Workflow.Domain.Shared;
-using SharpYaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -17,7 +12,6 @@ using Volo.Abp.Guids;
 using Volo.Abp.Timing;
 using Volo.Abp.Uow;
 using Volo.Abp.Users;
-using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Domain

@@ -48,7 +48,7 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input);
+        Task UpdateInstanceBusinessDataAsync(Guid workflowId, IDictionary<string, object> data);
         /// <summary>
         /// 关注实例（取消关注）
         /// </summary>

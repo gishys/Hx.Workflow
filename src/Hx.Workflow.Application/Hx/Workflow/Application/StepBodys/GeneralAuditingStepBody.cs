@@ -54,7 +54,7 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     { "BusinessCommitmentDeadline",  await _limitTimeManager.GetAsync(context.Workflow.CreateTime,instance.WkDefinition.LimitTime)}
                 };
-                    context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).Cancat(workflowData);
+                    context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).ConcatenateAndReplace(workflowData);
                 }
                 var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
                 var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);

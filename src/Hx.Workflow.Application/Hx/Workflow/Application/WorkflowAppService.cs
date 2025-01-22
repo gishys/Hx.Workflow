@@ -1,24 +1,19 @@
-﻿using Hx.Workflow.Application.BusinessModule;
-using Hx.Workflow.Application.Contracts;
+﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
-using System.Collections.Generic;
+using Hx.Workflow.Domain.Stats;
+using Hx.Workflow.Domain.StepBodys;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using WorkflowCore.Models;
-using SharpYaml;
-using Volo.Abp.ObjectMapping;
-using System.Reflection;
-using Hx.Workflow.Domain.Stats;
-using Hx.Workflow.Domain.StepBodys;
-using static Volo.Abp.Identity.Settings.IdentitySettingNames;
 
 namespace Hx.Workflow.Application
 {
@@ -221,7 +216,7 @@ namespace Hx.Workflow.Application
         public virtual async Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference)
         {
             var instance = await _wkInstanceRepository.GetByReferenceAsync(reference);
-            var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
+            var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             WkExecutionPointer pointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             var errors = await _errorRepository.GetListByIdAsync(instance.Id, pointer.Id);
             return instance.ToWkInstanceDetailsDto(ObjectMapper, businessData, pointer, CurrentUser.Id, errors);
@@ -254,7 +249,7 @@ namespace Hx.Workflow.Application
         public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId);
-            var businessData = JsonSerializer.Deserialize<WkInstanceEventData>(instance.Data);
+            var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             WkExecutionPointer pointer;
             if (pointerId.HasValue)
             {
@@ -440,13 +435,9 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public virtual async Task UpdateInstanceBusinessDataAsync(InstanceBusinessDataInput input)
+        public virtual async Task UpdateInstanceBusinessDataAsync(Guid workflowId, IDictionary<string, object> data)
         {
-            var data = new Dictionary<string, object>() {
-                { "ProcessName", input.ProcessName },
-                { "Located", input.Located }
-                };
-            await _wkInstanceRepository.UpdateDataAsync(input.WorkflowId, data);
+            await _wkInstanceRepository.UpdateDataAsync(workflowId, data);
         }
         /// <summary>
         /// 关注实例（取消关注）

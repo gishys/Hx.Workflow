@@ -348,7 +348,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             var instance = await FindAsync(workflowId);
             var instanceData = JsonSerializer.Deserialize<IDictionary<string, object>>(instance.Data);
-            await instance.SetData(JsonSerializer.Serialize(instanceData.Cancat(data)));
+            await instance.SetData(JsonSerializer.Serialize(instanceData.ConcatenateAndReplace(data)));
             await UpdateAsync(instance);
         }
     }
