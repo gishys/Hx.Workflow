@@ -17,14 +17,6 @@ jobs:
       with:
         dotnet-version: '8.0.104'
 
-    - name: Install NuGet CLI
-      run: |
-        dotnet tool install -g NuGet.CommandLine
-
-    - name: Add NuGet CLI to PATH
-      run: |
-        echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-
     - name: Build and pack NuGet packages
       run: |
         version=$(echo "${{ github.event.release.tag_name }}" | cut -c 2-)
@@ -52,8 +44,8 @@ jobs:
 
     - name: Push NuGet packages
       run: |
-        nuget push ./src/Hx.Workflow.Application/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
-        nuget push ./src/Hx.Workflow.Application.Contracts/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
-        nuget push ./src/Hx.Workflow.Domain/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
-        nuget push ./src/Hx.Workflow.Domain.Shared/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
-        nuget push ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
+        dotnet nuget push ./src/Hx.Workflow.Application/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./src/Hx.Workflow.Application.Contracts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./src/Hx.Workflow.Domain/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./src/Hx.Workflow.Domain.Shared/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
