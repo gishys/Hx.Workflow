@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus.Local;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -24,16 +25,19 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;
         private readonly ILimitTimeManager _limitTimeManager;
+        private readonly ILocalEventBus _localEventBus;
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,
             IWkDefinitionRespository wkDefinition,
-            ILimitTimeManager limitTimeManager)
+            ILimitTimeManager limitTimeManager,
+            ILocalEventBus localEventBus)
         {
             _wkAuditor = wkAuditor;
             _wkInstance = wkInstance;
             _wkDefinition = wkDefinition;
             _limitTimeManager = limitTimeManager;
+            _localEventBus = localEventBus;
         }
         /// <summary>
         /// 审核人
@@ -47,7 +51,19 @@ namespace Hx.Workflow.Application.StepBodys
         {
             try
             {
+
                 var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
+                try
+                {
+                    await _localEventBus.PublishAsync(new WkGeneralAuditStepBodyChangeEvent(
+                        new Guid(context.Workflow.Id),
+                        instance.Reference,
+                        context.Workflow.Data as IDictionary<string, object>));
+                }
+                catch (Exception ex)
+                {
+                    throw new UserFriendlyException($"stepbody 改变事件异常：{ex.Message}");
+                }
                 if (instance.WkDefinition.LimitTime.HasValue)
                 {
                     var workflowData = new Dictionary<string, object>
