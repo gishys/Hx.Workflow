@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Volo.Abp.ObjectExtending;
 
 namespace Hx.Workflow.Application.Contracts
 {
-    public class WkDefinitionCreateDto
+    public class WkDefinitionCreateDto : ExtensibleObject
     {
         /// <summary>
         /// 版本号

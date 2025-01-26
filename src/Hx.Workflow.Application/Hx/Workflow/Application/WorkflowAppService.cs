@@ -6,6 +6,7 @@ using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
+using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.ObjectExtending;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -85,6 +87,7 @@ namespace Hx.Workflow.Application
                 }
                 await entity.AddWkNode(node);
             }
+            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.CreateAsync(entity);
         }
         /// <summary>
