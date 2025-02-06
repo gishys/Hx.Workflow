@@ -23,6 +23,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual ICollection<WkInstance> WkInstances { get; set; }
         public virtual ICollection<WkSubscription> WkSubscriptions { get; set; }
         public virtual ICollection<WkAuditor> WkAuditors { get; set; }
+        public virtual ICollection<WkDefinitionGroup> WkDefinitionGroups { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

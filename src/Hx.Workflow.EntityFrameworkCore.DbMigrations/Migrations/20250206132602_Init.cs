@@ -12,24 +12,16 @@ namespace Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "HXWKDEFINITIONS",
+                name: "HXWKDEFINITION_GROUPS",
                 columns: table => new
                 {
                     ID = table.Column<Guid>(type: "uuid", nullable: false, comment: "主键"),
-                    VERSION = table.Column<int>(type: "integer", precision: 9, nullable: false, comment: "版本号"),
-                    TITLE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "标题"),
-                    LIMITTIME = table.Column<int>(type: "integer", nullable: true, comment: "限制时间"),
-                    WKDEFINITIONSTATE = table.Column<int>(type: "integer", precision: 1, nullable: false, comment: "是否开启"),
-                    ICON = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true, comment: "图标路径"),
-                    COLOR = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true, comment: "显示颜色"),
-                    GROUPID = table.Column<Guid>(type: "uuid", nullable: true, comment: "属于组"),
-                    DISCRIPTION = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true, comment: "定义描述"),
-                    SORTNUMBER = table.Column<int>(type: "integer", nullable: false, comment: "排序"),
+                    TITLE = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false, comment: "标题"),
+                    CODE = table.Column<string>(type: "character varying(119)", maxLength: 119, nullable: false, comment: "路径枚举"),
+                    ORDER = table.Column<double>(type: "double precision", nullable: false, comment: "序号"),
+                    PARENT_ID = table.Column<Guid>(type: "uuid", nullable: true, comment: "父Id"),
+                    DESCRIPTION = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "描述"),
                     TENANTID = table.Column<Guid>(type: "uuid", nullable: true, comment: "租户Id"),
-                    BUSINESSTYPE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "业务类型"),
-                    PROCESSTYPE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "流程类型"),
-                    EXTRAPROPERTIES = table.Column<string>(type: "text", nullable: false),
-                    CONCURRENCYSTAMP = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
                     CREATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CREATORID = table.Column<Guid>(type: "uuid", nullable: true),
                     LASTMODIFICATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -40,7 +32,13 @@ namespace Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("Pk_WkDefinition", x => x.ID);
+                    table.PrimaryKey("PK_WKDEFINITION_GROUP", x => x.ID);
+                    table.ForeignKey(
+                        name: "QI_GROUPS_PARENT_ID",
+                        column: x => x.PARENT_ID,
+                        principalTable: "HXWKDEFINITION_GROUPS",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
                 },
                 comment: "工作流定义");
 
@@ -103,6 +101,69 @@ namespace Migrations
                     table.PrimaryKey("PK_HXWKSTEPBODYS", x => x.Id);
                 },
                 comment: "节点实体");
+
+            migrationBuilder.CreateTable(
+                name: "HXWKDEFINITIONS",
+                columns: table => new
+                {
+                    ID = table.Column<Guid>(type: "uuid", nullable: false, comment: "主键"),
+                    VERSION = table.Column<int>(type: "integer", precision: 9, nullable: false, comment: "版本号"),
+                    TITLE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "标题"),
+                    LIMITTIME = table.Column<int>(type: "integer", nullable: true, comment: "限制时间"),
+                    WKDEFINITIONSTATE = table.Column<int>(type: "integer", precision: 1, nullable: false, comment: "是否开启"),
+                    ICON = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true, comment: "图标路径"),
+                    COLOR = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true, comment: "显示颜色"),
+                    GROUPID = table.Column<Guid>(type: "uuid", nullable: true, comment: "属于组"),
+                    DISCRIPTION = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true, comment: "定义描述"),
+                    SORTNUMBER = table.Column<int>(type: "integer", nullable: false, comment: "排序"),
+                    TENANTID = table.Column<Guid>(type: "uuid", nullable: true, comment: "租户Id"),
+                    BUSINESSTYPE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "业务类型"),
+                    PROCESSTYPE = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "流程类型"),
+                    EXTRAPROPERTIES = table.Column<string>(type: "text", nullable: false),
+                    CONCURRENCYSTAMP = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    CREATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CREATORID = table.Column<Guid>(type: "uuid", nullable: true),
+                    LASTMODIFICATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LASTMODIFIERID = table.Column<Guid>(type: "uuid", nullable: true),
+                    ISDELETED = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    DELETERID = table.Column<Guid>(type: "uuid", nullable: true),
+                    DELETIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WKDEFINITION", x => x.ID);
+                    table.ForeignKey(
+                        name: "QI_GROUPS_WKDEFINITION_ID",
+                        column: x => x.GROUPID,
+                        principalTable: "HXWKDEFINITION_GROUPS",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                },
+                comment: "工作流定义");
+
+            migrationBuilder.CreateTable(
+                name: "HXWKSTEPBODYPARAMS",
+                columns: table => new
+                {
+                    ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    WkNodeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    KEY = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    StepBodyParaType = table.Column<int>(type: "integer", nullable: false),
+                    NAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    DISPLAYNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    VALUE = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HXWKSTEPBODYPARAMS", x => x.ID);
+                    table.ForeignKey(
+                        name: "Pk_WkStepBody_WkParam",
+                        column: x => x.WkNodeId,
+                        principalTable: "HXWKSTEPBODYS",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                },
+                comment: "节点参数");
 
             migrationBuilder.CreateTable(
                 name: "HXDEFINITION_CANDIDATES",
@@ -178,6 +239,7 @@ namespace Migrations
                     LIMITTIME = table.Column<int>(type: "integer", nullable: true),
                     NODEFORMTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
                     SORTNUMBER = table.Column<int>(type: "integer", nullable: false, comment: "排序"),
+                    Materials = table.Column<string>(type: "jsonb", nullable: true),
                     Params = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
@@ -197,30 +259,6 @@ namespace Migrations
                         onDelete: ReferentialAction.Cascade);
                 },
                 comment: "执行节点");
-
-            migrationBuilder.CreateTable(
-                name: "HXWKSTEPBODYPARAMS",
-                columns: table => new
-                {
-                    ID = table.Column<Guid>(type: "uuid", nullable: false),
-                    WkNodeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    KEY = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
-                    StepBodyParaType = table.Column<int>(type: "integer", nullable: false),
-                    NAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    DISPLAYNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    VALUE = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HXWKSTEPBODYPARAMS", x => x.ID);
-                    table.ForeignKey(
-                        name: "Pk_WkStepBody_WkParam",
-                        column: x => x.WkNodeId,
-                        principalTable: "HXWKSTEPBODYS",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                },
-                comment: "节点参数");
 
             migrationBuilder.CreateTable(
                 name: "HXWKEXECUTIONPOINTER",
@@ -252,13 +290,15 @@ namespace Migrations
                     SUBMITTER = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     SUBMITTERID = table.Column<Guid>(type: "uuid", nullable: true),
                     COMMITMENTDEADLINE = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ISINITMATERIALS = table.Column<bool>(type: "boolean", nullable: true),
                     CREATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CREATORID = table.Column<Guid>(type: "uuid", nullable: true),
                     LASTMODIFICATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     LASTMODIFIERID = table.Column<Guid>(type: "uuid", nullable: true),
                     ISDELETED = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     DELETERID = table.Column<Guid>(type: "uuid", nullable: true),
-                    DELETIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    DELETIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Materials = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -550,6 +590,16 @@ namespace Migrations
                 column: "WKCONDITIONNODEID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HXWKDEFINITION_GROUPS_PARENT_ID",
+                table: "HXWKDEFINITION_GROUPS",
+                column: "PARENT_ID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HXWKDEFINITIONS_GROUPID",
+                table: "HXWKDEFINITIONS",
+                column: "GROUPID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HXWKEXECUTIONPOINTER_WKINSTANCEID",
                 table: "HXWKEXECUTIONPOINTER",
                 column: "WKINSTANCEID");
@@ -654,6 +704,9 @@ namespace Migrations
 
             migrationBuilder.DropTable(
                 name: "HXWKDEFINITIONS");
+
+            migrationBuilder.DropTable(
+                name: "HXWKDEFINITION_GROUPS");
         }
     }
 }

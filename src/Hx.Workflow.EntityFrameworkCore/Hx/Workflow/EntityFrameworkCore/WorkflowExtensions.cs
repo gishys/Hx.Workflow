@@ -30,6 +30,37 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(d => d.Children)
                 .Include(d => d.WkCandidates);
         }
+        public static IQueryable<WkDefinitionGroup> IncludeDetials(
+            this IQueryable<WkDefinitionGroup> query,
+            bool include = true)
+        {
+            if (!include)
+                return query;
+            return query
+                .Include(d => d.Definitions)
+                .ThenInclude(d => d.Nodes)
+                .ThenInclude(d => d.OutcomeSteps)
+                .Include(d => d.Definitions)
+                .ThenInclude(d => d.Nodes)
+                .ThenInclude(d => d.StepBody)
+                .ThenInclude(d => d.Inputs)
+                .Include(d => d.Definitions)
+                .ThenInclude(d => d.Nodes)
+                .ThenInclude(d => d.NextNodes)
+                .ThenInclude(d => d.WkConNodeConditions)
+                .Include(d => d.Definitions)
+                .ThenInclude(d => d.Nodes)
+                .ThenInclude(d => d.WkCandidates)
+                .Include(d => d.Definitions)
+                .ThenInclude(d => d.Nodes)
+                .ThenInclude(d => d.ApplicationForms)
+                .Include(d => d.Definitions)
+                .ThenInclude(d => d.Nodes)
+                .ThenInclude(d => d.Materials)
+                .ThenInclude(d => d.Children)
+                .Include(d => d.Definitions)
+                .ThenInclude(d => d.WkCandidates);
+        }
         public static IQueryable<WkInstance> IncludeDetials(
             this IQueryable<WkInstance> query,
             bool include = true)

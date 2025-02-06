@@ -26,8 +26,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkDefinitionGroup>(t =>
             {
                 t.ConfigureFullAuditedAggregateRoot();
-                t.ToTable(model.TablePrefix + "WKDEFINITIONS", model.Schema, tb => { tb.HasComment("工作流定义"); });
-                t.HasKey(p => p.Id).HasName("Pk_WkDefinition");
+                t.ToTable(model.TablePrefix + "WKDEFINITION_GROUPS", model.Schema, tb => { tb.HasComment("工作流定义"); });
+                t.HasKey(p => p.Id).HasName("PK_WKDEFINITION_GROUP");
                 t.Property(p => p.Id).HasColumnName("ID").HasComment("主键");
                 t.Property(t => t.Title).IsRequired().HasMaxLength(255).HasColumnName("TITLE").HasComment("标题");
                 t.Property(t => t.Code).IsRequired().HasMaxLength(119).HasColumnName("CODE").HasComment("路径枚举");
@@ -60,7 +60,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             {
                 t.ConfigureFullAuditedAggregateRoot();
                 t.ToTable(model.TablePrefix + "WKDEFINITIONS", model.Schema, tb => { tb.HasComment("工作流定义"); });
-                t.HasKey(p => p.Id).HasName("Pk_WkDefinition");
+                t.HasKey(p => p.Id).HasName("PK_WKDEFINITION");
                 t.Property(p => p.Id).HasColumnName("ID").HasComment("主键");
                 t.Property(p => p.Version).HasColumnName("VERSION").HasComment("版本号").HasPrecision(9);
                 t.Property(p => p.Title).HasColumnName("TITLE").HasMaxLength(WkDefinitionConsts.MaxTitle).HasComment("标题");

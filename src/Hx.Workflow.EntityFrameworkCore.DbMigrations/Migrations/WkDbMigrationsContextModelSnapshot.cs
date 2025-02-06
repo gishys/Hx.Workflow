@@ -280,9 +280,95 @@ namespace Migrations
                         .HasComment("是否开启");
 
                     b.HasKey("Id")
-                        .HasName("Pk_WkDefinition");
+                        .HasName("PK_WKDEFINITION");
+
+                    b.HasIndex("GroupId");
 
                     b.ToTable("HXWKDEFINITIONS", null, t =>
+                        {
+                            t.HasComment("工作流定义");
+                        });
+                });
+
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinitionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("ID")
+                        .HasComment("主键");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(119)
+                        .HasColumnType("character varying(119)")
+                        .HasColumnName("CODE")
+                        .HasComment("路径枚举");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATIONTIME");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CREATORID");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DELETERID");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DELETIONTIME");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION")
+                        .HasComment("描述");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("ISDELETED");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LASTMODIFICATIONTIME");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LASTMODIFIERID");
+
+                    b.Property<double>("Order")
+                        .HasColumnType("double precision")
+                        .HasColumnName("ORDER")
+                        .HasComment("序号");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("PARENT_ID")
+                        .HasComment("父Id");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TENANTID")
+                        .HasComment("租户Id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("TITLE")
+                        .HasComment("标题");
+
+                    b.HasKey("Id")
+                        .HasName("PK_WKDEFINITION_GROUP");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("HXWKDEFINITION_GROUPS", null, t =>
                         {
                             t.HasComment("工作流定义");
                         });
@@ -443,6 +529,10 @@ namespace Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("ISDELETED");
+
+                    b.Property<bool?>("IsInitMaterials")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ISINITMATERIALS");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("timestamp with time zone")
@@ -1223,6 +1313,24 @@ namespace Migrations
                         .HasConstraintName("Pk_Pointer_Candidate");
                 });
 
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinition", b =>
+                {
+                    b.HasOne("Hx.Workflow.Domain.Persistence.WkDefinitionGroup", null)
+                        .WithMany("Definitions")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("QI_GROUPS_WKDEFINITION_ID");
+                });
+
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinitionGroup", b =>
+                {
+                    b.HasOne("Hx.Workflow.Domain.Persistence.WkDefinitionGroup", null)
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("QI_GROUPS_PARENT_ID");
+                });
+
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkExecutionPointer", b =>
                 {
                     b.HasOne("Hx.Workflow.Domain.Persistence.WkInstance", "WkInstance")
@@ -1231,6 +1339,105 @@ namespace Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("Pk_Instance_Pointer");
+
+                    b.OwnsMany("Hx.Workflow.Domain.Persistence.WkExecutionPointerMaterials", "Materials", b1 =>
+                        {
+                            b1.Property<Guid>("WkExecutionPointerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("AttachReceiveType")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("CatalogueName")
+                                .HasColumnType("text");
+
+                            b1.Property<bool>("IsRequired")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("IsStatic")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("IsVerification")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("Reference")
+                                .HasColumnType("text");
+
+                            b1.Property<int>("ReferenceType")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("SequenceNumber")
+                                .HasColumnType("integer");
+
+                            b1.Property<bool>("VerificationPassed")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("WkExecutionPointerId", "Id");
+
+                            b1.ToTable("HXWKEXECUTIONPOINTER");
+
+                            b1.ToJson("Materials");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WkExecutionPointerId");
+
+                            b1.OwnsMany("Hx.Workflow.Domain.Persistence.WkExecutionPointerMaterials.Children#WkExecutionPointerMaterials", "Children", b2 =>
+                                {
+                                    b2.Property<Guid>("WkExecutionPointerMaterialsWkExecutionPointerId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("WkExecutionPointerMaterialsId")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("AttachReceiveType")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<string>("CatalogueName")
+                                        .HasColumnType("text");
+
+                                    b2.Property<bool>("IsRequired")
+                                        .HasColumnType("boolean");
+
+                                    b2.Property<bool>("IsStatic")
+                                        .HasColumnType("boolean");
+
+                                    b2.Property<bool>("IsVerification")
+                                        .HasColumnType("boolean");
+
+                                    b2.Property<string>("Reference")
+                                        .HasColumnType("text");
+
+                                    b2.Property<int>("ReferenceType")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("SequenceNumber")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<bool>("VerificationPassed")
+                                        .HasColumnType("boolean");
+
+                                    b2.HasKey("WkExecutionPointerMaterialsWkExecutionPointerId", "WkExecutionPointerMaterialsId", "Id");
+
+                                    b2.ToTable("HXWKEXECUTIONPOINTER");
+
+                                    b2.ToJson("Children");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("WkExecutionPointerMaterialsWkExecutionPointerId", "WkExecutionPointerMaterialsId");
+                                });
+
+                            b1.Navigation("Children");
+                        });
+
+                    b.Navigation("Materials");
 
                     b.Navigation("WkInstance");
                 });
@@ -1324,6 +1531,97 @@ namespace Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("Pk_WkNode_WkStepBody");
 
+                    b.OwnsMany("Hx.Workflow.Domain.WkNodeMaterials", "Materials", b1 =>
+                        {
+                            b1.Property<Guid>("WkNodeId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("AttachReceiveType")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("CatalogueName")
+                                .HasColumnType("text");
+
+                            b1.Property<bool>("IsRequired")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("IsStatic")
+                                .HasColumnType("boolean");
+
+                            b1.Property<bool>("IsVerification")
+                                .HasColumnType("boolean");
+
+                            b1.Property<int>("ReferenceType")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("SequenceNumber")
+                                .HasColumnType("integer");
+
+                            b1.Property<bool>("VerificationPassed")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("WkNodeId", "Id");
+
+                            b1.ToTable("HXWKNODES");
+
+                            b1.ToJson("Materials");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WkNodeId");
+
+                            b1.OwnsMany("Hx.Workflow.Domain.WkNodeMaterials.Children#WkNodeMaterials", "Children", b2 =>
+                                {
+                                    b2.Property<Guid>("WkNodeMaterialsWkNodeId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("WkNodeMaterialsId")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("AttachReceiveType")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<string>("CatalogueName")
+                                        .HasColumnType("text");
+
+                                    b2.Property<bool>("IsRequired")
+                                        .HasColumnType("boolean");
+
+                                    b2.Property<bool>("IsStatic")
+                                        .HasColumnType("boolean");
+
+                                    b2.Property<bool>("IsVerification")
+                                        .HasColumnType("boolean");
+
+                                    b2.Property<int>("ReferenceType")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("SequenceNumber")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<bool>("VerificationPassed")
+                                        .HasColumnType("boolean");
+
+                                    b2.HasKey("WkNodeMaterialsWkNodeId", "WkNodeMaterialsId", "Id");
+
+                                    b2.ToTable("HXWKNODES");
+
+                                    b2.ToJson("Children");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("WkNodeMaterialsWkNodeId", "WkNodeMaterialsId");
+                                });
+
+                            b1.Navigation("Children");
+                        });
+
                     b.OwnsMany("Hx.Workflow.Domain.WkParam", "Params", b1 =>
                         {
                             b1.Property<Guid>("WkNodeId")
@@ -1354,6 +1652,8 @@ namespace Migrations
                             b1.WithOwner()
                                 .HasForeignKey("WkNodeId");
                         });
+
+                    b.Navigation("Materials");
 
                     b.Navigation("Params");
 
@@ -1407,6 +1707,13 @@ namespace Migrations
                     b.Navigation("Nodes");
 
                     b.Navigation("WkCandidates");
+                });
+
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinitionGroup", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Definitions");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkExecutionPointer", b =>
