@@ -24,7 +24,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
             return await (await GetDbSetAsync())
-                    .IncludeDetials(includeDetails)
+                    .IncludeDetails(includeDetails)
                     .FirstOrDefaultAsync(d => d.Id == id, cancellation);
         }
         /// <summary>
@@ -36,7 +36,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<WkDefinition> GetDefinitionAsync(Guid id, int version, CancellationToken cancellation = default)
         {
             return (await GetDbSetAsync())
-                .IncludeDetials(true)
+                .IncludeDetails(true)
                 .FirstOrDefault(x => x.Id == id && x.Version == version);
         }
         /// <summary>
@@ -48,7 +48,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public override async Task<List<WkDefinition>> GetListAsync(bool includeDetails = false, CancellationToken cancellationToken = default)
         {
             return await (await GetDbSetAsync())
-                .IncludeDetials(includeDetails)
+                .IncludeDetails(includeDetails)
                 .Where(d => d.WkDefinitionState == WkDefinitionState.Enable)
                 .ToListAsync(GetCancellationToken(cancellationToken));
         }
@@ -61,7 +61,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<WkDefinition> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)
         {
             return await (await GetDbSetAsync())
-                .IncludeDetials(includeDetails)
+                .IncludeDetails(includeDetails)
                 .FirstOrDefaultAsync(d => d.Title == name,
                 GetCancellationToken(cancellationToken));
         }

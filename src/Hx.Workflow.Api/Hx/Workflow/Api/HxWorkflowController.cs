@@ -1,7 +1,5 @@
-﻿using Hx.Workflow.Application;
-using Hx.Workflow.Application.Contracts;
+﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain.Shared;
-using Hx.Workflow.Domain.Stats;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -204,7 +202,7 @@ namespace Hx.Workflow.Api
         /// <returns></returns>
         [HttpGet]
         [Route("workflow/processingstatusstat")]
-        public Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid? transactorId)
+        public Task<List<ProcessingStatusStatDto>> GetProcessingStatusStatListAsync(Guid? transactorId)
         {
             return _workflowAppService.GetProcessingStatusStatListAsync(transactorId);
         }
@@ -214,7 +212,7 @@ namespace Hx.Workflow.Api
         /// <returns></returns>
         [HttpGet]
         [Route("workflow/businesstypestat")]
-        public Task<List<ProcessTypeStat>> GetBusinessTypeListAsync()
+        public Task<List<ProcessTypeStatDto>> GetBusinessTypeListAsync()
         {
             return _workflowAppService.GetBusinessTypeListAsync();
         }
@@ -224,7 +222,7 @@ namespace Hx.Workflow.Api
         /// <returns></returns>
         [HttpGet]
         [Route("workflow/processtypestat")]
-        public Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync()
+        public Task<List<ProcessTypeStatDto>> GetProcessTypeStatListAsync()
         {
             return _workflowAppService.GetProcessTypeStatListAsync();
         }

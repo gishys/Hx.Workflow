@@ -48,12 +48,12 @@ namespace Hx.Workflow.EntityFrameworkCore
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
             return await (await GetDbSetAsync())
-                    .IncludeDetials(includeDetails)
+                    .IncludeDetails(includeDetails)
                     .FirstOrDefaultAsync(d => d.Id == id, cancellation);
         }
         public virtual async Task<WkExecutionPointer> GetPointerAsync(Guid pointerId)
         {
-            var entitys = (await GetDbSetAsync()).IncludeDetials(true);
+            var entitys = (await GetDbSetAsync()).IncludeDetails(true);
             var pointers = await (from p in entitys
                                   where p.ExecutionPointers.Any(d => d.Id == pointerId)
                                   select p.ExecutionPointers).FirstOrDefaultAsync();
@@ -62,7 +62,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<IQueryable<WkInstance>> GetDetails(bool tracking = false)
         {
             return (await GetDbSetAsync())
-                .IncludeDetials(true)
+                .IncludeDetails(true)
                 .AsTracking(tracking ?
                 QueryTrackingBehavior.TrackAll :
                 QueryTrackingBehavior.NoTracking);
@@ -78,7 +78,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<WkInstance> GetByReferenceAsync(string reference)
         {
             return await (await GetDbSetAsync())
-                .IncludeDetials(true)
+                .IncludeDetails(true)
                 .FirstOrDefaultAsync(d => d.Reference == reference);
         }
         public virtual async Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid transactorId)

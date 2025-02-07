@@ -1,7 +1,6 @@
-﻿using Hx.Workflow.Application.Contracts;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-namespace Hx.Workflow.Application
+namespace Hx.Workflow.Application.Contracts
 {
     public interface IWkStepBodyAppService
     {

@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Auditing;
-using Volo.Abp.Data;
 using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Application.Contracts

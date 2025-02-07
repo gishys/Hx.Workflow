@@ -2,8 +2,8 @@
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
-using System.Linq;
 
 namespace Hx.Workflow.Application
 {
@@ -36,6 +36,8 @@ namespace Hx.Workflow.Application
             CreateMap<WkParam, WkParamDto>(MemberList.Destination);
             CreateMap<WkExecutionPointerMaterials, WkExecutionPointerMaterialsDto>(MemberList.Destination);
             CreateMap<WkAuditor, WkAuditorDto>(MemberList.Destination);
+            CreateMap<WkDefinitionGroup, WkDefinitionGroupDto>(MemberList.Destination);
+            CreateMap<ProcessingStatusStat, ProcessingStatusStatDto>(MemberList.Destination);
         }
     }
 }

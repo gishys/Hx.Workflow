@@ -6,7 +6,7 @@ namespace Hx.Workflow.EntityFrameworkCore
 {
     public static class WorkflowExtensions
     {
-        public static IQueryable<WkDefinition> IncludeDetials(
+        public static IQueryable<WkDefinition> IncludeDetails(
             this IQueryable<WkDefinition> query,
             bool include = true)
         {
@@ -30,7 +30,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(d => d.Children)
                 .Include(d => d.WkCandidates);
         }
-        public static IQueryable<WkDefinitionGroup> IncludeDetials(
+        public static IQueryable<WkDefinitionGroup> IncludeDetails(
             this IQueryable<WkDefinitionGroup> query,
             bool include = true)
         {
@@ -61,7 +61,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(d => d.Definitions)
                 .ThenInclude(d => d.WkCandidates);
         }
-        public static IQueryable<WkInstance> IncludeDetials(
+        public static IQueryable<WkInstance> IncludeDetails(
             this IQueryable<WkInstance> query,
             bool include = true)
         {

@@ -1,9 +1,9 @@
 ﻿using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,6 +12,7 @@ namespace Hx.Workflow.EntityFrameworkCore
 {
     public class WkDefinitionGroupRepository
         : EfCoreRepository<WkDbContext, WkDefinitionGroup, Guid>
+        , IWkDefinitionGroupRepository
     {
         public WkDefinitionGroupRepository(IDbContextProvider<WkDbContext> options)
             : base(options)
@@ -81,7 +82,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// 获取所有节点，包含子节点
         /// </summary>
         /// <returns></returns>
-        public async Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync()
+        public async Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(Boolean includeDetails)
         {
             var sql = @"
     WITH RECURSIVE RecursiveGroups AS (
@@ -94,7 +95,7 @@ namespace Hx.Workflow.EntityFrameworkCore
 ";
             var dbSet = await GetDbSetAsync();
             List<WkDefinitionGroup> groups = await dbSet.FromSqlRaw(sql)
-                .IncludeDetials(true)
+                .IncludeDetails(includeDetails)
                 .ToListAsync();
             return groups.Where(d => d.ParentId == null).ToList();
         }

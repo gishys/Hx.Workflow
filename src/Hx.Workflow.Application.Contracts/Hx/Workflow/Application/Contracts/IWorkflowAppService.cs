@@ -1,13 +1,10 @@
-﻿using Hx.Workflow.Application.Contracts;
-using Hx.Workflow.Domain.Persistence;
-using Hx.Workflow.Domain.Shared;
-using Hx.Workflow.Domain.Stats;
+﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 
-namespace Hx.Workflow.Application
+namespace Hx.Workflow.Application.Contracts
 {
     public interface IWorkflowAppService
     {
@@ -82,9 +79,9 @@ namespace Hx.Workflow.Application
         /// </summary>
         /// <param name="transactorId"></param>
         /// <returns></returns>
-        Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid? transactorId);
-        Task<List<ProcessTypeStat>> GetBusinessTypeListAsync();
-        Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();
+        Task<List<ProcessingStatusStatDto>> GetProcessingStatusStatListAsync(Guid? transactorId);
+        Task<List<ProcessTypeStatDto>> GetBusinessTypeListAsync();
+        Task<List<ProcessTypeStatDto>> GetProcessTypeStatListAsync();
         Task AuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark);
         Task<WkAuditorDto> GetAuditAsync(Guid executionPointerId);
     }

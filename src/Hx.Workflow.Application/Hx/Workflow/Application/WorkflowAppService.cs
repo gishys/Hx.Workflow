@@ -14,7 +14,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
-using Volo.Abp.ObjectExtending;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -476,38 +475,40 @@ namespace Hx.Workflow.Application
         /// </summary>
         /// <param name="transactorId"></param>
         /// <returns></returns>
-        public virtual async Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid? transactorId)
+        public virtual async Task<List<ProcessingStatusStatDto>> GetProcessingStatusStatListAsync(Guid? transactorId)
         {
             if (CurrentUser.Id.HasValue)
             {
                 transactorId = CurrentUser.Id.Value;
             }
-            return await _wkInstanceRepository.GetProcessingStatusStatListAsync(transactorId.Value);
+            return ObjectMapper.Map<List<ProcessingStatusStat>, List<ProcessingStatusStatDto>>(
+                await _wkInstanceRepository.GetProcessingStatusStatListAsync(transactorId.Value));
         }
-        public virtual Task<List<ProcessTypeStat>> GetBusinessTypeListAsync()
+        public virtual async Task<List<ProcessTypeStatDto>> GetBusinessTypeListAsync()
         {
-            return _wkInstanceRepository.GetBusinessTypeListAsync();
+            return ObjectMapper.Map<List<ProcessTypeStat>, List<ProcessTypeStatDto>>(await _wkInstanceRepository.GetBusinessTypeListAsync());
         }
-        public virtual async Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync()
+        public virtual async Task<List<ProcessTypeStatDto>> GetProcessTypeStatListAsync()
         {
-            var result = await _wkInstanceRepository.GetProcessTypeStatListAsync();
+            var entitys = await _wkInstanceRepository.GetProcessTypeStatListAsync();
+            var result = ObjectMapper.Map<List<ProcessTypeStat>, List<ProcessTypeStatDto>>(entitys);
             // 创建一个包含所有月份的列表
             var allMonths = Enumerable.Range(1, 12).Select(m => m.ToString().PadLeft(2, '0')).ToList();
 
             // 创建一个字典来存储每个ProcessType的全年数据
-            var fullYearData = new Dictionary<string, List<ProcessTypeStat>>();
+            var fullYearData = new Dictionary<string, List<ProcessTypeStatDto>>();
 
             foreach (var item in result)
             {
                 if (!fullYearData.ContainsKey(item.PClassification))
                 {
-                    fullYearData[item.PClassification] = new List<ProcessTypeStat>();
+                    fullYearData[item.PClassification] = new List<ProcessTypeStatDto>();
                 }
                 fullYearData[item.PClassification].Add(item);
             }
 
             // 确保每个ProcessType都包含全年的每个月份
-            var finalResult = new List<ProcessTypeStat>();
+            var finalResult = new List<ProcessTypeStatDto>();
             foreach (var processType in fullYearData.Keys)
             {
                 foreach (var month in allMonths)
@@ -520,7 +521,7 @@ namespace Hx.Workflow.Application
                     else
                     {
                         // 如果数据库中没有该月份的数据，则添加计数为0的条目
-                        finalResult.Add(new ProcessTypeStat
+                        finalResult.Add(new ProcessTypeStatDto
                         {
                             PClassification = processType,
                             SClassification = month,
