@@ -8,6 +8,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkDefinitionGroupDto
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 分组标题
         /// </summary>
