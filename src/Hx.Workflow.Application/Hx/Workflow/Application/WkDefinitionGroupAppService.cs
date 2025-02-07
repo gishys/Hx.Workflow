@@ -21,20 +21,14 @@ namespace Hx.Workflow.Application
         }
         public async virtual Task CreateAsync(WkDefinitionGroupCreateDto dto)
         {
+            if (await GroupRepository.ExistByTitleAsync(dto.Title))
+            {
+                throw new UserFriendlyException("已存在相同标题的模板组！");
+            }
             var orderNumber = await DefinitionGroupManager.GetNextOrderNumberAsync(dto.ParentId);
             var code = await DefinitionGroupManager.GetNextCodeAsync(dto.ParentId);
-            var entity = new WkDefinitionGroup(GuidGenerator.Create(), dto.Title, code, orderNumber, dto.Description);
-            if (dto.ParentId.HasValue)
-            {
-                var parentEntity = await GroupRepository.GetByIdAsync(dto.ParentId.Value);
-                if (parentEntity == null) throw new UserFriendlyException("未查询到父节点！");
-                parentEntity.AddChildren(entity);
-                await GroupRepository.UpdateAsync(parentEntity);
-            }
-            else
-            {
-                await GroupRepository.InsertAsync(entity);
-            }
+            var entity = new WkDefinitionGroup(GuidGenerator.Create(), dto.Title, code, orderNumber, dto.ParentId, dto.Description);
+            await GroupRepository.InsertAsync(entity);
         }
         public async virtual Task UpdateAsync(WkDefinitionGroupUpdateDto dto)
         {

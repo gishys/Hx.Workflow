@@ -9,6 +9,12 @@ namespace Hx.Workflow.Domain.Repositories
     public interface IWkDefinitionGroupRepository : IBasicRepository<WkDefinitionGroup, Guid>
     {
         /// <summary>
+        /// 判断是否存在同一标题的组
+        /// </summary>
+        /// <param name="title"></param>
+        /// <returns></returns>
+        Task<bool> ExistByTitleAsync(string title);
+        /// <summary>
         /// 通过id获取实体携带children
         /// </summary>
         /// <param name="id"></param>

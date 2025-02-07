@@ -18,6 +18,15 @@ namespace Hx.Workflow.EntityFrameworkCore
             : base(options)
         { }
         /// <summary>
+        /// 判断是否存在同一标题的组
+        /// </summary>
+        /// <param name="title"></param>
+        /// <returns></returns>
+        public virtual async Task<bool> ExistByTitleAsync(string title)
+        {
+            return await (await GetDbSetAsync()).Include(d => d.Children).AnyAsync(x => x.Title == title);
+        }
+        /// <summary>
         /// 通过id获取实体携带children
         /// </summary>
         /// <param name="id"></param>

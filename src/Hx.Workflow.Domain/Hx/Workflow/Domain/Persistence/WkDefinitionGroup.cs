@@ -59,12 +59,13 @@ namespace Hx.Workflow.Domain.Persistence
         /// <param name="code">路径枚举</param>
         /// <param name="order">分组排序</param>
         /// <param name="description">分组描述</param>
-        public WkDefinitionGroup(Guid id, string title, string code, double order, string? description = null)
+        public WkDefinitionGroup(Guid id, string title, string code, double order, Guid? parentId, string? description = null)
         {
             Id = id;
             Title = title;
             Code = code;
             Order = order;
+            ParentId = parentId;
             Description = description;
             Children = new List<WkDefinitionGroup>();
             Definitions = new List<WkDefinition>();
