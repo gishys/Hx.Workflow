@@ -86,16 +86,16 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             var sql = @"
     WITH RECURSIVE RecursiveGroups AS (
-        SELECT * FROM ""HXWKDEFINITION_GROUPS"" WHERE ""PARENT_ID"" IS NULL
+        SELECT * FROM ""HXWKDEFINITION_GROUPS"" WHERE ""PARENT_ID"" IS NULL and ""ISDELETED""=false
         UNION ALL
-        SELECT g.* FROM ""HXWKDEFINITION_GROUPS"" g
+        select g.* from (SELECT * FROM ""HXWKDEFINITION_GROUPS""  where ""ISDELETED""=false) g
         INNER JOIN RecursiveGroups rg ON g.""PARENT_ID"" = rg.""ID""
     )
     SELECT * FROM RecursiveGroups
 ";
             var dbSet = await GetDbSetAsync();
             List<WkDefinitionGroup> groups = await dbSet.FromSqlRaw(sql)
-                .IncludeDetails(includeDetails)
+                .Include(d => d.Definitions)
                 .ToListAsync();
             return groups.Where(d => d.ParentId == null).ToList();
         }

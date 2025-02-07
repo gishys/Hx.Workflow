@@ -69,6 +69,17 @@ namespace Hx.Workflow.Api
                 {
                     options.UsePersistence(sp => sp.GetService<HxPersistenceProvider>());
                 });
+            Configure<AbpAspNetCoreMvcOptions>(options =>
+            {
+                options.ConventionalControllers.Create(typeof(HxWorkflowApiModule).Assembly);
+            });
+            context.Services.AddAbpSwaggerGen(
+options =>
+{
+    //options.SwaggerDoc("v1", new OpenApiInfo { Title = "BgApp API", Version = "v1" });
+    options.DocInclusionPredicate((docName, description) => true);
+    options.CustomSchemaIds(type => type.FullName);
+});
             context.Services.AddWorkflowDSL();
         }
         public override void OnApplicationInitialization(
