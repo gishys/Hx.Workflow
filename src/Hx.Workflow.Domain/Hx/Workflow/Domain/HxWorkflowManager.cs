@@ -191,10 +191,11 @@ namespace Hx.Workflow.Domain
             JDefinitionSource source)
         {
             _WkNodes = new List<WkNode>();
-            BuildBranching(
-                allNodes,
-                source,
-                allNodes.First(d => d.StepNodeType == StepNodeType.Start));
+            if (allNodes.Any(d => d.StepNodeType == StepNodeType.Start))
+                BuildBranching(
+                    allNodes,
+                    source,
+                    allNodes.First(d => d.StepNodeType == StepNodeType.Start));
         }
         public virtual void BuildBranching(
             IEnumerable<WkNode> allNodes,

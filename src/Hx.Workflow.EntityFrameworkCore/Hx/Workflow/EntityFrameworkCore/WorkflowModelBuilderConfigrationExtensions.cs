@@ -65,12 +65,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.Version).HasColumnName("VERSION").HasComment("版本号").HasPrecision(9);
                 t.Property(p => p.Title).HasColumnName("TITLE").HasMaxLength(WkDefinitionConsts.MaxTitle).HasComment("标题");
                 t.Property(p => p.LimitTime).HasColumnName("LIMITTIME").HasComment("限制时间");
-                t.Property(p => p.WkDefinitionState).HasPrecision(1).HasColumnName("WKDEFINITIONSTATE").HasComment("是否开启");
-
-                t.Property(p => p.Icon).HasColumnName("ICON").HasMaxLength(WkDefinitionConsts.MaxIcon).HasComment("图标路径");
-                t.Property(p => p.Color).HasColumnName("COLOR").HasMaxLength(WkDefinitionConsts.MaxColor).HasComment("显示颜色");
                 t.Property(p => p.GroupId).HasColumnName("GROUPID").HasComment("属于组");
-                t.Property(p => p.Discription).HasColumnName("DISCRIPTION").HasMaxLength(WkDefinitionConsts.MaxDescription).HasComment("定义描述");
+                t.Property(p => p.Description).HasColumnName("DESCRIPTION").HasMaxLength(WkDefinitionConsts.MaxDescription).HasComment("定义描述");
                 t.Property(p => p.SortNumber).HasColumnName("SORTNUMBER").HasComment("排序");
                 t.Property(p => p.TenantId).HasColumnName("TENANTID").HasComment("租户Id");
 
@@ -86,6 +82,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
                 t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
+                t.Property(p => p.IsEnabled).HasColumnName("ISENABLED").HasDefaultValue(true);
 
                 t.HasMany(d => d.Nodes)
                 .WithOne(d => d.WkDefinition)

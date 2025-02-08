@@ -49,13 +49,13 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             return await (await GetDbSetAsync())
                 .IncludeDetails(includeDetails)
-                .Where(d => d.WkDefinitionState == WkDefinitionState.Enable)
+                .Where(d => d.IsEnabled)
                 .ToListAsync(GetCancellationToken(cancellationToken));
         }
         public async Task<List<WkDefinition>> GetListHasPermissionAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await (await GetDbSetAsync())
-                .Where(d => d.WkDefinitionState == WkDefinitionState.Enable && d.WkCandidates.Any(c => c.CandidateId == userId))
+                .Where(d => d.IsEnabled && d.WkCandidates.Any(c => c.CandidateId == userId))
                 .ToListAsync(GetCancellationToken(cancellationToken));
         }
         public virtual async Task<WkDefinition> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)

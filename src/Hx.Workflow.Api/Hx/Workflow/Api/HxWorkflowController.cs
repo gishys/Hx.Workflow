@@ -48,7 +48,7 @@ namespace Hx.Workflow.Api
         }
         [HttpPut]
         [Route("definition")]
-        public Task<WkDefinitionDto> UpdateDefinition(WkDefinitionUpdateDto entity)
+        public Task<WkDefinitionDto> UpdateDefinition(WkDefinitionUpdateWkCandidateDto entity)
         {
             return _workflowAppService.UpdateDefinitionAsync(entity);
         }

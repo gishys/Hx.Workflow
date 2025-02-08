@@ -22,25 +22,13 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public int? LimitTime { get; set; }
         /// <summary>
-        /// 状态
-        /// </summary>
-        public WkDefinitionState WkDefinitionState { get; set; }
-        /// <summary>
-        /// get or set icon
-        /// </summary>
-        public string Icon { get; set; }
-        /// <summary>
-        /// get or set color
-        /// </summary>
-        public string Color { get; set; }
-        /// <summary>
         /// get or set group()
         /// </summary>
         public Guid? GroupId { get; set; }
         /// <summary>
         /// 描述
         /// </summary>
-        public string Discription { get; set; }
+        public string Description { get; set; }
         /// <summary>
         /// 排序
         /// </summary>
@@ -60,6 +48,10 @@ namespace Hx.Workflow.Application.Contracts
         public string ConcurrencyStamp { get; set; }
 
         public DateTime CreationTime { get; set; }
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool IsEnabled { get; protected set; }
         /// <summary>
         /// 节点集合
         /// </summary>

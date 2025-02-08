@@ -1,36 +1,34 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.AspNetCore.Mvc;
 
 namespace Hx.Workflow.Api
 {
     [ApiController]
-    [Route("hxdefinitiongroup")]
-    public class HxDefinitionGroupController : AbpController
+    [Route("hxdefinition")]
+    public class HxDefinitionController : AbpController
     {
-        private IWkDefinitionGroupAppService _appService;
-        public HxDefinitionGroupController(IWkDefinitionGroupAppService appService)
+        private IWkDefinitionAppService _appService;
+        public HxDefinitionController(IWkDefinitionAppService appService)
         {
             _appService = appService;
         }
         [HttpPost]
-        public Task CreateAsync(WkDefinitionGroupCreateDto input)
+        public Task CreateAsync(WkDefinitionCreateDto input)
         {
             return _appService.CreateAsync(input);
         }
         [HttpPut]
-        public Task UpdateAsync(WkDefinitionGroupUpdateDto input)
+        public Task UpdateAsync(WkDefinitionUpdateDto input)
         {
             return _appService.UpdateAsync(input);
         }
         [HttpGet]
-        [Route("all")]
-        public Task<List<WkDefinitionGroupDto>> GetAllAsync()
+        public Task<WkDefinitionDto> GetAsync(Guid id)
         {
-            return _appService.GetAllWithChildrenAsync();
+            return _appService.GetAsync(id);
         }
         [HttpDelete]
         public Task DeleteAsync(Guid id)

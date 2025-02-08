@@ -22,7 +22,7 @@ namespace Hx.Workflow.Application.Contracts
         Task<bool> ResumeWorkflowAsync(string workflowId);
         Task<bool> SuspendWorkflowAsync(string workflowId);
         Task<bool> TerminateWorkflowAsync(string workflowId);
-        Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateDto entity);
+        Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateWkCandidateDto entity);
         Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId);
         Task<List<WkDefinitionDto>> GetDefinitionsAsync();
         /// <summary>

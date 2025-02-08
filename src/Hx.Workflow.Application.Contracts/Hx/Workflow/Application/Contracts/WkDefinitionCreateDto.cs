@@ -20,17 +20,9 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public int? LimitTime { get; set; }
         /// <summary>
-        /// get or set icon
-        /// </summary>
-        public string Icon { get; set; }
-        /// <summary>
-        /// get or set color
-        /// </summary>
-        public string Color { get; set; }
-        /// <summary>
         /// 描述
         /// </summary>
-        public string Discription { get; set; }
+        public string Description { get; set; }
         /// <summary>
         /// 业务类型
         /// </summary>
@@ -39,7 +31,18 @@ namespace Hx.Workflow.Application.Contracts
         /// 流程类型
         /// </summary>
         public string ProcessType { get; set; }
+        /// <summary>
+        /// 模板组Id
+        /// </summary>
+        public Guid? GroupId { get; set; }
+        /// <summary>
+        /// 节点组
+        /// </summary>
         public ICollection<WkNodeCreateDto> Nodes { get; set; }
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool IsEnabled { get; set; }
         public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
     }
 }

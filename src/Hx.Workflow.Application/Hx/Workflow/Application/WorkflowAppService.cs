@@ -55,10 +55,8 @@ namespace Hx.Workflow.Application
             var sortNumber = await _wkDefinition.GetMaxSortNumberAsync();
             var entity = new WkDefinition(
                     input.Title,
-                    input.Icon,
-                    input.Color,
                     sortNumber,
-                    input.Discription,
+                    input.Description,
                     input.BusinessType,
                     input.ProcessType,
                     limitTime: input.LimitTime,
@@ -72,7 +70,7 @@ namespace Hx.Workflow.Application
                     candidate.ExecutorType,
                     candidate.DefaultSelection));
             }
-            var nodeEntitys = input.Nodes.ToWkNodes();
+            var nodeEntitys = input.Nodes?.ToWkNodes();
             foreach (var node in nodeEntitys)
             {
                 var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name).WkStepBodyId;
@@ -379,7 +377,7 @@ namespace Hx.Workflow.Application
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public virtual async Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateDto entity)
+        public virtual async Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateWkCandidateDto entity)
         {
             var wkCandidates = entity.WkCandidates.ToWkCandidate();
             var resultEntity = await _wkDefinition.UpdateCandidatesAsync(entity.Id, entity.UserId, wkCandidates as ICollection<DefinitionCandidate>);

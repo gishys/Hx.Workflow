@@ -24,7 +24,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <returns></returns>
         public virtual async Task<bool> ExistByTitleAsync(string title)
         {
-            return await (await GetDbSetAsync()).Include(d => d.Children).AnyAsync(x => x.Title == title);
+            return await (await GetDbSetAsync()).AnyAsync(x => x.Title == title && !x.IsDeleted);
         }
         /// <summary>
         /// 通过id获取实体携带children

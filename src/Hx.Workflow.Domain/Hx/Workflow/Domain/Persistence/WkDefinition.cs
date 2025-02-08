@@ -22,25 +22,13 @@ namespace Hx.Workflow.Domain.Persistence
         /// </summary>
         public int? LimitTime { get; protected set; }
         /// <summary>
-        /// 状态
-        /// </summary>
-        public WkDefinitionState WkDefinitionState { get; protected set; }
-        /// <summary>
-        /// get or set icon
-        /// </summary>
-        public string Icon { get; protected set; }
-        /// <summary>
-        /// get or set color
-        /// </summary>
-        public string Color { get; protected set; }
-        /// <summary>
         /// get or set group
         /// </summary>
         public Guid? GroupId { get; protected set; }
         /// <summary>
         /// 描述
         /// </summary>
-        public string Discription { get; protected set; }
+        public string Description { get; protected set; }
         /// <summary>
         /// 排序
         /// </summary>
@@ -52,11 +40,15 @@ namespace Hx.Workflow.Domain.Persistence
         /// <summary>
         /// 业务类型
         /// </summary>
-        public string BusinessType {  get; protected set; }
+        public string BusinessType { get; protected set; }
         /// <summary>
         /// 流程类型
         /// </summary>
-        public string ProcessType {  get; protected set; }
+        public string ProcessType { get; protected set; }
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool IsEnabled { get; protected set; }
         /// <summary>
         /// 后选者
         /// </summary>
@@ -69,13 +61,11 @@ namespace Hx.Workflow.Domain.Persistence
         { }
         public WkDefinition(
             string title,
-            string icon,
-            string color,
             int sortNumber,
             string description,
             string businessType,
             string processType,
-            WkDefinitionState wkDefinationState = WkDefinitionState.Enable,
+            bool isEnabled = true,
             int? limitTime = null,
             Guid? groupId = null,
             Guid? tenantId = null,
@@ -83,12 +73,10 @@ namespace Hx.Workflow.Domain.Persistence
         {
             Version = version;
             Title = title;
-            Icon = icon;
-            Color = color;
             GroupId = groupId;
             LimitTime = limitTime;
-            WkDefinitionState = wkDefinationState;
-            Discription = description;
+            IsEnabled = isEnabled;
+            Description = description;
             BusinessType = businessType;
             ProcessType = processType;
             SortNumber = sortNumber;
@@ -96,24 +84,39 @@ namespace Hx.Workflow.Domain.Persistence
             Nodes = new List<WkNode>();
             WkCandidates = new List<DefinitionCandidate>();
         }
-        public Task SetWkDefinitionName(string title)
+        public Task SetVersion(int version)
+        {
+            Version = version;
+            return Task.CompletedTask;
+        }
+        public Task SetTitle(string title)
         {
             Title = title;
             return Task.CompletedTask;
         }
-        public Task SetLimitTime(int limitTime)
+        public Task SetLimitTime(int? limitTime)
         {
             LimitTime = limitTime;
             return Task.CompletedTask;
         }
-        public Task SetWkDefinitionState(WkDefinitionState wkDefinationState)
+        public Task SetEnabled(bool isEnabled)
         {
-            WkDefinitionState = wkDefinationState;
+            IsEnabled = isEnabled;
             return Task.CompletedTask;
         }
-        public Task SetDiscription(string discription)
+        public Task SetDescription(string discription)
         {
-            Discription = discription;
+            Description = discription;
+            return Task.CompletedTask;
+        }
+        public Task SetBusinessType(string businessType)
+        {
+            BusinessType = businessType;
+            return Task.CompletedTask;
+        }
+        public Task SetProcessType(string processType)
+        {
+            ProcessType = processType;
             return Task.CompletedTask;
         }
         public Task SetSortNumber(int sortNumber)
