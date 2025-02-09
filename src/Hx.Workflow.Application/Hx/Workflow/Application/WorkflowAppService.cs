@@ -54,6 +54,7 @@ namespace Hx.Workflow.Application
         {
             var sortNumber = await _wkDefinition.GetMaxSortNumberAsync();
             var entity = new WkDefinition(
+                GuidGenerator.Create(),
                     input.Title,
                     sortNumber,
                     input.Description,

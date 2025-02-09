@@ -15,14 +15,17 @@ namespace Hx.Workflow.Application
         private readonly IWkDefinitionRespository _definitionRespository;
         private readonly IWkStepBodyRespository _wkStepBody;
         private readonly HxWorkflowManager _hxWorkflowManager;
+        private IWkDefinitionGroupRepository GroupRepository { get; }
         public WkDefinitionAppService(
             IWkDefinitionRespository definitionRespository,
             IWkStepBodyRespository wkStepBody,
-            HxWorkflowManager hxWorkflowManager)
+            HxWorkflowManager hxWorkflowManager,
+            IWkDefinitionGroupRepository groupRepository)
         {
             _definitionRespository = definitionRespository;
             _wkStepBody = wkStepBody;
             _hxWorkflowManager = hxWorkflowManager;
+            GroupRepository = groupRepository;
         }
         /// <summary>
         /// 创建模板
@@ -32,8 +35,17 @@ namespace Hx.Workflow.Application
         /// <exception cref="BusinessException"></exception>
         public virtual async Task CreateAsync(WkDefinitionCreateDto input)
         {
+            if (input.GroupId.HasValue)
+            {
+                var group = await GroupRepository.FindAsync(input.GroupId.Value);
+                if (group == null)
+                {
+                    throw new UserFriendlyException("模板组不存在！");
+                }
+            }
             var sortNumber = await _definitionRespository.GetMaxSortNumberAsync();
             var entity = new WkDefinition(
+                GuidGenerator.Create(),
                     input.Title,
                     sortNumber,
                     input.Description,
@@ -42,14 +54,17 @@ namespace Hx.Workflow.Application
                     limitTime: input.LimitTime,
                     groupId: input.GroupId,
                     version: input.Version <= 0 ? 1 : input.Version);
-            foreach (var candidate in input.WkCandidates)
+            if (input.WkCandidates != null)
             {
-                entity.WkCandidates.Add(new DefinitionCandidate(
-                    candidate.CandidateId,
-                    candidate.UserName,
-                    candidate.DisplayUserName,
-                    candidate.ExecutorType,
-                    candidate.DefaultSelection));
+                foreach (var candidate in input.WkCandidates)
+                {
+                    entity.WkCandidates.Add(new DefinitionCandidate(
+                        candidate.CandidateId,
+                        candidate.UserName,
+                        candidate.DisplayUserName,
+                        candidate.ExecutorType,
+                        candidate.DefaultSelection));
+                }
             }
             var nodeEntitys = input.Nodes?.ToWkNodes();
             if (nodeEntitys != null)

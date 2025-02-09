@@ -60,6 +60,7 @@ namespace Hx.Workflow.Domain.Persistence
         public WkDefinition()
         { }
         public WkDefinition(
+            Guid id,
             string title,
             int sortNumber,
             string description,
@@ -71,6 +72,7 @@ namespace Hx.Workflow.Domain.Persistence
             Guid? tenantId = null,
             int version = 1)
         {
+            Id = id;
             Version = version;
             Title = title;
             GroupId = groupId;
