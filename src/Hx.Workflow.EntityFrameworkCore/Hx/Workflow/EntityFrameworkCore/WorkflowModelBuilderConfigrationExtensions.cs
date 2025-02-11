@@ -148,7 +148,6 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Version).HasColumnName("VERSION");
 
                 t.Property(d => d.LimitTime).HasColumnName("LIMITTIME");
-                t.Property(d => d.NodeFormType).HasColumnName("NODEFORMTYPE").HasPrecision(1);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkNodeConsts.MaxDisplayName);
                 t.Property(p => p.SortNumber).HasColumnName("SORTNUMBER").HasComment("排序");
                 t.HasMany(d => d.ApplicationForms)
@@ -165,11 +164,6 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.HasOne(d => d.StepBody).WithMany()
                 .HasForeignKey(d => d.WkStepBodyId)
                 .HasConstraintName("Pk_WkNode_WkStepBody")
-                .OnDelete(DeleteBehavior.Cascade);
-
-                t.HasMany(d => d.Position).WithOne()
-                .HasForeignKey(d => d.WkNodeId)
-                .HasConstraintName("Pk_WkNode_WkPoint")
                 .OnDelete(DeleteBehavior.Cascade);
 
                 t.HasMany(d => d.WkCandidates)
@@ -255,15 +249,6 @@ namespace Hx.Workflow.EntityFrameworkCore
                 {
                     param.ToJson();
                 });
-            });
-            builder.Entity<WkPoint>(t =>
-            {
-                t.ToTable(model.TablePrefix + "WKPOINTS", model.Schema);
-                t.Property(d => d.Id).HasColumnName("ID");
-                t.Property(d => d.Left).HasColumnName("LEFT");
-                t.Property(d => d.Right).HasColumnName("RIGHT");
-                t.Property(d => d.Top).HasColumnName("TOP");
-                t.Property(d => d.Bottom).HasColumnName("BOTTOM");
             });
 
             builder.Entity<WkStepBody>(t =>

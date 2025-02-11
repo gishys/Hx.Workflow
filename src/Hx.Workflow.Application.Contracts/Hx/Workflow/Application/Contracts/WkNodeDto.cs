@@ -39,14 +39,6 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public WkStepBodyDto StepBody { get; set; }
         /// <summary>
-        /// 位置
-        /// </summary>
-        public virtual ICollection<WkPointDto> Position { get; set; }
-        /// <summary>
-        /// 类型[left,top]
-        /// </summary>
-        public NodeFormType NodeFormType { get; set; }
-        /// <summary>
         /// 表单集合
         /// </summary>
         public virtual ICollection<ApplicationFormDto> ApplicationForms { get; set; }

@@ -33,14 +33,6 @@ namespace Hx.Workflow.Application.Contracts
         /// 限制时间
         /// </summary>
         public int? LimitTime { get; set; }
-        /// <summary>
-        /// 位置信息
-        /// </summary>
-        public ICollection<WkPointCreateDto> Position { get; set; }
-        /// <summary>
-        /// 节点窗体类型
-        /// </summary>
-        public NodeFormType NodeFormType { get; set; }
         public ICollection<WkConditionNodeCreateDto> NextNodes { get; set; }
         public ICollection<WkNodeParaCreateDto> OutcomeSteps { get; set; }
         public ICollection<WkCandidateCreateDto> WkCandidates {  get; set; }

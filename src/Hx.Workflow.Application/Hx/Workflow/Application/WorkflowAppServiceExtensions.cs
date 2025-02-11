@@ -23,7 +23,6 @@ namespace Hx.Workflow.Application
                         node.DisplayName,
                         node.StepNodeType,
                         node.Version,
-                        node.NodeFormType,
                         node.SortNumber,
                         node.LimitTime);
                 if (node.NextNodes?.Count > 0)
@@ -47,18 +46,6 @@ namespace Hx.Workflow.Application
                             }
                             nodeEntity.AddNextNode(conditionEntity);
                         }
-                    }
-                }
-                if (node.Position?.Count > 0)
-                {
-                    foreach (var point in node.Position)
-                    {
-                        nodeEntity.AddPoint(
-                            new WkPoint(
-                                point.Left,
-                                point.Right,
-                                point.Top,
-                                point.Bottom));
                     }
                 }
                 if (node.OutcomeSteps?.Count > 0)

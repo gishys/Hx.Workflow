@@ -42,5 +42,9 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public bool IsEnabled { get; set; }
         public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
+        /// <summary>
+        /// 节点组
+        /// </summary>
+        public ICollection<WkNodeCreateDto> Nodes { get; set; }
     }
 }

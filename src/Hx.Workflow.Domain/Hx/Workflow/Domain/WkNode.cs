@@ -46,14 +46,6 @@ namespace Hx.Workflow.Domain
         /// </summary>
         public ICollection<WkNodePara> OutcomeSteps { get; protected set; }
         /// <summary>
-        /// 位置
-        /// </summary>
-        public virtual ICollection<WkPoint> Position { get; protected set; }
-        /// <summary>
-        /// 类型[left,top]
-        /// </summary>
-        public NodeFormType NodeFormType { get; protected set; }
-        /// <summary>
         /// 节点执行者集合
         /// </summary>
         public virtual ICollection<WkNodeCandidate> WkCandidates { get; protected set; }
@@ -82,7 +74,6 @@ namespace Hx.Workflow.Domain
             string displayName,
             StepNodeType stepNodeType,
             int version,
-            NodeFormType nodeFormType,
             int sortNumber,
             int? limitTime = null)
         {
@@ -90,10 +81,8 @@ namespace Hx.Workflow.Domain
             DisplayName = displayName;
             StepNodeType = stepNodeType;
             Version = version;
-            NodeFormType = nodeFormType;
             LimitTime = limitTime;
             SortNumber = sortNumber;
-            Position = new List<WkPoint>();
             NextNodes = new List<WkConditionNode>();
             OutcomeSteps = new List<WkNodePara>();
             WkCandidates = new List<WkNodeCandidate>();
@@ -118,11 +107,6 @@ namespace Hx.Workflow.Domain
         public Task AddApplicationForms(ApplicationForm para)
         {
             ApplicationForms.Add(para);
-            return Task.CompletedTask;
-        }
-        public Task AddPoint(WkPoint point)
-        {
-            Position.Add(point);
             return Task.CompletedTask;
         }
         public Task SetWkStepBody(WkStepBody stepBody)

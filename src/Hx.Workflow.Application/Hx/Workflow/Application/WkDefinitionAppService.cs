@@ -111,6 +111,24 @@ namespace Hx.Workflow.Application
                     candidate.ExecutorType,
                     candidate.DefaultSelection));
             }
+            var nodeEntitys = input.Nodes?.ToWkNodes();
+            if (nodeEntitys != null && nodeEntitys.Count > 0)
+            {
+                entity.Nodes.Clear();
+                foreach (var node in nodeEntitys)
+                {
+                    var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name).WkStepBodyId;
+                    if (wkStepBodyId?.Length > 0)
+                    {
+                        Guid.TryParse(wkStepBodyId, out Guid guidStepBodyId);
+                        var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
+                        if (stepBodyEntity == null)
+                            throw new BusinessException(message: "StepBody没有查询到");
+                        await node.SetWkStepBody(stepBodyEntity);
+                    }
+                    await entity.AddWkNode(node);
+                }
+            }
             await _hxWorkflowManager.UpdateAsync(entity);
         }
         /// <summary>
