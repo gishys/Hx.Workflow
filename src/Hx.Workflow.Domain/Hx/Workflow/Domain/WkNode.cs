@@ -2,12 +2,14 @@
 using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading.Tasks;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Domain
 {
-    public class WkNode : Entity<Guid>
+    public class WkNode : Entity<Guid>, IHasExtraProperties
     {
         /// <summary>
         /// 步骤体Id
@@ -41,6 +43,10 @@ namespace Hx.Workflow.Domain
         /// 流程参数
         /// </summary>
         public WkStepBody StepBody { get; protected set; }
+        /// <summary>
+        /// 扩展属性
+        /// </summary>
+        public virtual ExtraPropertyDictionary ExtraProperties { get; protected set; }
         /// <summary>
         /// 分支节点参数
         /// </summary>

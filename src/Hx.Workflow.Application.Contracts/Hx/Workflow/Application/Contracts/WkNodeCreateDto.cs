@@ -1,12 +1,12 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
+using Volo.Abp.Data;
 
 namespace Hx.Workflow.Application.Contracts
 {
     public class WkNodeCreateDto
     {
-        public Guid Id { get; set; }
         /// <summary>
         /// 步骤名称
         /// </summary>
@@ -31,9 +31,13 @@ namespace Hx.Workflow.Application.Contracts
         /// 限制时间
         /// </summary>
         public int? LimitTime { get; set; }
+        /// <summary>
+        /// 扩展属性
+        /// </summary>
+        public ExtraPropertyDictionary ExtraProperties { get; set; }
         public ICollection<WkConditionNodeCreateDto> NextNodes { get; set; }
         public ICollection<WkNodeParaCreateDto> OutcomeSteps { get; set; }
-        public ICollection<WkCandidateCreateDto> WkCandidates {  get; set; }
+        public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
         public ICollection<ApplicationFormCreateDto> ApplicationForms { get; set; }
         public ICollection<WkParamCreateDto> Params { get; set; }
     }

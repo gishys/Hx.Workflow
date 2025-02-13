@@ -76,11 +76,11 @@ namespace Hx.Workflow.Application
                     foreach (var appForm in node.ApplicationForms)
                     {
                         var form = new ApplicationForm(
-                            appForm.ParentId,
-                            appForm.Code,
                             appForm.Name,
                             appForm.DisplayName,
                             appForm.ApplicationType,
+                            appForm.Data,
+                            appForm.ApplicationComponentType,
                             appForm.SequenceNumber);
                         if (appForm.Params?.Count > 0)
                         {

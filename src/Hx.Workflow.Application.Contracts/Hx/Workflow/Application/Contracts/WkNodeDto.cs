@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
+using Volo.Abp.Data;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -34,6 +35,10 @@ namespace Hx.Workflow.Application.Contracts
         /// 限制时间
         /// </summary>
         public int? LimitTime { get; set; }
+        /// <summary>
+        /// 扩展属性
+        /// </summary>
+        public ExtraPropertyDictionary ExtraProperties { get; set; }
         /// <summary>
         /// 流程参数
         /// </summary>

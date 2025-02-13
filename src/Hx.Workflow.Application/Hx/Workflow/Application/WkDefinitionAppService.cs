@@ -129,6 +129,10 @@ namespace Hx.Workflow.Application
             }
             if (nodeEntitys != null && nodeEntitys.Count > 0)
                 await entity.UpdateNodes(nodeEntitys);
+            if (entity.LimitTime < entity.Nodes.Sum(d => d.LimitTime))
+            {
+                throw new UserFriendlyException("节点限制时间合计值不能大于流程限制时间！");
+            }
             await _hxWorkflowManager.UpdateAsync(entity);
         }
         /// <summary>

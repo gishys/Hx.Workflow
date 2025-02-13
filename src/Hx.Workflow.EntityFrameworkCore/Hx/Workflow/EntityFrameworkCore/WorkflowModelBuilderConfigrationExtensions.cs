@@ -4,6 +4,8 @@ using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using SharpYaml.Tokens;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
 namespace Hx.Workflow.EntityFrameworkCore
@@ -140,6 +142,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<WkNode>(t =>
             {
+                t.ConfigureExtraProperties();
                 t.ToTable(model.TablePrefix + "WKNODES", model.Schema, tb => { tb.HasComment("执行节点"); });
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkDefinitionId).HasColumnName("WKDIFINITIONID");
@@ -150,11 +153,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.LimitTime).HasColumnName("LIMITTIME");
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkNodeConsts.MaxDisplayName);
                 t.Property(p => p.SortNumber).HasColumnName("SORTNUMBER").HasComment("排序");
-                t.HasMany(d => d.ApplicationForms)
-                .WithOne(d => d.WkNode)
-                .HasForeignKey(d => d.WkNodeId)
-                .HasConstraintName("Pk_WkNode_App")
-                .OnDelete(DeleteBehavior.Cascade);
+
+                t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
+
+                t.HasMany(d => d.ApplicationForms).WithMany().UsingEntity<WkNode_ApplicationForms>();
 
                 t.HasMany(d => d.NextNodes).WithOne()
                 .HasForeignKey(d => d.WkNodeId)
@@ -190,6 +192,15 @@ namespace Hx.Workflow.EntityFrameworkCore
                         cparam.ToJson();
                     });
                 });
+            });
+            builder.Entity<WkNode_ApplicationForms>(d =>
+            {
+                d.ToTable(model.TablePrefix + "_NODES_APPLICATION_FORMS", model.Schema, tb => { tb.HasComment("节点表单关联表"); });
+                d.HasKey(d => new { d.NodeId, d.ApplicationId });
+                d.Property(d => d.ApplicationId).HasColumnName("APPLICATION_ID");
+                d.Property(d => d.NodeId).HasColumnName("NODE_ID");
+                d.HasOne<WkNode>().WithOne().HasForeignKey<WkNode_ApplicationForms>(d => d.NodeId).HasConstraintName("NODE_FKEY");
+                d.HasOne<ApplicationForm>().WithOne().HasForeignKey<WkNode_ApplicationForms>(d => d.NodeId).HasConstraintName("APLLICATION_FKEY");
             });
             builder.Entity<WkNodeCandidate>(d =>
             {
@@ -235,12 +246,13 @@ namespace Hx.Workflow.EntityFrameworkCore
             });
             builder.Entity<ApplicationForm>(t =>
             {
+                t.ConfigureExtraProperties();
                 t.ToTable(model.TablePrefix + "APPLICATIONFORMS", model.Schema, tb => { tb.HasComment("流程表单"); });
                 t.Property(d => d.Id).HasColumnName("ID");
-                t.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
-                t.Property(d => d.ParentId).HasColumnName("PARENTID");
+                t.Property(d => d.Data).HasColumnName("DATA");
+                t.Property(d => d.ApplicationComponentType).HasColumnName("APPLICATIONCOMPONENTTYPE").HasPrecision(1);
                 t.Property(d => d.SequenceNumber).HasColumnName("SEQUENCENUMBER");
-                t.Property(d => d.Code).HasColumnName("CODE").HasMaxLength(ApplicationFormConsts.MaxCode);
+                t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(ApplicationFormConsts.MaxName);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(ApplicationFormConsts.MaxDisplayName);
                 t.Property(d => d.ApplicationType).HasColumnName("APPLICATIONTYPE").HasPrecision(1);

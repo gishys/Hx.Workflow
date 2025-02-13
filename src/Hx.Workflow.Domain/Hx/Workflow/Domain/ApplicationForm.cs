@@ -1,24 +1,14 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp.Data;
 using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Domain
 {
-    public class ApplicationForm : Entity<Guid>
+    public class ApplicationForm : Entity<Guid>, IHasExtraProperties
     {
-        public virtual Guid? WkNodeId { get; protected set; }
-        public virtual WkNode WkNode { get; protected set; }
-        /// <summary>
-        /// if null is root
-        /// </summary>
-        public virtual Guid? ParentId { get; protected set; }
-        /// <summary>
-        /// example:001.001.001
-        /// </summary>
-        public virtual string Code { get; protected set; }
         /// <summary>
         /// application name
         /// </summary>
@@ -31,25 +21,36 @@ namespace Hx.Workflow.Domain
         /// application type
         /// </summary>
         public virtual ApplicationType ApplicationType { get; protected set; }
+        /// <summary>
+        /// 应用数据
+        /// </summary>
+        public virtual string? Data { get; protected set; }
+        /// <summary>
+        /// 应用组件类型
+        /// </summary>
+        public virtual ApplicationComponentType ApplicationComponentType { get; protected set; }
+        /// <summary>
+        /// 扩展属性
+        /// </summary>
+        public virtual ExtraPropertyDictionary ExtraProperties { get; protected set; }
         public virtual int SequenceNumber { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public ApplicationForm()
         { }
         public ApplicationForm(
-            Guid? parentId,
-            string code,
             string name,
             string displayName,
             ApplicationType applicationType,
+            string data,
+            ApplicationComponentType applicationComponentType,
             int sequenceNumber)
         {
-            ParentId = parentId;
-            Code = code;
             Name = name;
             DisplayName = displayName;
             ApplicationType = applicationType;
             SequenceNumber = sequenceNumber;
-
+            ApplicationComponentType = applicationComponentType;
+            Data = data;
         }
         public Task SetName(string name)
         {
