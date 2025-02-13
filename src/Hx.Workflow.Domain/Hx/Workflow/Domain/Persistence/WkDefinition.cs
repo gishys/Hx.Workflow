@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.MultiTenancy;
@@ -140,6 +141,31 @@ namespace Hx.Workflow.Domain.Persistence
         {
             WkCandidates = inputs;
             return Task.CompletedTask;
+        }
+        public async Task UpdateNodes(IEnumerable<WkNode> newNodes)
+        {
+            var nodeComparer = EqualityComparer<Guid>.Default;
+            var existingDict = Nodes.ToDictionary(n => n.Name);
+
+            foreach (var newNode in newNodes)
+            {
+                if (existingDict.TryGetValue(newNode.Name, out var existingNode))
+                {
+                    // 更新现有节点属性（根据业务需求实现）
+                    await existingNode.UpdateFrom(newNode);
+                    existingDict.Remove(newNode.Name);
+                }
+                else
+                {
+                    // 添加新节点（自动生成新ID）
+                    Nodes.Add(newNode);
+                }
+            }
+            // 删除未被匹配的旧节点
+            foreach (var removedNode in existingDict.Values)
+            {
+                Nodes.Remove(removedNode);
+            }
         }
     }
 }

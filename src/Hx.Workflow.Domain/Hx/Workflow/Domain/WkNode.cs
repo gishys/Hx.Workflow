@@ -129,5 +129,21 @@ namespace Hx.Workflow.Domain
             Materials.Add(materials);
             return Task.CompletedTask;
         }
+        public Task UpdateFrom(WkNode node)
+        {
+            Name = node.Name;
+            DisplayName = node.DisplayName;
+            LimitTime = node.LimitTime;
+            Version = node.Version;
+            StepNodeType = node.StepNodeType;
+            OutcomeSteps = node.OutcomeSteps;
+            WkCandidates = node.WkCandidates;
+            ApplicationForms = node.ApplicationForms;
+            StepBody = node.StepBody;
+            NextNodes = node.NextNodes;
+            Params = node.Params;
+            Materials = node.Materials;
+            return Task.CompletedTask;
+        }
     }
 }

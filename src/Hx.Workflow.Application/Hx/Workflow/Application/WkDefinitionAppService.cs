@@ -93,7 +93,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task UpdateAsync(WkDefinitionUpdateDto input)
         {
-            var entity = await _definitionRespository.GetAsync(input.Id);
+            var entity = await _definitionRespository.FindAsync(input.Id);
             await entity.SetVersion(input.Version);
             await entity.SetTitle(input.Title);
             await entity.SetLimitTime(input.LimitTime);
@@ -114,11 +114,10 @@ namespace Hx.Workflow.Application
             var nodeEntitys = input.Nodes?.ToWkNodes();
             if (nodeEntitys != null && nodeEntitys.Count > 0)
             {
-                entity.Nodes.Clear();
                 foreach (var node in nodeEntitys)
                 {
-                    var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name).WkStepBodyId;
-                    if (wkStepBodyId?.Length > 0)
+                    var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name)?.WkStepBodyId;
+                    if (!string.IsNullOrEmpty(wkStepBodyId))
                     {
                         Guid.TryParse(wkStepBodyId, out Guid guidStepBodyId);
                         var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
@@ -126,9 +125,10 @@ namespace Hx.Workflow.Application
                             throw new BusinessException(message: "StepBody没有查询到");
                         await node.SetWkStepBody(stepBodyEntity);
                     }
-                    await entity.AddWkNode(node);
                 }
             }
+            if (nodeEntitys != null && nodeEntitys.Count > 0)
+                await entity.UpdateNodes(nodeEntitys);
             await _hxWorkflowManager.UpdateAsync(entity);
         }
         /// <summary>

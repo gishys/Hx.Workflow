@@ -1,10 +1,12 @@
 ﻿using Hx.Workflow.Domain.Shared;
+using System;
 using System.Collections.Generic;
 
 namespace Hx.Workflow.Application.Contracts
 {
     public class WkNodeCreateDto
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 步骤名称
         /// </summary>
@@ -25,10 +27,6 @@ namespace Hx.Workflow.Application.Contracts
         /// 步骤体Id
         /// </summary>
         public string WkStepBodyId { get; set; }
-        /// <summary>
-        /// 排序
-        /// </summary>
-        public int SortNumber { get; set; }
         /// <summary>
         /// 限制时间
         /// </summary>

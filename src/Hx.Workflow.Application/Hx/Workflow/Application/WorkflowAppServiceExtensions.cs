@@ -16,14 +16,15 @@ namespace Hx.Workflow.Application
         public static List<WkNode> ToWkNodes(this ICollection<WkNodeCreateDto> nodes)
         {
             var nodeEntitys = new List<WkNode>();
-            foreach (var node in nodes.OrderBy(d => d.SortNumber))
+            int count = 0;
+            foreach (var node in nodes)
             {
                 var nodeEntity = new WkNode(
                         node.Name,
                         node.DisplayName,
                         node.StepNodeType,
                         node.Version,
-                        node.SortNumber,
+                        count++,
                         node.LimitTime);
                 if (node.NextNodes?.Count > 0)
                 {

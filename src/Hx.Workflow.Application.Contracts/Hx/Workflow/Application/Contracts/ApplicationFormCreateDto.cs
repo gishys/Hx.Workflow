@@ -13,7 +13,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// example:001.001.001
         /// </summary>
-        public string Code { get; set; }
+        public string? Code { get; set; }
         /// <summary>
         /// application name
         /// </summary>
