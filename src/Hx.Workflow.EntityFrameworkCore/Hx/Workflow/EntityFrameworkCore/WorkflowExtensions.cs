@@ -25,6 +25,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(d => d.WkCandidates)
                 .Include(d => d.Nodes)
                 .ThenInclude(d => d.ApplicationForms)
+                .ThenInclude(d => d.ApplicationForm)
                 .Include(d => d.Nodes)
                 .ThenInclude(d => d.Materials)
                 .ThenInclude(d => d.Children)
@@ -54,6 +55,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(d => d.Definitions)
                 .ThenInclude(d => d.Nodes)
                 .ThenInclude(d => d.ApplicationForms)
+                .ThenInclude(d => d.ApplicationForm)
                 .Include(d => d.Definitions)
                 .ThenInclude(d => d.Nodes)
                 .ThenInclude(d => d.Materials)
@@ -87,6 +89,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(x => x.WkDefinition)
                 .ThenInclude(x => x.Nodes)
                 .ThenInclude(x => x.ApplicationForms)
+                .ThenInclude(x => x.ApplicationForm)
                 .Include(x => x.WkDefinition)
                 .ThenInclude(x => x.Nodes)
                 .ThenInclude(x => x.WkCandidates);

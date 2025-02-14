@@ -71,25 +71,25 @@ namespace Hx.Workflow.Application
                             candidate.DefaultSelection));
                     }
                 }
-                if (node.ApplicationForms?.Count > 0)
+                if (node.ApplicationFormIds?.Count > 0)
                 {
-                    foreach (var appForm in node.ApplicationForms)
+                    foreach (var id in node.ApplicationFormIds)
                     {
-                        var form = new ApplicationForm(
-                            appForm.Name,
-                            appForm.DisplayName,
-                            appForm.ApplicationType,
-                            appForm.Data,
-                            appForm.ApplicationComponentType,
-                            appForm.SequenceNumber);
-                        if (appForm.Params?.Count > 0)
-                        {
-                            foreach (var param in appForm.Params)
-                            {
-                                form.AddParam(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
-                            }
-                        }
-                        nodeEntity.AddApplicationForms(form);
+                        //var form = new ApplicationForm(
+                        //    appForm.Name,
+                        //    appForm.DisplayName,
+                        //    appForm.ApplicationType,
+                        //    appForm.Data,
+                        //    appForm.ApplicationComponentType,
+                        //    appForm.SequenceNumber);
+                        //if (appForm.Params?.Count > 0)
+                        //{
+                        //    foreach (var param in appForm.Params)
+                        //    {
+                        //        form.AddParam(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
+                        //    }
+                        //}
+                        nodeEntity.AddApplicationForms(id);
                     }
                 }
                 if (node.Params?.Count > 0)
@@ -157,7 +157,7 @@ namespace Hx.Workflow.Application
         {
             var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
             var currentPointerDto = ObjectMapper.Map<WkExecutionPointer, WkExecutionPointerDto>(pointer);
-            currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms.OrderBy(d => d.SequenceNumber).ToList());
+            currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms.OrderBy(d => d.ApplicationForm.SequenceNumber).Select(d => d.ApplicationForm).ToList());
             currentPointerDto.StepDisplayName = step.DisplayName;
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
             currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());

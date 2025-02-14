@@ -2,6 +2,7 @@
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Microsoft.IdentityModel.Tokens;
 using NUglify.Helpers;
 using System;
 using System.Linq;
@@ -116,15 +117,16 @@ namespace Hx.Workflow.Application
             {
                 foreach (var node in nodeEntitys)
                 {
-                    var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name)?.WkStepBodyId;
-                    if (!string.IsNullOrEmpty(wkStepBodyId))
+                    var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
+                    if (!string.IsNullOrEmpty(inputNode.WkStepBodyId))
                     {
-                        Guid.TryParse(wkStepBodyId, out Guid guidStepBodyId);
+                        Guid.TryParse(inputNode.WkStepBodyId, out Guid guidStepBodyId);
                         var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
                         if (stepBodyEntity == null)
                             throw new BusinessException(message: "StepBody没有查询到");
                         await node.SetWkStepBody(stepBodyEntity);
                     }
+                    inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
                 }
             }
             if (nodeEntitys != null && nodeEntitys.Count > 0)
@@ -133,6 +135,12 @@ namespace Hx.Workflow.Application
             {
                 throw new UserFriendlyException("节点限制时间合计值不能大于流程限制时间！");
             }
+            var count = entity.Nodes.GroupBy(p => p.Name).Where(g => g.Count() > 1).Select(g => g.Key);
+            if (count.Count() > 0)
+            {
+                throw new UserFriendlyException("节点名称{Name}不能重复！");
+            }
+            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.UpdateAsync(entity);
         }
         /// <summary>

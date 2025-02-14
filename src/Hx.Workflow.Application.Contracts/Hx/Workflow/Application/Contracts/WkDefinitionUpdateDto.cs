@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Volo.Abp.Data;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -46,5 +47,6 @@ namespace Hx.Workflow.Application.Contracts
         /// 节点组
         /// </summary>
         public ICollection<WkNodeCreateDto> Nodes { get; set; }
+        public ExtraPropertyDictionary ExtraProperties { get; set; }
     }
 }

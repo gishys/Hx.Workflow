@@ -156,8 +156,6 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
 
-                t.HasMany(d => d.ApplicationForms).WithMany().UsingEntity<WkNode_ApplicationForms>();
-
                 t.HasMany(d => d.NextNodes).WithOne()
                 .HasForeignKey(d => d.WkNodeId)
                 .HasConstraintName("Pk_WkNode_Candition")
@@ -199,8 +197,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.HasKey(d => new { d.NodeId, d.ApplicationId });
                 d.Property(d => d.ApplicationId).HasColumnName("APPLICATION_ID");
                 d.Property(d => d.NodeId).HasColumnName("NODE_ID");
-                d.HasOne<WkNode>().WithOne().HasForeignKey<WkNode_ApplicationForms>(d => d.NodeId).HasConstraintName("NODE_FKEY");
-                d.HasOne<ApplicationForm>().WithOne().HasForeignKey<WkNode_ApplicationForms>(d => d.NodeId).HasConstraintName("APLLICATION_FKEY");
+                d.HasOne<WkNode>().WithMany(d => d.ApplicationForms).HasForeignKey(d => d.NodeId).HasConstraintName("NODE_FKEY");
+                d.HasOne(d => d.ApplicationForm).WithMany().HasForeignKey(d => d.ApplicationId).HasConstraintName("APLLICATION_FKEY");
             });
             builder.Entity<WkNodeCandidate>(d =>
             {

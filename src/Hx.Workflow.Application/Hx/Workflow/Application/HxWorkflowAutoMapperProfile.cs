@@ -4,6 +4,7 @@ using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
+using System.Linq;
 
 namespace Hx.Workflow.Application
 {
@@ -20,7 +21,8 @@ namespace Hx.Workflow.Application
             CreateMap<WkStepBody, WkStepBodyDto>(MemberList.Destination);
             CreateMap<WkStepBodyParam, WkStepBodyParamDto>(MemberList.Destination);
             CreateMap<WkDefinition, WkDefinitionDto>(MemberList.Destination);
-            CreateMap<WkNode, WkNodeDto>(MemberList.Destination);
+            CreateMap<WkNode, WkNodeDto>(MemberList.Destination)
+                .ForMember(d => d.ApplicationForms, d => d.MapFrom(f => f.ApplicationForms.Select(a => a.ApplicationForm)));
             CreateMap<ApplicationForm, ApplicationFormDto>(MemberList.Destination);
             CreateMap<WkConditionNode, WkConditionNodeDto>(MemberList.Destination);
             CreateMap<WkConNodeCondition, WkConNodeConditionDto>(MemberList.Destination);
