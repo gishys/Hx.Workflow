@@ -39,6 +39,7 @@ namespace Hx.Workflow.Application
             CreateMap<WkAuditor, WkAuditorDto>(MemberList.Destination);
             CreateMap<WkDefinitionGroup, WkDefinitionGroupDto>(MemberList.Destination);
             CreateMap<ProcessingStatusStat, ProcessingStatusStatDto>(MemberList.Destination);
+            CreateMap<ApplicationFormGroup, ApplicationFormGroupDto>(MemberList.Destination);
         }
     }
 }

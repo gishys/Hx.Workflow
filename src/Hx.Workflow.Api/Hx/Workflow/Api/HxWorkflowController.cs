@@ -13,32 +13,11 @@ namespace Hx.Workflow.Api
     [Route("hxworkflow")]
     public class HxWorkflowController : AbpController
     {
-        private readonly IWkStepBodyAppService _wkStepBodyAppService;
         private readonly IWorkflowAppService _workflowAppService;
         public HxWorkflowController(
-            IWkStepBodyAppService wkStepBodyAppService,
             IWorkflowAppService workflowAppService)
         {
-            _wkStepBodyAppService = wkStepBodyAppService;
             _workflowAppService = workflowAppService;
-        }
-        [HttpPost]
-        [Route("stepbody")]
-        public Task CreateStepBody(WkSepBodyCreateDto input)
-        {
-            return _wkStepBodyAppService.CreateAsync(input);
-        }
-        [HttpDelete]
-        [Route("stepbody/{name}")]
-        public Task DeleteStepBody(string name)
-        {
-            return _wkStepBodyAppService.DeleteAsync(name);
-        }
-        [HttpGet]
-        [Route("stepbody/{name}")]
-        public Task<WkStepBodyDto> GetStepBody(string name)
-        {
-            return _wkStepBodyAppService.GetStepBodyAsync(name);
         }
         [HttpPost]
         [Route("definition")]

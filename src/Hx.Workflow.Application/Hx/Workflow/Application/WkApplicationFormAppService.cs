@@ -9,7 +9,7 @@ using Volo.Abp.Application.Dtos;
 
 namespace Hx.Workflow.Application
 {
-    public class WkApplicationFormAppService : WorkflowAppServiceBase
+    public class WkApplicationFormAppService : WorkflowAppServiceBase, IWkApplicationFormAppService
     {
         public IWkApplicationFormRepository WkApplicationFormRepository { get; }
         public WkApplicationFormAppService(
@@ -25,7 +25,8 @@ namespace Hx.Workflow.Application
                 input.DisplayName,
                 input.ApplicationType,
                 input.Data,
-                input.ApplicationComponentType
+                input.ApplicationComponentType,
+                input.GroupId
                 );
             if (input.Params?.Count > 0)
             {

@@ -18,7 +18,8 @@ namespace Hx.Workflow.EntityFrameworkCore
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<AbpDataFilterOptions>(options => {
+            Configure<AbpDataFilterOptions>(options =>
+            {
                 options.DefaultStates[typeof(ISoftDelete)] = new DataFilterState(isEnabled: true);
             });
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -30,6 +31,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                     options.AddRepository<WkStepBody, WkStepBodyRespository>();
                     options.AddRepository<WkAuditor, WkAuditorRespository>();
                     options.AddRepository<WkDefinitionGroup, WkDefinitionGroupRepository>();
+                    options.AddRepository<ApplicationFormGroup, ApplicationFormGroupRepository>();
+                    options.AddRepository<ApplicationForm, WkApplicationFormRepository>();
+                    options.AddRepository<WkStepBody, WkStepBodyRespository>();
                 });
             Configure<AbpDbContextOptions>(options =>
             {

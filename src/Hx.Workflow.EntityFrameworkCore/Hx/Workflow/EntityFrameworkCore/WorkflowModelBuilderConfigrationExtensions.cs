@@ -28,7 +28,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkDefinitionGroup>(t =>
             {
                 t.ConfigureFullAuditedAggregateRoot();
-                t.ToTable(model.TablePrefix + "WKDEFINITION_GROUPS", model.Schema, tb => { tb.HasComment("工作流定义"); });
+                t.ToTable(model.TablePrefix + "WKDEFINITION_GROUPS", model.Schema, tb => { tb.HasComment("模板组"); });
                 t.HasKey(p => p.Id).HasName("PK_WKDEFINITION_GROUP");
                 t.Property(p => p.Id).HasColumnName("ID").HasComment("主键");
                 t.Property(t => t.Title).IsRequired().HasMaxLength(255).HasColumnName("TITLE").HasComment("标题");
@@ -242,6 +242,39 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.Operator).HasColumnName("OPERATOR").HasMaxLength(WkConNodeConditionConsts.MaxOperator);
                 d.Property(d => d.Value).HasColumnName("VALUE").HasMaxLength(WkConNodeConditionConsts.MaxValue);
                 d.Property(d => d.WkConditionNodeId).HasColumnName("WKCONDITIONNODEID");
+            });
+            builder.Entity<ApplicationFormGroup>(t =>
+            {
+                t.ConfigureFullAuditedAggregateRoot();
+                t.ToTable(model.TablePrefix + "APPLICATIONFORM_GROUPS", model.Schema, tb => { tb.HasComment("表单组"); });
+                t.HasKey(p => p.Id).HasName("PK_APPLICATIONFORM_GROUP");
+                t.Property(p => p.Id).HasColumnName("ID").HasComment("主键");
+                t.Property(t => t.Title).IsRequired().HasMaxLength(255).HasColumnName("TITLE").HasComment("标题");
+                t.Property(t => t.Code).IsRequired().HasMaxLength(119).HasColumnName("CODE").HasComment("路径枚举");
+                t.Property(t => t.ParentId).IsRequired(false).HasColumnName("PARENT_ID").HasComment("父Id");
+                t.Property(t => t.Order).IsRequired().HasColumnName("ORDER").HasComment("序号");
+                t.Property(p => p.TenantId).HasColumnName("TENANTID").HasComment("租户Id");
+                t.Property(t => t.Description).IsRequired(false).HasMaxLength(500).HasColumnName("DESCRIPTION").HasComment("描述");
+
+                t.HasMany(t => t.ApplicationForms)
+                       .WithOne()
+                       .HasForeignKey(d => d.GroupId)
+                       .HasConstraintName("AF_GROUPS_APPLICATIONFORM_ID")
+                       .OnDelete(DeleteBehavior.Cascade);
+
+                t.HasMany(t => t.Children)
+                       .WithOne()
+                       .HasForeignKey(d => d.ParentId)
+                       .HasConstraintName("AF_GROUPS_PARENT_ID")
+                       .OnDelete(DeleteBehavior.Cascade);
+
+                t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
+                t.Property(p => p.CreatorId).HasColumnName("CREATORID");
+                t.Property(p => p.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp with time zone");
+                t.Property(p => p.LastModifierId).HasColumnName("LASTMODIFIERID");
+                t.Property(p => p.IsDeleted).HasColumnName("ISDELETED");
+                t.Property(p => p.DeleterId).HasColumnName("DELETERID");
+                t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
             });
             builder.Entity<ApplicationForm>(t =>
             {

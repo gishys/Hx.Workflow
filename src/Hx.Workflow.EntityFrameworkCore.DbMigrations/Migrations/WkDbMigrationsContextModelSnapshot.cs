@@ -54,12 +54,17 @@ namespace Migrations
                         .HasColumnType("text")
                         .HasColumnName("EXTRAPROPERTIES");
 
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("NAME");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
 
                     b.ToTable("HXAPPLICATIONFORMS", null, t =>
                         {
@@ -152,6 +157,90 @@ namespace Migrations
                     b.ToTable("HXPOINTER_CANDIDATES", null, t =>
                         {
                             t.HasComment("流程模板候选人");
+                        });
+                });
+
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.ApplicationFormGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("ID")
+                        .HasComment("主键");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(119)
+                        .HasColumnType("character varying(119)")
+                        .HasColumnName("CODE")
+                        .HasComment("路径枚举");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATIONTIME");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CREATORID");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DELETERID");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DELETIONTIME");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DESCRIPTION")
+                        .HasComment("描述");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("ISDELETED");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LASTMODIFICATIONTIME");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LASTMODIFIERID");
+
+                    b.Property<double>("Order")
+                        .HasColumnType("double precision")
+                        .HasColumnName("ORDER")
+                        .HasComment("序号");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("PARENT_ID")
+                        .HasComment("父Id");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TENANTID")
+                        .HasComment("租户Id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("TITLE")
+                        .HasComment("标题");
+
+                    b.HasKey("Id")
+                        .HasName("PK_APPLICATIONFORM_GROUP");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("HXAPPLICATIONFORM_GROUPS", null, t =>
+                        {
+                            t.HasComment("表单组");
                         });
                 });
 
@@ -352,7 +441,7 @@ namespace Migrations
 
                     b.ToTable("HXWKDEFINITION_GROUPS", null, t =>
                         {
-                            t.HasComment("工作流定义");
+                            t.HasComment("模板组");
                         });
                 });
 
@@ -1231,6 +1320,12 @@ namespace Migrations
 
             modelBuilder.Entity("Hx.Workflow.Domain.ApplicationForm", b =>
                 {
+                    b.HasOne("Hx.Workflow.Domain.Persistence.ApplicationFormGroup", null)
+                        .WithMany("ApplicationForms")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("AF_GROUPS_APPLICATIONFORM_ID");
+
                     b.OwnsMany("Hx.Workflow.Domain.WkParam", "Params", b1 =>
                         {
                             b1.Property<Guid>("ApplicationFormId")
@@ -1283,6 +1378,15 @@ namespace Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("Pk_Pointer_Candidate");
+                });
+
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.ApplicationFormGroup", b =>
+                {
+                    b.HasOne("Hx.Workflow.Domain.Persistence.ApplicationFormGroup", null)
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("AF_GROUPS_PARENT_ID");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinition", b =>
@@ -1681,6 +1785,13 @@ namespace Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("Pk_WkStepBody_WkParam");
+                });
+
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.ApplicationFormGroup", b =>
+                {
+                    b.Navigation("ApplicationForms");
+
+                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkDefinition", b =>

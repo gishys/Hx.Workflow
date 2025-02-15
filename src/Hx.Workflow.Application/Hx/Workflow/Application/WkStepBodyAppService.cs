@@ -2,6 +2,7 @@
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
 using NUglify.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,11 +42,9 @@ namespace Hx.Workflow.Application
                     input.TypeFullName,
                     input.AssemblyFullName));
         }
-        public virtual async Task DeleteAsync(string name)
+        public virtual async Task DeleteAsync(Guid id)
         {
-            var entity = await _wkStepBody.GetStepBodyAsync(name);
-            if (entity != null)
-                await _wkStepBody.DeleteAsync(entity, autoSave: true);
+            await _wkStepBody.DeleteAsync(id);
         }
         public virtual async Task<WkStepBodyDto> GetStepBodyAsync(string name)
         {

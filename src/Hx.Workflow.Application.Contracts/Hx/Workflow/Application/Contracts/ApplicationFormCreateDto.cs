@@ -8,6 +8,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class ApplicationFormCreateDto : ExtensibleObject
     {
+        public Guid? GroupId { get; set; }
         /// <summary>
         /// 应用数据
         /// </summary>

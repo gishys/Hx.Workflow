@@ -7,7 +7,7 @@ using Volo.Abp.MultiTenancy;
 
 namespace Hx.Workflow.Domain.Persistence
 {
-    public class WkDefinitionGroup : FullAuditedEntity<Guid>, IMultiTenant
+    public class ApplicationFormGroup : FullAuditedEntity<Guid>, IMultiTenant
     {
         /// <summary>
         /// 分组标题
@@ -36,19 +36,19 @@ namespace Hx.Workflow.Domain.Persistence
         /// <summary>
         /// 子组
         /// </summary>
-        public List<WkDefinitionGroup> Children { get; protected set; }
+        public List<ApplicationFormGroup> Children { get; protected set; }
         /// <summary>
-        /// 一组模板
+        /// 表单
         /// </summary>
-        public List<WkDefinition> Definitions { get; protected set; }
+        public List<ApplicationForm> ApplicationForms { get; protected set; }
         public void SetTitle(string title) => Title = title;
         public void SetDescription(string? description) => Description = description;
-        public void AddChildren(WkDefinitionGroup group)
+        public void AddChildren(ApplicationFormGroup group)
         {
-            if (Children == null) Children = new List<WkDefinitionGroup>();
+            if (Children == null) Children = new List<ApplicationFormGroup>();
             Children.Add(group);
         }
-        public WkDefinitionGroup() { }
+        public ApplicationFormGroup() { }
         /// <summary>
         /// 初始化
         /// </summary>
@@ -57,7 +57,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// <param name="code">路径枚举</param>
         /// <param name="order">分组排序</param>
         /// <param name="description">分组描述</param>
-        public WkDefinitionGroup(Guid id, string title, string code, double order, Guid? parentId, string? description = null)
+        public ApplicationFormGroup(Guid id, string title, string code, double order, Guid? parentId, string? description = null)
         {
             Id = id;
             Title = title;
@@ -65,8 +65,8 @@ namespace Hx.Workflow.Domain.Persistence
             Order = order;
             ParentId = parentId;
             Description = description;
-            Children = new List<WkDefinitionGroup>();
-            Definitions = new List<WkDefinition>();
+            Children = new List<ApplicationFormGroup>();
+            ApplicationForms = new List<ApplicationForm>();
         }
         /// <summary>
         /// Calculates next code for given code.

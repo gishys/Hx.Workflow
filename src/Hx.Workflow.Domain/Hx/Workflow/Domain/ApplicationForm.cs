@@ -9,6 +9,7 @@ namespace Hx.Workflow.Domain
 {
     public class ApplicationForm : Entity<Guid>, IHasExtraProperties
     {
+        public Guid? GroupId { get; set; }
         /// <summary>
         /// application name
         /// </summary>
@@ -41,7 +42,8 @@ namespace Hx.Workflow.Domain
             string displayName,
             ApplicationType applicationType,
             string data,
-            ApplicationComponentType applicationComponentType
+            ApplicationComponentType applicationComponentType,
+            Guid? groupId
             )
         {
             Name = name;
@@ -49,6 +51,7 @@ namespace Hx.Workflow.Domain
             ApplicationType = applicationType;
             ApplicationComponentType = applicationComponentType;
             Data = data;
+            GroupId = groupId;
         }
         public Task SetName(string name)
         {
