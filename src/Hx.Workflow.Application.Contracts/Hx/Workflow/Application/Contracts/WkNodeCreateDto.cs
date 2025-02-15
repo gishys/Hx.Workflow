@@ -35,7 +35,7 @@ namespace Hx.Workflow.Application.Contracts
         public ICollection<WkConditionNodeCreateDto> NextNodes { get; set; }
         public ICollection<WkNodeParaCreateDto> OutcomeSteps { get; set; }
         public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
-        public ICollection<Guid> ApplicationFormIds { get; set; }
+        public ICollection<NodeAddApplicationFormDto> ApplicationForm { get; set; }
         public ICollection<WkParamCreateDto> Params { get; set; }
     }
 }

@@ -6,18 +6,20 @@ namespace Hx.Workflow.Domain
     public class WkNode_ApplicationForms : Entity
     {
         public WkNode_ApplicationForms() { }
-        public WkNode_ApplicationForms(Guid applicationId)
+        public WkNode_ApplicationForms(Guid applicationId,int sequenceNumber)
         {
             ApplicationId = applicationId;
+            SequenceNumber = sequenceNumber;
         }
         public WkNode_ApplicationForms(Guid nodeId, Guid applicationId)
         {
             NodeId = nodeId;
             ApplicationId = applicationId;
         }
-        public Guid NodeId { get; set; }
-        public Guid ApplicationId { get; set; }
-        public ApplicationForm ApplicationForm { get; set; }
+        public virtual Guid NodeId { get;protected set; }
+        public virtual Guid ApplicationId { get; protected set; }
+        public virtual ApplicationForm ApplicationForm { get; protected set; }
+        public virtual int SequenceNumber {  get; protected set; }
         public override object?[] GetKeys()
         {
             return [NodeId, ApplicationId];

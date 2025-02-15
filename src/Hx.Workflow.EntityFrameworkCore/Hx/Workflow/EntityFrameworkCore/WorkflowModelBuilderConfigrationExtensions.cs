@@ -197,6 +197,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.HasKey(d => new { d.NodeId, d.ApplicationId });
                 d.Property(d => d.ApplicationId).HasColumnName("APPLICATION_ID");
                 d.Property(d => d.NodeId).HasColumnName("NODE_ID");
+                d.Property(d => d.SequenceNumber).HasColumnName("SEQUENCENUMBER");
                 d.HasOne<WkNode>().WithMany(d => d.ApplicationForms).HasForeignKey(d => d.NodeId).HasConstraintName("NODE_FKEY");
                 d.HasOne(d => d.ApplicationForm).WithMany().HasForeignKey(d => d.ApplicationId).HasConstraintName("APLLICATION_FKEY");
             });
@@ -249,7 +250,6 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.Data).HasColumnName("DATA");
                 t.Property(d => d.ApplicationComponentType).HasColumnName("APPLICATIONCOMPONENTTYPE").HasPrecision(1);
-                t.Property(d => d.SequenceNumber).HasColumnName("SEQUENCENUMBER");
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(ApplicationFormConsts.MaxName);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(ApplicationFormConsts.MaxDisplayName);

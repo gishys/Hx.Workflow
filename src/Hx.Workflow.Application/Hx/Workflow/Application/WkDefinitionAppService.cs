@@ -84,6 +84,7 @@ namespace Hx.Workflow.Application
                     await entity.AddWkNode(node);
                 }
             }
+            entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.CreateAsync(entity);
         }
@@ -126,6 +127,7 @@ namespace Hx.Workflow.Application
                             throw new BusinessException(message: "StepBody没有查询到");
                         await node.SetWkStepBody(stepBodyEntity);
                     }
+                    node.ExtraProperties.Clear();
                     inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
                 }
             }
@@ -140,6 +142,7 @@ namespace Hx.Workflow.Application
             {
                 throw new UserFriendlyException("节点名称{Name}不能重复！");
             }
+            entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.UpdateAsync(entity);
         }

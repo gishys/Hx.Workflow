@@ -1,13 +1,13 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
-using Volo.Abp.Data;
 using Volo.Abp.ObjectExtending;
 
 namespace Hx.Workflow.Application.Contracts
 {
-    public class ApplicationFormCreateDto : ExtensibleObject
+    public class ApplicationFormUpdateDto : ExtensibleObject
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 应用数据
         /// </summary>

@@ -59,16 +59,7 @@ namespace Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("NAME");
 
-                    b.Property<int>("SequenceNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("SEQUENCENUMBER");
-
-                    b.Property<Guid?>("WkNodeId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("WkNodeId");
 
                     b.ToTable("HXAPPLICATIONFORMS", null, t =>
                         {
@@ -1109,10 +1100,13 @@ namespace Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("APPLICATION_ID");
 
+                    b.Property<int>("SequenceNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("SEQUENCENUMBER");
+
                     b.HasKey("NodeId", "ApplicationId");
 
-                    b.HasIndex("NodeId")
-                        .IsUnique();
+                    b.HasIndex("ApplicationId");
 
                     b.ToTable("HX_NODES_APPLICATION_FORMS", null, t =>
                         {
@@ -1229,10 +1223,6 @@ namespace Migrations
 
             modelBuilder.Entity("Hx.Workflow.Domain.ApplicationForm", b =>
                 {
-                    b.HasOne("Hx.Workflow.Domain.WkNode", null)
-                        .WithMany("ApplicationForms")
-                        .HasForeignKey("WkNodeId");
-
                     b.OwnsMany("Hx.Workflow.Domain.WkParam", "Params", b1 =>
                         {
                             b1.Property<Guid>("ApplicationFormId")
@@ -1658,19 +1648,21 @@ namespace Migrations
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkNode_ApplicationForms", b =>
                 {
-                    b.HasOne("Hx.Workflow.Domain.ApplicationForm", null)
-                        .WithOne()
-                        .HasForeignKey("Hx.Workflow.Domain.WkNode_ApplicationForms", "NodeId")
+                    b.HasOne("Hx.Workflow.Domain.ApplicationForm", "ApplicationForm")
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("APLLICATION_FKEY");
 
                     b.HasOne("Hx.Workflow.Domain.WkNode", null)
-                        .WithOne()
-                        .HasForeignKey("Hx.Workflow.Domain.WkNode_ApplicationForms", "NodeId")
+                        .WithMany("ApplicationForms")
+                        .HasForeignKey("NodeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("NODE_FKEY");
+
+                    b.Navigation("ApplicationForm");
                 });
 
             modelBuilder.Entity("Hx.Workflow.Domain.WkStepBodyParam", b =>

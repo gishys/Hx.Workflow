@@ -12,6 +12,25 @@ namespace Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "HXAPPLICATIONFORMS",
+                columns: table => new
+                {
+                    ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    NAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    DISPLAYNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    APPLICATIONTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
+                    DATA = table.Column<string>(type: "text", nullable: true),
+                    APPLICATIONCOMPONENTTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
+                    EXTRAPROPERTIES = table.Column<string>(type: "text", nullable: true),
+                    Params = table.Column<string>(type: "jsonb", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HXAPPLICATIONFORMS", x => x.ID);
+                },
+                comment: "流程表单");
+
+            migrationBuilder.CreateTable(
                 name: "HXWKDEFINITION_GROUPS",
                 columns: table => new
                 {
@@ -311,30 +330,30 @@ namespace Migrations
                 comment: "执行节点实例");
 
             migrationBuilder.CreateTable(
-                name: "HXAPPLICATIONFORMS",
+                name: "HX_NODES_APPLICATION_FORMS",
                 columns: table => new
                 {
-                    ID = table.Column<Guid>(type: "uuid", nullable: false),
-                    NAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    DISPLAYNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    APPLICATIONTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
-                    DATA = table.Column<string>(type: "text", nullable: true),
-                    APPLICATIONCOMPONENTTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
-                    EXTRAPROPERTIES = table.Column<string>(type: "text", nullable: true),
-                    SEQUENCENUMBER = table.Column<int>(type: "integer", nullable: false),
-                    WkNodeId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Params = table.Column<string>(type: "jsonb", nullable: true)
+                    NODE_ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    APPLICATION_ID = table.Column<Guid>(type: "uuid", nullable: false),
+                    SEQUENCENUMBER = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HXAPPLICATIONFORMS", x => x.ID);
+                    table.PrimaryKey("PK_HX_NODES_APPLICATION_FORMS", x => new { x.NODE_ID, x.APPLICATION_ID });
                     table.ForeignKey(
-                        name: "FK_HXAPPLICATIONFORMS_HXWKNODES_WkNodeId",
-                        column: x => x.WkNodeId,
+                        name: "APLLICATION_FKEY",
+                        column: x => x.APPLICATION_ID,
+                        principalTable: "HXAPPLICATIONFORMS",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "NODE_FKEY",
+                        column: x => x.NODE_ID,
                         principalTable: "HXWKNODES",
-                        principalColumn: "ID");
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
                 },
-                comment: "流程表单");
+                comment: "节点表单关联表");
 
             migrationBuilder.CreateTable(
                 name: "HXNODE_CANDIDATES",
@@ -519,31 +538,6 @@ namespace Migrations
                 comment: "发布");
 
             migrationBuilder.CreateTable(
-                name: "HX_NODES_APPLICATION_FORMS",
-                columns: table => new
-                {
-                    NODE_ID = table.Column<Guid>(type: "uuid", nullable: false),
-                    APPLICATION_ID = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HX_NODES_APPLICATION_FORMS", x => new { x.NODE_ID, x.APPLICATION_ID });
-                    table.ForeignKey(
-                        name: "APLLICATION_FKEY",
-                        column: x => x.NODE_ID,
-                        principalTable: "HXAPPLICATIONFORMS",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "NODE_FKEY",
-                        column: x => x.NODE_ID,
-                        principalTable: "HXWKNODES",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                },
-                comment: "节点表单关联表");
-
-            migrationBuilder.CreateTable(
                 name: "HXWKCONNODECONDITIONS",
                 columns: table => new
                 {
@@ -566,15 +560,9 @@ namespace Migrations
                 comment: "条件集合");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HX_NODES_APPLICATION_FORMS_NODE_ID",
+                name: "IX_HX_NODES_APPLICATION_FORMS_APPLICATION_ID",
                 table: "HX_NODES_APPLICATION_FORMS",
-                column: "NODE_ID",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_HXAPPLICATIONFORMS_WkNodeId",
-                table: "HXAPPLICATIONFORMS",
-                column: "WkNodeId");
+                column: "APPLICATION_ID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_HXWKAUDITORS_EXECUTIONPOINTERID",

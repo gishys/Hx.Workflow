@@ -33,7 +33,6 @@ namespace Hx.Workflow.Domain
         /// 扩展属性
         /// </summary>
         public virtual ExtraPropertyDictionary ExtraProperties { get; protected set; }
-        public virtual int SequenceNumber { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public ApplicationForm()
         { }
@@ -42,19 +41,38 @@ namespace Hx.Workflow.Domain
             string displayName,
             ApplicationType applicationType,
             string data,
-            ApplicationComponentType applicationComponentType,
-            int sequenceNumber)
+            ApplicationComponentType applicationComponentType
+            )
         {
             Name = name;
             DisplayName = displayName;
             ApplicationType = applicationType;
-            SequenceNumber = sequenceNumber;
             ApplicationComponentType = applicationComponentType;
             Data = data;
         }
         public Task SetName(string name)
         {
             Name = name;
+            return Task.CompletedTask;
+        }
+        public Task SetDisplayName(string displayName)
+        {
+            DisplayName = displayName;
+            return Task.CompletedTask;
+        }
+        public Task SetApplicationType(ApplicationType applicationType)
+        {
+            ApplicationType = applicationType;
+            return Task.CompletedTask;
+        }
+        public Task SetData(string? data)
+        {
+            Data = data;
+            return Task.CompletedTask;
+        }
+        public Task SetApplicationComponentType(ApplicationComponentType applicationComponentType)
+        {
+            ApplicationComponentType = applicationComponentType;
             return Task.CompletedTask;
         }
         public Task AddParam(WkParam param)
