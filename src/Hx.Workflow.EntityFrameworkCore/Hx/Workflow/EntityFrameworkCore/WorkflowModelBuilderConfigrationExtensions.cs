@@ -264,11 +264,14 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkStepBody>(t =>
             {
                 t.ConfigureFullAuditedAggregateRoot();
+                t.ConfigureExtraProperties();
                 t.ToTable(model.TablePrefix + "WKSTEPBODYS", model.Schema, tb => { tb.HasComment("节点实体"); });
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(WkStepBodyConsts.MaxName);
+                t.Property(d => d.Data).HasColumnName("DATA");
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkStepBodyConsts.MaxDisplayName);
                 t.Property(d => d.TypeFullName).HasColumnName("TYPEFULLNAME").HasMaxLength(WkStepBodyConsts.MaxTypeFullName);
                 t.Property(d => d.AssemblyFullName).HasColumnName("ASSEMBLYFULLNAME").HasMaxLength(WkStepBodyConsts.MaxAssemblyFullName);
+                t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
 
                 t.Property(p => p.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.CreatorId).HasColumnName("CREATORID");

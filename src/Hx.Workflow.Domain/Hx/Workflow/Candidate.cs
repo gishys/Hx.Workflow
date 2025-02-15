@@ -25,15 +25,15 @@ namespace Hx.Workflow
             ExecutorType= executorType;
             DefaultSelection = defaultSelection;
         }
-        public Guid NodeId { get; protected set; }
-        public Guid CandidateId { get; protected set; }
-        public string UserName { get; protected set; }
-        public string DisplayUserName { get; protected set; }
-        public bool DefaultSelection { get; protected set; }
+        public virtual Guid NodeId { get; protected set; }
+        public virtual Guid CandidateId { get; protected set; }
+        public virtual string UserName { get; protected set; }
+        public virtual string DisplayUserName { get; protected set; }
+        public virtual bool DefaultSelection { get; protected set; }
         /// <summary>
         /// 执行者类型
         /// </summary>
-        public WkParticipantType ExecutorType { get; protected set; }
+        public virtual WkParticipantType ExecutorType { get; protected set; }
         public override object[] GetKeys()
         {
             return [NodeId, CandidateId];

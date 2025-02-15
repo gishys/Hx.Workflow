@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Migrations
 {
     [DbContext(typeof(WkDbMigrationsContext))]
-    [Migration("20250215034054_Init")]
+    [Migration("20250215103130_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -1136,6 +1136,10 @@ namespace Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("CREATORID");
 
+                    b.Property<string>("Data")
+                        .HasColumnType("text")
+                        .HasColumnName("DATA");
+
                     b.Property<Guid?>("DeleterId")
                         .HasColumnType("uuid")
                         .HasColumnName("DELETERID");
@@ -1148,6 +1152,10 @@ namespace Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("DISPLAYNAME");
+
+                    b.Property<string>("ExtraProperties")
+                        .HasColumnType("text")
+                        .HasColumnName("EXTRAPROPERTIES");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()

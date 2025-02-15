@@ -8,10 +8,10 @@ namespace Hx.Workflow.Domain
 {
     public class WkConditionNode : Entity<Guid>
     {
-        public Guid WkNodeId { get; protected set; }
-        public string Label { get; protected set; }
-        public string NextNodeName { get; protected set; }
-        public WkRoleNodeType NodeType { get; protected set; }
+        public virtual Guid WkNodeId { get; protected set; }
+        public virtual string Label { get; protected set; }
+        public virtual string NextNodeName { get; protected set; }
+        public virtual WkRoleNodeType NodeType { get; protected set; }
         public virtual ICollection<WkConNodeCondition> WkConNodeConditions { get; protected set; }
         public WkConditionNode()
         { }

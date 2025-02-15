@@ -211,6 +211,7 @@ namespace Hx.Workflow.Domain
                 stepBody = new WkStepBody(
                     "",
                     "",
+                    "",
                     null,
                     typeof(NullStepBody).FullName,
                     typeof(NullStepBody).Assembly.FullName

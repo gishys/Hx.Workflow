@@ -1133,6 +1133,10 @@ namespace Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("CREATORID");
 
+                    b.Property<string>("Data")
+                        .HasColumnType("text")
+                        .HasColumnName("DATA");
+
                     b.Property<Guid?>("DeleterId")
                         .HasColumnType("uuid")
                         .HasColumnName("DELETERID");
@@ -1145,6 +1149,10 @@ namespace Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("DISPLAYNAME");
+
+                    b.Property<string>("ExtraProperties")
+                        .HasColumnType("text")
+                        .HasColumnName("EXTRAPROPERTIES");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()

@@ -1,8 +1,12 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
+using NUglify.Helpers;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 
 namespace Hx.Workflow.Application
 {
@@ -14,13 +18,6 @@ namespace Hx.Workflow.Application
         {
             _wkStepBody = wkStepBody;
         }
-        /// <summary>
-        /// 需要获取有哪些StepBody（通过判断是否继承自StepBody），
-        /// 通过StepBody的public属性
-        /// 来查询可用的WkParamKey（必须是StepBody public 属性）
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
         public virtual async Task CreateAsync(WkSepBodyCreateDto input)
         {
             var bodyParams = input.Inputs?.Select(d =>
@@ -33,10 +30,13 @@ namespace Hx.Workflow.Application
                 d.StepBodyParaType)).ToList();
             var entity = await _wkStepBody.GetStepBodyAsync(input.Name);
             if (entity != null)
-                return;
+                throw new UserFriendlyException("已存在相同名称的StepBody!");
+            entity.ExtraProperties.Clear();
+            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _wkStepBody.InsertAsync(new WkStepBody(
                     input.Name,
                     input.DisplayName,
+                    input.Data,
                     bodyParams,
                     input.TypeFullName,
                     input.AssemblyFullName));
@@ -51,6 +51,33 @@ namespace Hx.Workflow.Application
         {
             var entity = await _wkStepBody.GetStepBodyAsync(name);
             return ObjectMapper.Map<WkStepBody, WkStepBodyDto>(entity);
+        }
+        public virtual async Task<PagedResultDto<WkStepBodyDto>> GetPagedAsync(WkStepBodyPagedInput input)
+        {
+            var items = await _wkStepBody.GetPagedAsync(input.Filter, input.SkipCount, input.MaxResultCount);
+            var count = await _wkStepBody.GetPagedCountAsync(input.Filter);
+            return new PagedResultDto<WkStepBodyDto>(count, ObjectMapper.Map<List<WkStepBody>, List<WkStepBodyDto>>(items));
+        }
+        public virtual async Task UpdateAsync(WkStepBodyUpdateDto input)
+        {
+            var entity = await _wkStepBody.FindAsync(input.Id);
+            await entity.SetName(input.Name);
+            await entity.SetDisplayName(input.Name);
+            await entity.SetData(input.Name);
+            await entity.SetTypeFullName(input.Name);
+            await entity.SetAssemblyFullName(input.Name);
+            var bodyParams = input.Inputs?.Select(d =>
+            new WkStepBodyParam(
+                GuidGenerator.Create(),
+                d.Key,
+                d.Name,
+                d.DisplayName,
+                d.Value,
+                d.StepBodyParaType)).ToList();
+            await entity.UpdateInputs(bodyParams);
+            entity.ExtraProperties.Clear();
+            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+            await _wkStepBody.UpdateAsync(entity);
         }
     }
 }

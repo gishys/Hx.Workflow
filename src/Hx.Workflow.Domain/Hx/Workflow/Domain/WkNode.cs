@@ -14,35 +14,35 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 步骤体Id
         /// </summary>
-        public Guid? WkStepBodyId { get; protected set; }
+        public virtual Guid? WkStepBodyId { get; protected set; }
         /// <summary>
         /// 节点Id
         /// </summary>
-        public Guid? WkDefinitionId { get; protected set; }
+        public virtual Guid? WkDefinitionId { get; protected set; }
         /// <summary>
         /// 步骤名称
         /// </summary>
-        public string Name { get; protected set; }
+        public virtual string Name { get; protected set; }
         /// <summary>
         /// 显示名称
         /// </summary>
-        public string DisplayName { get; protected set; }
+        public virtual string DisplayName { get; protected set; }
         /// <summary>
         /// 步骤节点类型
         /// </summary>
-        public StepNodeType StepNodeType { get; protected set; }
+        public virtual StepNodeType StepNodeType { get; protected set; }
         /// <summary>
         /// 步骤版本
         /// </summary>
-        public int Version { get; protected set; }
+        public virtual int Version { get; protected set; }
         /// <summary>
         /// 限制时间
         /// </summary>
-        public int? LimitTime { get; protected set; }
+        public virtual int? LimitTime { get; protected set; }
         /// <summary>
         /// 流程参数
         /// </summary>
-        public WkStepBody StepBody { get; protected set; }
+        public virtual WkStepBody StepBody { get; protected set; }
         /// <summary>
         /// 扩展属性
         /// </summary>
@@ -50,7 +50,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 分支节点参数
         /// </summary>
-        public ICollection<WkNodePara> OutcomeSteps { get; protected set; }
+        public virtual ICollection<WkNodePara> OutcomeSteps { get; protected set; }
         /// <summary>
         /// 节点执行者集合
         /// </summary>
@@ -70,7 +70,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 排序
         /// </summary>
-        public int SortNumber { get; protected set; }
+        public virtual int SortNumber { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public virtual ICollection<WkNodeMaterials> Materials { get; protected set; } = new List<WkNodeMaterials>();
         public WkNode()

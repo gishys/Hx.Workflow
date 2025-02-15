@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Volo.Abp.Application.Dtos;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -7,5 +8,6 @@ namespace Hx.Workflow.Application.Contracts
         Task CreateAsync(WkSepBodyCreateDto input);
         Task DeleteAsync(string name);
         Task<WkStepBodyDto> GetStepBodyAsync(string name);
+        Task<PagedResultDto<WkStepBodyDto>> GetPagedAsync(WkStepBodyPagedInput input);
     }
 }

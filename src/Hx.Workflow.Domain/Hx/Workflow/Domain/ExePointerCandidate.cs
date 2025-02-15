@@ -24,15 +24,15 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 执行操作类型
         /// </summary>
-        public ExePersonnelOperateType ExeOperateType { get; protected set; }
+        public virtual ExePersonnelOperateType ExeOperateType { get; protected set; }
         /// <summary>
         /// 执行者状态
         /// </summary>
-        public ExeCandidateState ParentState { get; protected set; }
+        public virtual ExeCandidateState ParentState { get; protected set; }
         /// <summary>
         /// 关注
         /// </summary>
-        public bool? Follow { get; protected set; }
+        public virtual bool? Follow { get; protected set; }
         public void SetCandidateType(ExePersonnelOperateType exeOperateType)
         {
             ExeOperateType = exeOperateType;

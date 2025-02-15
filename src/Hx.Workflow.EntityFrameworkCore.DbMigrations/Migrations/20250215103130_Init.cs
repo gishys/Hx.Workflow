@@ -107,6 +107,8 @@ namespace Migrations
                     DISPLAYNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     TYPEFULLNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     ASSEMBLYFULLNAME = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    DATA = table.Column<string>(type: "text", nullable: true),
+                    EXTRAPROPERTIES = table.Column<string>(type: "text", nullable: true),
                     CREATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CREATORID = table.Column<Guid>(type: "uuid", nullable: true),
                     LASTMODIFICATIONTIME = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
