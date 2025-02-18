@@ -17,7 +17,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// application node type
         /// </summary>
-        public virtual string DisplayName { get; protected set; }
+        public virtual string Title { get; protected set; }
         /// <summary>
         /// application type
         /// </summary>
@@ -39,7 +39,7 @@ namespace Hx.Workflow.Domain
         { }
         public ApplicationForm(
             string name,
-            string displayName,
+            string title,
             ApplicationType applicationType,
             string data,
             ApplicationComponentType applicationComponentType,
@@ -47,7 +47,7 @@ namespace Hx.Workflow.Domain
             )
         {
             Name = name;
-            DisplayName = displayName;
+            Title = title;
             ApplicationType = applicationType;
             ApplicationComponentType = applicationComponentType;
             Data = data;
@@ -58,9 +58,9 @@ namespace Hx.Workflow.Domain
             Name = name;
             return Task.CompletedTask;
         }
-        public Task SetDisplayName(string displayName)
+        public Task SetTitle(string title)
         {
-            DisplayName = displayName;
+            Title = title;
             return Task.CompletedTask;
         }
         public Task SetApplicationType(ApplicationType applicationType)

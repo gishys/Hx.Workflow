@@ -285,7 +285,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.ApplicationComponentType).HasColumnName("APPLICATIONCOMPONENTTYPE").HasPrecision(1);
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(ApplicationFormConsts.MaxName);
-                t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(ApplicationFormConsts.MaxDisplayName);
+                t.Property(d => d.Title).HasColumnName("TITLE").HasMaxLength(ApplicationFormConsts.MaxTitle);
                 t.Property(d => d.ApplicationType).HasColumnName("APPLICATIONTYPE").HasPrecision(1);
 
                 t.OwnsMany(p => p.Params, param =>

@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using Volo.Abp.Data;
+using Volo.Abp.ObjectExtending;
 
 namespace Hx.Workflow.Application.Contracts
 {
-    public class ApplicationFormDto
+    public class ApplicationFormDto : ExtensibleObject
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 应用数据
         /// </summary>
@@ -16,17 +18,13 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public ApplicationComponentType ApplicationComponentType { get; set; }
         /// <summary>
-        /// 扩展属性
-        /// </summary>
-        public ExtraPropertyDictionary ExtraProperties { get; set; }
-        /// <summary>
         /// application name
         /// </summary>
         public string Name { get; set; }
         /// <summary>
         /// application node type
         /// </summary>
-        public string DisplayName { get; set; }
+        public string Title { get; set; }
         /// <summary>
         /// application type
         /// </summary>

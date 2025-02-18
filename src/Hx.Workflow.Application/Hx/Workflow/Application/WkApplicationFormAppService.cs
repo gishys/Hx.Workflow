@@ -22,7 +22,7 @@ namespace Hx.Workflow.Application
         {
             var form = new ApplicationForm(
                 input.Name,
-                input.DisplayName,
+                input.Title,
                 input.ApplicationType,
                 input.Data,
                 input.ApplicationComponentType,
@@ -35,6 +35,7 @@ namespace Hx.Workflow.Application
                     await form.AddParam(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
                 }
             }
+            input.ExtraProperties.ForEach(item => form.ExtraProperties.TryAdd(item.Key, item.Value));
             await WkApplicationFormRepository.InsertAsync(form);
         }
         public virtual async Task<PagedResultDto<ApplicationFormDto>> GetPagedAsync(ApplicationFormQueryInput input)
@@ -47,7 +48,7 @@ namespace Hx.Workflow.Application
         {
             var entity = await WkApplicationFormRepository.GetAsync(input.Id);
             await entity.SetName(input.Name);
-            await entity.SetDisplayName(input.DisplayName);
+            await entity.SetTitle(input.Title);
             await entity.SetApplicationType(input.ApplicationType);
             await entity.SetApplicationComponentType(input.ApplicationComponentType);
             await entity.SetData(input.Data);
@@ -58,6 +59,10 @@ namespace Hx.Workflow.Application
         public virtual async Task DeleteAsync(Guid id)
         {
             await WkApplicationFormRepository.DeleteAsync(id);
+        }
+        public virtual async Task<ApplicationFormDto> GetAsync(Guid id)
+        {
+            return ObjectMapper.Map<ApplicationForm, ApplicationFormDto>(await WkApplicationFormRepository.GetAsync(id));
         }
     }
 }

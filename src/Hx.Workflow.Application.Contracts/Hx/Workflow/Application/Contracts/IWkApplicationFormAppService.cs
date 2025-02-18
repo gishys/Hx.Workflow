@@ -13,5 +13,6 @@ namespace Hx.Workflow.Application.Contracts
         Task<PagedResultDto<ApplicationFormDto>> GetPagedAsync(ApplicationFormQueryInput input);
         Task UpdateAsync(ApplicationFormUpdateDto input);
         Task DeleteAsync(Guid id);
+        Task<ApplicationFormDto> GetAsync(Guid id);
     }
 }
