@@ -40,7 +40,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// <summary>
         /// 表单
         /// </summary>
-        public List<ApplicationForm> ApplicationForms { get; protected set; }
+        public List<ApplicationForm> Items { get; protected set; }
         public void SetTitle(string title) => Title = title;
         public void SetDescription(string? description) => Description = description;
         public void AddChildren(ApplicationFormGroup group)
@@ -66,7 +66,7 @@ namespace Hx.Workflow.Domain.Persistence
             ParentId = parentId;
             Description = description;
             Children = new List<ApplicationFormGroup>();
-            ApplicationForms = new List<ApplicationForm>();
+            Items = new List<ApplicationForm>();
         }
         /// <summary>
         /// Calculates next code for given code.

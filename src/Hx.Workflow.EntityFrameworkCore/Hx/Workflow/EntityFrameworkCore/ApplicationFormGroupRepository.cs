@@ -93,7 +93,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <returns></returns>
         public async Task<List<ApplicationFormGroup>> GetAllWithChildrenAsync()
         {
-            return await (await GetDbSetAsync()).Include(d => d.ApplicationForms).OrderBy(d => d.Order).ToListAsync();
+            return await (await GetDbSetAsync()).Include(d => d.Items).OrderBy(d => d.Order).ToListAsync();
         }
     }
 }

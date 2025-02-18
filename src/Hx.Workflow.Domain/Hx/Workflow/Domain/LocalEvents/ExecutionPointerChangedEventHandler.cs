@@ -4,20 +4,19 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
-using System.Reflection;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Entities.Events;
 using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 using Volo.Abp.Identity;
-using Volo.Abp.Users;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Domain.LocalEvents
 {
+    [LocalEventHandlerOrder(10)]
     public class ExecutionPointerChangedEventHandler
-    : ILocalEventHandler<EntityChangedEventData<WkExecutionPointer>>, ITransientDependency
+    : ILocalEventHandler<EntityCreatedEventData<WkExecutionPointer>>, ITransientDependency
     {
         private readonly IWkExecutionPointerRepository _wkExecutionPointer;
         private readonly IWkEventRepository _eventRepository;
@@ -40,7 +39,7 @@ namespace Hx.Workflow.Domain.LocalEvents
         }
 
         public async Task HandleEventAsync(
-            EntityChangedEventData<WkExecutionPointer> eventData)
+            EntityCreatedEventData<WkExecutionPointer> eventData)
         {
             if (eventData.Entity.Status == PointerStatus.Complete)
             {

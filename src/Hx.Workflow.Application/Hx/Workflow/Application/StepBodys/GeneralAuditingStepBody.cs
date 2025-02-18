@@ -51,7 +51,6 @@ namespace Hx.Workflow.Application.StepBodys
         {
             try
             {
-
                 var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
                 try
                 {
@@ -62,7 +61,7 @@ namespace Hx.Workflow.Application.StepBodys
                 }
                 catch (Exception ex)
                 {
-                    throw new UserFriendlyException($"stepbody 改变事件异常：{ex.Message}");
+                    throw new UserFriendlyException($"WkGeneralAuditStepBodyChangeEvent 改变事件异常：{ex.Message}");
                 }
                 if (instance.WkDefinition.LimitTime.HasValue)
                 {

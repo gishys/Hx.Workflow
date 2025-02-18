@@ -256,7 +256,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.TenantId).HasColumnName("TENANTID").HasComment("租户Id");
                 t.Property(t => t.Description).IsRequired(false).HasMaxLength(500).HasColumnName("DESCRIPTION").HasComment("描述");
 
-                t.HasMany(t => t.ApplicationForms)
+                t.HasMany(t => t.Items)
                        .WithOne()
                        .HasForeignKey(d => d.GroupId)
                        .HasConstraintName("AF_GROUPS_APPLICATIONFORM_ID")
@@ -359,7 +359,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.Id).HasColumnName("ID");
                 d.Property(d => d.ExecutionPointerId).HasColumnName("EXECUTIONPOINTERID");
                 d.Property(d => d.AttributeKey).HasColumnName("ATTRIBUTEKEY").HasMaxLength(WkExtensionAttributeConsts.AttributeKey);
-                d.Property(d => d.AttributeValue).HasColumnName("ATTRIBUTEVALUE").HasMaxLength(WkExtensionAttributeConsts.AttributeValue);
+                d.Property(d => d.AttributeValue).HasColumnName("ATTRIBUTEVALUE");
                 d.Property(d => d.TenantId).HasColumnName("TENANTID");
             });
             builder.Entity<WkExecutionPointer>(t =>
