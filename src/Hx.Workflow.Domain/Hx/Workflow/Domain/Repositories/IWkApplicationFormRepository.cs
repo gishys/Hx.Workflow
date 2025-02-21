@@ -9,5 +9,7 @@ namespace Hx.Workflow.Domain.Repositories
     {
         Task<List<ApplicationForm>> GetPagedAsync(string? filter, int skipCount, int maxResultCount);
         Task<int> GetPagedCountAsync(string? filter);
+        Task<bool> ExistByNameAsync(string name);
+        Task<bool> ExistByTitleAsync(string title, Guid? groupId);
     }
 }

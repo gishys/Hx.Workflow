@@ -280,6 +280,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             {
                 t.ConfigureExtraProperties();
                 t.ToTable(model.TablePrefix + "APPLICATIONFORMS", model.Schema, tb => { tb.HasComment("流程表单"); });
+                t.HasIndex(t => t.Name).IsUnique();
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.Data).HasColumnName("DATA");
                 t.Property(d => d.ApplicationComponentType).HasColumnName("APPLICATIONCOMPONENTTYPE").HasPrecision(1);
@@ -287,6 +288,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(ApplicationFormConsts.MaxName);
                 t.Property(d => d.Title).HasColumnName("TITLE").HasMaxLength(ApplicationFormConsts.MaxTitle);
                 t.Property(d => d.ApplicationType).HasColumnName("APPLICATIONTYPE").HasPrecision(1);
+                t.Property(d => d.IsPublish).HasColumnName("ISPUBLISH");
 
                 t.OwnsMany(p => p.Params, param =>
                 {

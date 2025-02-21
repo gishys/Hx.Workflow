@@ -5,6 +5,7 @@ using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 
 namespace Hx.Workflow.Application
@@ -20,13 +21,22 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task CreateAsync(ApplicationFormCreateDto input)
         {
+            if (await WkApplicationFormRepository.ExistByNameAsync(input.Name))
+            {
+                throw new UserFriendlyException("表单名称已存在！");
+            }
+            if (await WkApplicationFormRepository.ExistByTitleAsync(input.Title, input.GroupId))
+            {
+                throw new UserFriendlyException("组内表单标题已存在！");
+            }
             var form = new ApplicationForm(
                 input.Name,
                 input.Title,
                 input.ApplicationType,
                 input.Data,
                 input.ApplicationComponentType,
-                input.GroupId
+                input.GroupId,
+                input.IsPublish
                 );
             if (input.Params?.Count > 0)
             {
@@ -46,12 +56,22 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task UpdateAsync(ApplicationFormUpdateDto input)
         {
+            if (await WkApplicationFormRepository.ExistByNameAsync(input.Name))
+            {
+                throw new UserFriendlyException("表单名称已存在！");
+            }
+            if (await WkApplicationFormRepository.ExistByTitleAsync(input.Title, input.GroupId))
+            {
+                throw new UserFriendlyException("组内表单标题已存在！");
+            }
             var entity = await WkApplicationFormRepository.GetAsync(input.Id);
             await entity.SetName(input.Name);
             await entity.SetTitle(input.Title);
             await entity.SetApplicationType(input.ApplicationType);
             await entity.SetApplicationComponentType(input.ApplicationComponentType);
             await entity.SetData(input.Data);
+            await entity.SetGroupId(input.GroupId);
+            await entity.SetIsPublish(input.IsPublish);
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await WkApplicationFormRepository.UpdateAsync(entity);

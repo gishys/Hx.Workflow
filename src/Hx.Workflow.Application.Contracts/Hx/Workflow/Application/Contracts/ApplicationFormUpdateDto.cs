@@ -7,6 +7,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class ApplicationFormUpdateDto : ExtensibleObject
     {
+        public Guid GroupId { get; set; }
         public Guid Id { get; set; }
         /// <summary>
         /// 应用数据
@@ -28,6 +29,7 @@ namespace Hx.Workflow.Application.Contracts
         /// application type
         /// </summary>
         public ApplicationType ApplicationType { get; set; } = ApplicationType.Form;
+        public bool IsPublish { get; set; }
         public ICollection<WkParamCreateDto> Params { get; set; }
     }
 }

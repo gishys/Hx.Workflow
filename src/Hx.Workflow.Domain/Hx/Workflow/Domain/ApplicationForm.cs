@@ -34,6 +34,10 @@ namespace Hx.Workflow.Domain
         /// 扩展属性
         /// </summary>
         public virtual ExtraPropertyDictionary ExtraProperties { get; protected set; }
+        /// <summary>
+        /// 是否发布
+        /// </summary>
+        public virtual bool IsPublish { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public ApplicationForm()
         { }
@@ -43,7 +47,8 @@ namespace Hx.Workflow.Domain
             ApplicationType applicationType,
             string data,
             ApplicationComponentType applicationComponentType,
-            Guid? groupId
+            Guid? groupId,
+            bool isPublish
             )
         {
             Name = name;
@@ -52,6 +57,7 @@ namespace Hx.Workflow.Domain
             ApplicationComponentType = applicationComponentType;
             Data = data;
             GroupId = groupId;
+            IsPublish = isPublish;
         }
         public Task SetName(string name)
         {
@@ -73,6 +79,11 @@ namespace Hx.Workflow.Domain
             Data = data;
             return Task.CompletedTask;
         }
+        public Task SetGroupId(Guid groupId)
+        {
+            GroupId = groupId;
+            return Task.CompletedTask;
+        }
         public Task SetApplicationComponentType(ApplicationComponentType applicationComponentType)
         {
             ApplicationComponentType = applicationComponentType;
@@ -81,6 +92,11 @@ namespace Hx.Workflow.Domain
         public Task AddParam(WkParam param)
         {
             Params.Add(param);
+            return Task.CompletedTask;
+        }
+        public Task SetIsPublish(bool isPublish)
+        {
+            IsPublish = isPublish;
             return Task.CompletedTask;
         }
     }

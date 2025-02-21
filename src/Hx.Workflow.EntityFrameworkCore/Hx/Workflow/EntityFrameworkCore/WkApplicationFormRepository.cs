@@ -24,6 +24,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(!string.IsNullOrEmpty(filter), d => d.Title.Contains(filter))
                 .PageBy(skipCount, maxResultCount).ToListAsync();
         }
+        public virtual async Task<bool> ExistByNameAsync(string name)
+        {
+            return await (await GetDbSetAsync()).AnyAsync(d => d.Name == name);
+        }
+        public virtual async Task<bool> ExistByTitleAsync(string title, Guid? groupId)
+        {
+            return await (await GetDbSetAsync()).AnyAsync(d => d.Title == title && d.GroupId == groupId);
+        }
         public virtual async Task<int> GetPagedCountAsync(string? filter)
         {
             return await (await GetDbSetAsync())
