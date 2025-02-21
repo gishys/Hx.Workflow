@@ -40,7 +40,9 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public override async Task<ApplicationForm> GetAsync(Guid id, bool includeDetails = true, CancellationToken cancellationToken = default)
         {
-            return await (await GetDbSetAsync()).Include(d => d.Params).FirstAsync(d => d.Id == id, cancellationToken);
+            return await (await GetDbSetAsync())
+                .Include(d => d.Params)
+                .FirstAsync(d => d.Id == id, cancellationToken);
         }
     }
 }

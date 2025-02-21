@@ -80,8 +80,8 @@ namespace Hx.Workflow.Application
                     await entity.AddParam(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
                 }
             }
-            entity.ExtraProperties.Clear();
-            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+            entity.ExtraProperties?.Clear();
+            input.ExtraProperties?.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await WkApplicationFormRepository.UpdateAsync(entity);
         }
         public virtual async Task DeleteAsync(Guid id)
