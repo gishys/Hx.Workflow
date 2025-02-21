@@ -141,12 +141,13 @@ namespace Migrations
                 {
                     ID = table.Column<Guid>(type: "uuid", nullable: false),
                     GroupId = table.Column<Guid>(type: "uuid", nullable: true),
-                    NAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    TITLE = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    NAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    TITLE = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     APPLICATIONTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
                     DATA = table.Column<string>(type: "text", nullable: true),
                     APPLICATIONCOMPONENTTYPE = table.Column<int>(type: "integer", precision: 1, nullable: false),
                     EXTRAPROPERTIES = table.Column<string>(type: "text", nullable: true),
+                    ISPUBLISH = table.Column<bool>(type: "boolean", nullable: false),
                     Params = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
@@ -610,9 +611,16 @@ namespace Migrations
                 column: "PARENT_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HXAPPLICATIONFORMS_GroupId",
+                name: "IX_HXAPPLICATIONFORMS_GroupId_TITLE",
                 table: "HXAPPLICATIONFORMS",
-                column: "GroupId");
+                columns: new[] { "GroupId", "TITLE" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HXAPPLICATIONFORMS_NAME",
+                table: "HXAPPLICATIONFORMS",
+                column: "NAME",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_HXWKAUDITORS_EXECUTIONPOINTERID",

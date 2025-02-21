@@ -52,19 +52,29 @@ namespace Migrations
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsPublish")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ISPUBLISH");
+
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("NAME");
 
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("TITLE");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId");
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("GroupId", "Title")
+                        .IsUnique();
 
                     b.ToTable("HXAPPLICATIONFORMS", null, t =>
                         {

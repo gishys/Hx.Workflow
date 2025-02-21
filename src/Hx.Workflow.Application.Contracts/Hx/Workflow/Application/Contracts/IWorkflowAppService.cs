@@ -84,5 +84,12 @@ namespace Hx.Workflow.Application.Contracts
         Task<List<ProcessTypeStatDto>> GetProcessTypeStatListAsync();
         Task AuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark);
         Task<WkAuditorDto> GetAuditAsync(Guid executionPointerId);
+        /// <summary>
+        /// 流程实例添加业务数据
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        Task UpdateExecutionPointerDataAsync(Guid pointerId, IDictionary<string, object> data);
     }
 }

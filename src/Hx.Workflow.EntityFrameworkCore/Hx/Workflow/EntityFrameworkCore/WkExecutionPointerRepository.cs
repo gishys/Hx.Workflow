@@ -1,7 +1,10 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using NUglify.Helpers;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
@@ -37,6 +40,12 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             var dbSet = await GetDbSetAsync();
             return await dbSet.Include(d => d.WkCandidates).FirstAsync(d => d.Id == id, cancellationToken: cancellationToken);
+        }
+        public async Task UpdateDataAsync(Guid id, Dictionary<string, string> data)
+        {
+            var entity = await (await GetDbSetAsync()).Include(d => d.ExtensionAttributes).FirstAsync(d => d.Id == id);
+            data.ForEach(item => entity.ExtensionAttributes.RemoveAll(d => d.AttributeKey == item.Key));
+            data.ForEach(item => entity.ExtensionAttributes.Add(new WkExtensionAttribute(item.Key, item.Value)));
         }
     }
 }

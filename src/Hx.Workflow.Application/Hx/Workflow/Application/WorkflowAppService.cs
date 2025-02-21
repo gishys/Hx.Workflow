@@ -441,6 +441,19 @@ namespace Hx.Workflow.Application
             await _wkInstanceRepository.UpdateDataAsync(workflowId, data);
         }
         /// <summary>
+        /// 流程实例添加业务数据
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public virtual async Task UpdateExecutionPointerDataAsync(Guid pointerId, IDictionary<string, object> data)
+        {
+            var exts = new Dictionary<string, string>();
+
+            data.ForEach(item => exts.Add(item.Key, JsonSerializer.Serialize(item.Value)));
+            await _wkExecutionPointerRepository.UpdateDataAsync(pointerId, exts);
+        }
+        /// <summary>
         /// 关注实例（取消关注）
         /// </summary>
         /// <param name="pointerId"></param>

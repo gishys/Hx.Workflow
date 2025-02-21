@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories;
 
@@ -14,5 +15,6 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="executionPointerId"></param>
         /// <returns></returns>
         Task InitMaterialsAsync(Guid executionPointerId);
+        Task UpdateDataAsync(Guid id, Dictionary<string, string> data);
     }
 }
