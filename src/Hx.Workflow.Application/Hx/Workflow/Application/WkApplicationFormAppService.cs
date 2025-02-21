@@ -56,15 +56,21 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task UpdateAsync(ApplicationFormUpdateDto input)
         {
-            if (await WkApplicationFormRepository.ExistByNameAsync(input.Name))
-            {
-                throw new UserFriendlyException("表单名称已存在！");
-            }
-            if (await WkApplicationFormRepository.ExistByTitleAsync(input.Title, input.GroupId))
-            {
-                throw new UserFriendlyException("组内表单标题已存在！");
-            }
             var entity = await WkApplicationFormRepository.GetAsync(input.Id);
+            if (!entity.Title.Equals(input.Title, StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (await WkApplicationFormRepository.ExistByTitleAsync(input.Title, input.GroupId))
+                {
+                    throw new UserFriendlyException("组内表单标题已存在！");
+                }
+            }
+            if (!entity.Name.Equals(input.Name, StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (await WkApplicationFormRepository.ExistByNameAsync(input.Name))
+                {
+                    throw new UserFriendlyException("表单名称已存在！");
+                }
+            }
             await entity.SetName(input.Name);
             await entity.SetTitle(input.Title);
             await entity.SetApplicationType(input.ApplicationType);
