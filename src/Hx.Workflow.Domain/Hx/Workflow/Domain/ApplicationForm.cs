@@ -38,6 +38,10 @@ namespace Hx.Workflow.Domain
         /// 是否发布
         /// </summary>
         public virtual bool IsPublish { get; protected set; }
+        /// <summary>
+        /// 描述
+        /// </summary>
+        public virtual string? Description { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public ApplicationForm()
         { }
@@ -48,7 +52,8 @@ namespace Hx.Workflow.Domain
             string data,
             ApplicationComponentType applicationComponentType,
             Guid? groupId,
-            bool isPublish
+            bool isPublish,
+            string description
             )
         {
             Name = name;
@@ -58,6 +63,7 @@ namespace Hx.Workflow.Domain
             Data = data;
             GroupId = groupId;
             IsPublish = isPublish;
+            Description = description;
         }
         public Task SetName(string name)
         {
@@ -97,6 +103,11 @@ namespace Hx.Workflow.Domain
         public Task SetIsPublish(bool isPublish)
         {
             IsPublish = isPublish;
+            return Task.CompletedTask;
+        }
+        public Task SetDescription(string description)
+        {
+            Description = description;
             return Task.CompletedTask;
         }
     }
