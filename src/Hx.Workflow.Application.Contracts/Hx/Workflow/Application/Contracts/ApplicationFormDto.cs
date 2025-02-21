@@ -30,5 +30,6 @@ namespace Hx.Workflow.Application.Contracts
         public ApplicationType ApplicationType { get; set; }
         public ICollection<WkParamDto> Params { get; set; }
         public bool IsPublish { get; set; }
+        public Guid? GroupId { get; set; }
     }
 }

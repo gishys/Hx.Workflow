@@ -72,6 +72,14 @@ namespace Hx.Workflow.Application
             await entity.SetData(input.Data);
             await entity.SetGroupId(input.GroupId);
             await entity.SetIsPublish(input.IsPublish);
+            entity.Params.Clear();
+            if (input.Params?.Count > 0)
+            {
+                foreach (var param in input.Params)
+                {
+                    await entity.AddParam(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
+                }
+            }
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await WkApplicationFormRepository.UpdateAsync(entity);
