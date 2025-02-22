@@ -71,9 +71,9 @@ namespace Hx.Workflow.Application
                             candidate.DefaultSelection));
                     }
                 }
-                if (node.ApplicationForm?.Count > 0)
+                if (node.ApplicationForms?.Count > 0)
                 {
-                    foreach (var form in node.ApplicationForm)
+                    foreach (var form in node.ApplicationForms)
                     {
                         nodeEntity.AddApplicationForms(form.ApplicationFormId, form.SequenceNumber);
                     }
