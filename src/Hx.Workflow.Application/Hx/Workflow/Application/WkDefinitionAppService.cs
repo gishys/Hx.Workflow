@@ -5,6 +5,7 @@ using Hx.Workflow.Domain.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using NUglify.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -114,6 +115,47 @@ namespace Hx.Workflow.Application
                     candidate.DefaultSelection));
             }
             var nodeEntitys = input.Nodes?.ToWkNodes();
+            if (nodeEntitys != null && nodeEntitys.Count > 0)
+            {
+                foreach (var node in nodeEntitys)
+                {
+                    var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
+                    if (!string.IsNullOrEmpty(inputNode.WkStepBodyId))
+                    {
+                        Guid.TryParse(inputNode.WkStepBodyId, out Guid guidStepBodyId);
+                        var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
+                        if (stepBodyEntity == null)
+                            throw new BusinessException(message: "StepBody没有查询到");
+                        await node.SetWkStepBody(stepBodyEntity);
+                    }
+                    node.ExtraProperties.Clear();
+                    inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
+                }
+            }
+            if (nodeEntitys != null && nodeEntitys.Count > 0)
+                await entity.UpdateNodes(nodeEntitys);
+            if (entity.LimitTime < entity.Nodes.Sum(d => d.LimitTime))
+            {
+                throw new UserFriendlyException("节点限制时间合计值不能大于流程限制时间！");
+            }
+            var count = entity.Nodes.GroupBy(p => p.Name).Where(g => g.Count() > 1).Select(g => g.Key);
+            if (count.Count() > 0)
+            {
+                throw new UserFriendlyException("节点名称{Name}不能重复！");
+            }
+            entity.ExtraProperties.Clear();
+            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+            await _hxWorkflowManager.UpdateAsync(entity);
+        }
+        /// <summary>
+        /// 更新模板
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public virtual async Task UpdateAsync(DefinitionNodeUpdateDto input)
+        {
+            var entity = await _definitionRespository.FindAsync(input.Id);
+            var nodeEntitys = input.Nodes.ToWkNodes();
             if (nodeEntitys != null && nodeEntitys.Count > 0)
             {
                 foreach (var node in nodeEntitys)

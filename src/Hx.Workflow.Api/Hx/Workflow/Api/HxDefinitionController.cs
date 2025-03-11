@@ -25,6 +25,12 @@ namespace Hx.Workflow.Api
         {
             return _appService.UpdateAsync(input);
         }
+        [HttpPut]
+        [Route("nodes")]
+        public Task UpdateAsync(DefinitionNodeUpdateDto input)
+        {
+            return _appService.UpdateAsync(input);
+        }
         [HttpGet]
         public Task<WkDefinitionDto> GetAsync(Guid id)
         {

@@ -91,22 +91,10 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// 获取所有节点，包含子节点
         /// </summary>
         /// <returns></returns>
-        public async Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(Boolean includeDetails)
+        public async Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(bool includeDetails)
         {
-            var sql = @"
-    WITH RECURSIVE RecursiveGroups AS (
-        SELECT * FROM ""HXWKDEFINITION_GROUPS"" WHERE ""PARENT_ID"" IS NULL and ""ISDELETED""=false
-        UNION ALL
-        select g.* from (SELECT * FROM ""HXWKDEFINITION_GROUPS""  where ""ISDELETED""=false) g
-        INNER JOIN RecursiveGroups rg ON g.""PARENT_ID"" = rg.""ID""
-    )
-    SELECT * FROM RecursiveGroups
-";
             var dbSet = await GetDbSetAsync();
-            List<WkDefinitionGroup> groups = await dbSet.FromSqlRaw(sql)
-                .Include(d => d.Definitions)
-                .ToListAsync();
-            return groups.Where(d => d.ParentId == null).ToList();
+            return await dbSet.IncludeDetails(true).ToListAsync();
         }
     }
 }

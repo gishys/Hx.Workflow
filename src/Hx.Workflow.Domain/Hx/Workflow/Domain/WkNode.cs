@@ -110,9 +110,9 @@ namespace Hx.Workflow.Domain
             WkCandidates.Add(para);
             return Task.CompletedTask;
         }
-        public Task AddApplicationForms(Guid applicationId, int sequenceNumber)
+        public Task AddApplicationForms(Guid applicationId, int sequenceNumber, ICollection<WkParam> ps)
         {
-            ApplicationForms.Add(new WkNode_ApplicationForms(applicationId, sequenceNumber));
+            ApplicationForms.Add(new WkNode_ApplicationForms(applicationId, sequenceNumber, ps));
             return Task.CompletedTask;
         }
         public Task SetWkStepBody(WkStepBody stepBody)

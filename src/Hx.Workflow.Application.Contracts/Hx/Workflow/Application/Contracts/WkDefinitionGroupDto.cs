@@ -40,6 +40,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 一组模板
         /// </summary>
-        public List<WkDefinitionDto> Definitions { get; set; }
+        public List<WkDefinitionDto> Items { get; set; }
     }
 }

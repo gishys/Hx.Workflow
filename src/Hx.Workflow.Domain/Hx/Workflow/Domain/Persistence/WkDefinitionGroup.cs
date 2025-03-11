@@ -40,7 +40,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// <summary>
         /// 一组模板
         /// </summary>
-        public List<WkDefinition> Definitions { get; protected set; }
+        public List<WkDefinition> Items { get; protected set; }
         public void SetTitle(string title) => Title = title;
         public void SetDescription(string? description) => Description = description;
         public void AddChildren(WkDefinitionGroup group)
@@ -66,7 +66,7 @@ namespace Hx.Workflow.Domain.Persistence
             ParentId = parentId;
             Description = description;
             Children = new List<WkDefinitionGroup>();
-            Definitions = new List<WkDefinition>();
+            Items = new List<WkDefinition>();
         }
         /// <summary>
         /// Calculates next code for given code.

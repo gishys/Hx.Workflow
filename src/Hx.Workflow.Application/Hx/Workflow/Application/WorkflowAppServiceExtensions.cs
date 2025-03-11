@@ -75,7 +75,12 @@ namespace Hx.Workflow.Application
                 {
                     foreach (var form in node.ApplicationForm)
                     {
-                        nodeEntity.AddApplicationForms(form.ApplicationFormId, form.SequenceNumber);
+                        var ps = new List<WkParam>();
+                        foreach (var param in form.Params)
+                        {
+                            ps.Add(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
+                        }
+                        nodeEntity.AddApplicationForms(form.ApplicationFormId, form.SequenceNumber, ps);
                     }
                 }
                 if (node.Params?.Count > 0)

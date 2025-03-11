@@ -38,7 +38,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.TenantId).HasColumnName("TENANTID").HasComment("租户Id");
                 t.Property(t => t.Description).IsRequired(false).HasMaxLength(500).HasColumnName("DESCRIPTION").HasComment("描述");
 
-                t.HasMany(t => t.Definitions)
+                t.HasMany(t => t.Items)
                        .WithOne()
                        .HasForeignKey(d => d.GroupId)
                        .HasConstraintName("QI_GROUPS_WKDEFINITION_ID")
@@ -200,6 +200,11 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.SequenceNumber).HasColumnName("SEQUENCENUMBER");
                 d.HasOne<WkNode>().WithMany(d => d.ApplicationForms).HasForeignKey(d => d.NodeId).HasConstraintName("NODE_FKEY");
                 d.HasOne(d => d.ApplicationForm).WithMany().HasForeignKey(d => d.ApplicationId).HasConstraintName("APLLICATION_FKEY");
+
+                d.OwnsMany(p => p.Params, param =>
+                {
+                    param.ToJson();
+                });
             });
             builder.Entity<WkNodeCandidate>(d =>
             {
