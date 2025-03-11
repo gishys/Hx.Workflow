@@ -36,7 +36,8 @@ namespace Hx.Workflow.Application
                 input.Data,
                 input.ApplicationComponentType,
                 input.GroupId,
-                input.IsPublish
+                input.IsPublish,
+                input.Description
                 );
             if (input.Params?.Count > 0)
             {
@@ -78,6 +79,7 @@ namespace Hx.Workflow.Application
             await entity.SetData(input.Data);
             await entity.SetGroupId(input.GroupId);
             await entity.SetIsPublish(input.IsPublish);
+            await entity.SetDescription(input.Description);
             entity.Params.Clear();
             if (input.Params?.Count > 0)
             {

@@ -290,12 +290,13 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.Data).HasColumnName("DATA");
-                t.Property(d => d.ApplicationComponentType).HasColumnName("APPLICATIONCOMPONENTTYPE").HasPrecision(1);
+                t.Property(d => d.ApplicationComponentType).HasColumnName("APPLICATIONCOMPONENTTYPE").HasPrecision(ApplicationFormConsts.MaxApplicationComponentType);
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
                 t.Property(d => d.Name).HasColumnName("NAME").IsRequired().HasMaxLength(ApplicationFormConsts.MaxName);
                 t.Property(d => d.Title).HasColumnName("TITLE").IsRequired().HasMaxLength(ApplicationFormConsts.MaxTitle);
-                t.Property(d => d.ApplicationType).HasColumnName("APPLICATIONTYPE").HasPrecision(1);
+                t.Property(d => d.ApplicationType).HasColumnName("APPLICATIONTYPE").HasPrecision(ApplicationFormConsts.MaxApplicationType);
                 t.Property(d => d.IsPublish).HasColumnName("ISPUBLISH");
+                t.Property(d => d.Description).HasColumnName("DESCRIPTION").HasMaxLength(ApplicationFormConsts.MaxDescription);
 
                 t.OwnsMany(p => p.Params, param =>
                 {

@@ -31,5 +31,9 @@ namespace Hx.Workflow.Application.Contracts
         public ApplicationType ApplicationType { get; set; } = ApplicationType.Form;
         public ICollection<WkParamCreateDto> Params { get; set; }
         public bool IsPublish { get; set; }
+        /// <summary>
+        /// 描述
+        /// </summary>
+        public string? Description { get; set; }
     }
 }
