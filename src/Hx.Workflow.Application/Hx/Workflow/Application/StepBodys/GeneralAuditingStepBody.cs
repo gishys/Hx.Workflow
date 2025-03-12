@@ -20,7 +20,6 @@ namespace Hx.Workflow.Application.StepBodys
 {
     public class GeneralAuditingStepBody : StepBodyAsync, ITransientDependency
     {
-        private const string ActivityName = "GeneralAuditActivity";
         private readonly IWkAuditorRespository _wkAuditor;
         private readonly IWkInstanceRepository _wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition;

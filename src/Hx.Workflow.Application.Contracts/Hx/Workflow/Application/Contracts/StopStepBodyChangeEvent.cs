@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Hx.Workflow.Application.Contracts
 {
-    public class WkGeneralAuditStepBodyChangeEvent
+    public class StopStepBodyChangeEvent
     {
-        public WkGeneralAuditStepBodyChangeEvent(Guid workflowInstanceId, string reference, IDictionary<string, object> data)
+        public StopStepBodyChangeEvent(
+            Guid workflowInstanceId,
+            string reference,
+            IDictionary<string, object> data
+            )
         {
             WorkflowInstanceId = workflowInstanceId;
             Reference = reference;

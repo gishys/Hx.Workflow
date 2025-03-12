@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Hx.Workflow.Application.Contracts
 {
-    public class WkGeneralAuditStepBodyChangeEvent
+    public class StartStepBodyChangeEvent
     {
-        public WkGeneralAuditStepBodyChangeEvent(Guid workflowInstanceId, string reference, IDictionary<string, object> data)
+        public StartStepBodyChangeEvent(
+            Guid workflowInstanceId,
+            string reference,
+            IDictionary<string, object> data
+            )
         {
             WorkflowInstanceId = workflowInstanceId;
             Reference = reference;
