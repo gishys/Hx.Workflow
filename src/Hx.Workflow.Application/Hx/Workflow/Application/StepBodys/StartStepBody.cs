@@ -4,16 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-    public class StartStepBody : StepBodyAsync
+    public class StartStepBody : StepBodyAsync, ITransientDependency
     {
         private readonly ILocalEventBus _localEventBus;
         private readonly IWkInstanceRepository _wkInstance;
+        public const string Name = "StartStepBody";
+        public const string DisplayName = "开始";
         public StartStepBody(ILocalEventBus localEventBus, IWkInstanceRepository wkInstance)
         {
             _localEventBus = localEventBus;

@@ -46,5 +46,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(!string.IsNullOrEmpty(filter), d => d.Name.Contains(filter))
                 .CountAsync();
         }
+        public async Task<bool> AnyAsync(string typeFullName,CancellationToken cancellationToken = default)
+        {
+            return await (await GetDbSetAsync())
+                .AnyAsync(d => d.TypeFullName == typeFullName);
+        }
     }
 }

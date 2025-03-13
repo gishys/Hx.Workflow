@@ -25,6 +25,8 @@ namespace Hx.Workflow.Application.StepBodys
         private readonly IWkDefinitionRespository _wkDefinition;
         private readonly ILimitTimeManager _limitTimeManager;
         private readonly ILocalEventBus _localEventBus;
+        public const string Name = "GeneralAuditingStepBody";
+        public const string DisplayName = "指定用户审核";
         public GeneralAuditingStepBody(
             IWkAuditorRespository wkAuditor,
             IWkInstanceRepository wkInstance,

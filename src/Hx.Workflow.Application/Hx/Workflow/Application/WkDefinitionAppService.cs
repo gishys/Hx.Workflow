@@ -167,8 +167,11 @@ namespace Hx.Workflow.Application
                             throw new BusinessException(message: "StepBody没有查询到");
                         await node.SetWkStepBody(stepBodyEntity);
                     }
-                    node.ExtraProperties.Clear();
-                    inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
+                    if (node.ExtraProperties != null)
+                    {
+                        node.ExtraProperties.Clear();
+                        inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
+                    }
                 }
             }
             if (nodeEntitys != null && nodeEntitys.Count > 0)
