@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
@@ -43,6 +44,12 @@ namespace Hx.Workflow.Api
         public Task UpdateAsync(WkStepBodyUpdateDto input)
         {
             return WkStepBody.UpdateAsync(input);
+        }
+        [HttpGet]
+        [Route("all")]
+        public Task<List<WkStepBodyDto>> GetAllAsync()
+        {
+            return WkStepBody.GetAllAsync();
         }
     }
 }

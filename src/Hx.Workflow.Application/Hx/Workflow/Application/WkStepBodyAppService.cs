@@ -78,5 +78,10 @@ namespace Hx.Workflow.Application
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _wkStepBody.UpdateAsync(entity);
         }
+        public virtual async Task<List<WkStepBodyDto>> GetAllAsync()
+        {
+            var entity = await _wkStepBody.GetListAsync();
+            return ObjectMapper.Map<List<WkStepBody>, List<WkStepBodyDto>>(entity);
+        }
     }
 }

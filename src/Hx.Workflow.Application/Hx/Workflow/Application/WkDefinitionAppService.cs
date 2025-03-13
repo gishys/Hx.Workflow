@@ -2,6 +2,7 @@
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Shared;
 using NUglify.Helpers;
 using System;
 using System.Linq;
@@ -71,15 +72,8 @@ namespace Hx.Workflow.Application
             {
                 foreach (var node in nodeEntitys)
                 {
-                    var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name).WkStepBodyId;
-                    if (wkStepBodyId?.Length > 0)
-                    {
-                        Guid.TryParse(wkStepBodyId, out Guid guidStepBodyId);
-                        var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
-                        if (stepBodyEntity == null)
-                            throw new BusinessException(message: "StepBody没有查询到");
-                        await node.SetWkStepBody(stepBodyEntity);
-                    }
+                    var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name)?.WkStepBodyId;
+                    await node.SetWkStepBody(await GetStepBodyByIdAsync(wkStepBodyId, node.StepNodeType));
                     await entity.AddWkNode(node);
                 }
             }
@@ -118,14 +112,7 @@ namespace Hx.Workflow.Application
                 foreach (var node in nodeEntitys)
                 {
                     var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
-                    if (!string.IsNullOrEmpty(inputNode.WkStepBodyId))
-                    {
-                        Guid.TryParse(inputNode.WkStepBodyId, out Guid guidStepBodyId);
-                        var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
-                        if (stepBodyEntity == null)
-                            throw new BusinessException(message: "StepBody没有查询到");
-                        await node.SetWkStepBody(stepBodyEntity);
-                    }
+                    await node.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, node.StepNodeType));
                     node.ExtraProperties.Clear();
                     inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
                 }
@@ -144,6 +131,41 @@ namespace Hx.Workflow.Application
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.UpdateAsync(entity);
+        }
+        public async Task<WkStepBody> GetStepBodyByIdAsync(string id, StepNodeType type)
+        {
+            if (type == StepNodeType.Start || type == StepNodeType.End)
+            {
+                WkStepBody stepBody;
+                if (string.IsNullOrEmpty(id))
+                {
+                    string stepName = type == StepNodeType.Start
+                    ? "StartStepBody"
+                    : "StopStepBody";
+                    stepBody = await _wkStepBody.GetStepBodyAsync(stepName);
+                    return stepBody ?? throw new UserFriendlyException($"未找到预定义的 {stepName} 实体。");
+                }
+                if (!Guid.TryParse(id, out Guid stepBodyId))
+                {
+                    throw new ArgumentException($"参数 {nameof(id)} 不是有效的 Guid 格式。");
+                }
+                stepBody = await _wkStepBody.FindAsync(stepBodyId);
+                return stepBody ?? throw new UserFriendlyException($"未找到 ID 为 {id} 的 stepbody 实体。");
+            }
+            if (type == StepNodeType.Activity)
+            {
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    throw new UserFriendlyException("Activity 类型必须提供有效的 WkStepBodyId。");
+                }
+                if (!Guid.TryParse(id, out Guid stepBodyId))
+                {
+                    throw new ArgumentException($"参数 {nameof(id)} 不是有效的 Guid 格式。");
+                }
+                WkStepBody stepBody = await _wkStepBody.FindAsync(stepBodyId);
+                return stepBody ?? throw new UserFriendlyException($"未找到 ID 为 {id} 的 stepbody 实体。");
+            }
+            throw new ArgumentException($"不支持的节点类型：{type}。");
         }
         /// <summary>
         /// 更新模板

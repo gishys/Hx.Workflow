@@ -5,6 +5,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkStepBodyDto : ExtensibleObject
     {
+        public string Id {  get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public ICollection<WkStepBodyParamDto> Inputs { get; set; }
