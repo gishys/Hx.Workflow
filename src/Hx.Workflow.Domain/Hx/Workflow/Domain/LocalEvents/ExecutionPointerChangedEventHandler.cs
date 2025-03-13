@@ -1,5 +1,6 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -23,12 +24,14 @@ namespace Hx.Workflow.Domain.LocalEvents
         private readonly IServiceProvider _serviceProvider;
         private readonly IHubContext<WorkflowInstanceHub> _workflowInstanceHub;
         private readonly IWkSubscriptionRepository _wkSubscriptionRepository;
+        private readonly IWkDefinitionRespository _wkDefinitionRespository;
         public ExecutionPointerChangedEventHandler(
             IWkExecutionPointerRepository wkExecutionPointer,
             IWkEventRepository wkEventRepository,
             IServiceProvider serviceProvider,
             IHubContext<WorkflowInstanceHub> workflowInstanceHub,
-            IWkSubscriptionRepository wkSubscriptionRepository
+            IWkSubscriptionRepository wkSubscriptionRepository,
+            IWkDefinitionRespository wkDefinitionRespository
             )
         {
             _wkExecutionPointer = wkExecutionPointer;
@@ -36,6 +39,7 @@ namespace Hx.Workflow.Domain.LocalEvents
             _serviceProvider = serviceProvider;
             _workflowInstanceHub = workflowInstanceHub;
             _wkSubscriptionRepository = wkSubscriptionRepository;
+            _wkDefinitionRespository = wkDefinitionRespository;
         }
 
         public async Task HandleEventAsync(
@@ -57,9 +61,10 @@ namespace Hx.Workflow.Domain.LocalEvents
                     await _wkExecutionPointer.UpdateAsync(eventData.Entity);
                 }
             }
-            //流程创建后通知客户端初始化完成
-            if (eventData.Entity.Status != PointerStatus.Complete
-                && eventData.Entity.StepId == 0)
+            //流程创建后通知客户端初始化完成，只提示第一个活动节点
+            var def = await _wkDefinitionRespository.FindAsync(eventData.Entity.WkInstance.WkDifinitionId);
+            var nodes = def.Nodes.Count(d => eventData.Entity.WkInstance.ExecutionPointers.Any(e => e.StepName == d.Name && d.StepNodeType == StepNodeType.Activity));
+            if (nodes == 1)
             {
                 var subscriptions = await _wkSubscriptionRepository.GetSubscriptionsByExecutionPointerAsync(eventData.Entity.Id);
                 if (subscriptions.Any(d => d.ExternalToken == null))
@@ -67,7 +72,8 @@ namespace Hx.Workflow.Domain.LocalEvents
                     if (eventData.Entity.WkInstance.CreatorId.HasValue)
                     {
                         await _workflowInstanceHub.Clients.User(
-                            eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted", eventData.Entity.WkInstanceId);
+                            eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",
+                            new { eventData.Entity.WkInstanceId, eventData.Entity.Status });
                     }
                 }
             }
