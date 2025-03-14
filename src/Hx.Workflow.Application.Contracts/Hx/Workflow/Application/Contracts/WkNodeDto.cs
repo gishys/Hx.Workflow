@@ -46,7 +46,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 表单集合
         /// </summary>
-        public virtual ICollection<ApplicationFormDto> ApplicationForms { get; set; }
+        public virtual ICollection<WkNode_ApplicationFormsDto> ApplicationForms { get; set; }
         /// <summary>
         /// 节点条件
         /// </summary>

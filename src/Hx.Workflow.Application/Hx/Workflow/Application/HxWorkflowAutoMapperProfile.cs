@@ -21,8 +21,8 @@ namespace Hx.Workflow.Application
             CreateMap<WkStepBody, WkStepBodyDto>(MemberList.Destination);
             CreateMap<WkStepBodyParam, WkStepBodyParamDto>(MemberList.Destination);
             CreateMap<WkDefinition, WkDefinitionDto>(MemberList.Destination);
-            CreateMap<WkNode, WkNodeDto>(MemberList.Destination)
-                .ForMember(d => d.ApplicationForms, d => d.MapFrom(f => f.ApplicationForms.Select(a => a.ApplicationForm)));
+            CreateMap<WkNode, WkNodeDto>(MemberList.Destination);
+            CreateMap<WkNode_ApplicationForms, WkNode_ApplicationFormsDto>(MemberList.Destination);
             CreateMap<ApplicationForm, ApplicationFormDto>(MemberList.Destination);
             CreateMap<WkConditionNode, WkConditionNodeDto>(MemberList.Destination);
             CreateMap<WkConNodeCondition, WkConNodeConditionDto>(MemberList.Destination);

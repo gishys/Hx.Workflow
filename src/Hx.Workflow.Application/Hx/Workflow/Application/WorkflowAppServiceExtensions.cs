@@ -72,14 +72,32 @@ namespace Hx.Workflow.Application
                             candidate.DefaultSelection));
                     }
                 }
+                if (node.Materials?.Count > 0)
+                {
+                    foreach (var ma in node.Materials)
+                    {
+                        nodeEntity.AddMaterails(new WkNodeMaterials(
+                            ma.AttachReceiveType,
+                            ma.ReferenceType,
+                            ma.CatalogueName,
+                            ma.SequenceNumber,
+                            ma.IsRequired,
+                            ma.IsStatic,
+                            ma.IsVerification,
+                            ma.VerificationPassed));
+                    }
+                }
                 if (node.ApplicationForms?.Count > 0)
                 {
                     foreach (var form in node.ApplicationForms)
                     {
                         var ps = new List<WkParam>();
-                        foreach (var param in form.Params)
+                        if (form.Params?.Count > 0)
                         {
-                            ps.Add(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
+                            foreach (var param in form.Params)
+                            {
+                                ps.Add(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
+                            }
                         }
                         nodeEntity.AddApplicationForms(form.ApplicationFormId, form.SequenceNumber, ps);
                     }

@@ -134,6 +134,11 @@ namespace Hx.Workflow.Domain
             WkCandidates.Add(para);
             return Task.CompletedTask;
         }
+        public Task AddMaterials(WkNodeMaterials para)
+        {
+            Materials.Add(para);
+            return Task.CompletedTask;
+        }
         public Task AddApplicationForms(Guid applicationId, int sequenceNumber, ICollection<WkParam> ps)
         {
             ApplicationForms.Add(new WkNode_ApplicationForms(applicationId, sequenceNumber, ps));

@@ -37,5 +37,6 @@ namespace Hx.Workflow.Application.Contracts
         public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
         public ICollection<NodeAddApplicationFormDto> ApplicationForms { get; set; }
         public ICollection<WkParamCreateDto> Params { get; set; }
+        public ICollection<WkNodeMaterialsDto> Materials { get; set; }
     }
 }
