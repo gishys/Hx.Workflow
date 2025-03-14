@@ -133,14 +133,12 @@ namespace Hx.Workflow.Domain
         /// <returns></returns>
         public virtual async Task UpdateAsync(WkDefinition entity)
         {
-            var wkDefinitionSource = await _wkDefinitionRespository.FindAsync(entity.Id);
-
+            var wkDefinitionSource = await _wkDefinitionRespository.UpdateAsync(entity);
             if (_registry.IsRegistered(entity.Id.ToString(), entity.Version))
             {
                 _registry.DeregisterWorkflow(entity.Id.ToString(), entity.Version);
             }
             LoadDefinitionByJson(wkDefinitionSource);
-            await _wkDefinitionRespository.UpdateAsync(entity);
         }
         /// <summary>
         /// 启动工作流

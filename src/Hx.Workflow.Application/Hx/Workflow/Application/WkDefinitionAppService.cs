@@ -113,8 +113,11 @@ namespace Hx.Workflow.Application
                 {
                     var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
                     await node.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, node.StepNodeType));
-                    node.ExtraProperties.Clear();
-                    inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
+                    if (node.ExtraProperties != null)
+                    {
+                        node.ExtraProperties.Clear();
+                        inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
+                    }
                 }
             }
             if (nodeEntitys != null && nodeEntitys.Count > 0)
@@ -181,14 +184,7 @@ namespace Hx.Workflow.Application
                 foreach (var node in nodeEntitys)
                 {
                     var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
-                    if (!string.IsNullOrEmpty(inputNode.WkStepBodyId))
-                    {
-                        Guid.TryParse(inputNode.WkStepBodyId, out Guid guidStepBodyId);
-                        var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
-                        if (stepBodyEntity == null)
-                            throw new BusinessException(message: "StepBody没有查询到");
-                        await node.SetWkStepBody(stepBodyEntity);
-                    }
+                    await node.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, node.StepNodeType));
                     if (node.ExtraProperties != null)
                     {
                         node.ExtraProperties.Clear();
@@ -209,6 +205,7 @@ namespace Hx.Workflow.Application
             }
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+            //await _definitionRespository.UpdateAsync(entity);
             await _hxWorkflowManager.UpdateAsync(entity);
         }
         /// <summary>

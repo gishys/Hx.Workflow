@@ -21,5 +21,17 @@ namespace Hx.Workflow.Domain
             Operator = tOperator;
             Value = value;
         }
+        public WkConNodeCondition(
+            Guid id,
+            string field,
+            string tOperator,
+            string value
+            )
+        {
+            Id = id;
+            Field = field;
+            Operator = tOperator;
+            Value = value;
+        }
     }
 }

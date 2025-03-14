@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Volo.Abp;
+using Volo.Abp.Guids;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application

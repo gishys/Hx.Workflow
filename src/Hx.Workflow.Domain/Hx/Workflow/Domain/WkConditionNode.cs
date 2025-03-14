@@ -25,6 +25,18 @@ namespace Hx.Workflow.Domain
             NextNodeName = nextNodeName;
             WkConNodeConditions = new List<WkConNodeCondition>();
         }
+        public WkConditionNode(
+            Guid id,
+            string nextNodeName,
+            WkRoleNodeType nodeType,
+            string label = "")
+        {
+            Id = id;
+            Label = label;
+            NodeType = nodeType;
+            NextNodeName = nextNodeName;
+            WkConNodeConditions = new List<WkConNodeCondition>();
+        }
         public Task AddConNodeCondition(WkConNodeCondition condition)
         {
             WkConNodeConditions.Add(condition);

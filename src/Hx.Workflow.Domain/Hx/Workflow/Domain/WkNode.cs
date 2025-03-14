@@ -94,6 +94,30 @@ namespace Hx.Workflow.Domain
             WkCandidates = new List<WkNodeCandidate>();
             ApplicationForms = new List<WkNode_ApplicationForms>();
             Materials = new List<WkNodeMaterials>();
+            ExtraProperties = new ExtraPropertyDictionary();
+        }
+        public WkNode(
+            Guid id,
+            string name,
+            string displayName,
+            StepNodeType stepNodeType,
+            int version,
+            int sortNumber,
+            int? limitTime = null)
+        {
+            Id = id;
+            Name = name;
+            DisplayName = displayName;
+            StepNodeType = stepNodeType;
+            Version = version;
+            LimitTime = limitTime;
+            SortNumber = sortNumber;
+            NextNodes = new List<WkConditionNode>();
+            OutcomeSteps = new List<WkNodePara>();
+            WkCandidates = new List<WkNodeCandidate>();
+            ApplicationForms = new List<WkNode_ApplicationForms>();
+            Materials = new List<WkNodeMaterials>();
+            ExtraProperties = new ExtraPropertyDictionary();
         }
         public Task SetStepName(string name)
         {
