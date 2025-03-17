@@ -1,6 +1,5 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
-using Hx.Workflow.Domain.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -62,9 +61,7 @@ namespace Hx.Workflow.Domain.LocalEvents
                 }
             }
             //流程创建后通知客户端初始化完成，只提示第一个活动节点
-            var def = await _wkDefinitionRespository.FindAsync(eventData.Entity.WkInstance.WkDifinitionId);
-            var nodes = def.Nodes.Count(d => eventData.Entity.WkInstance.ExecutionPointers.Any(e => e.StepName == d.Name && d.StepNodeType == StepNodeType.Activity));
-            if (nodes == 1)
+            if (eventData.Entity.WkInstance.ExecutionPointers.Count(d => d.EventPublished) == 1)
             {
                 var subscriptions = await _wkSubscriptionRepository.GetSubscriptionsByExecutionPointerAsync(eventData.Entity.Id);
                 if (subscriptions.Any(d => d.ExternalToken == null))

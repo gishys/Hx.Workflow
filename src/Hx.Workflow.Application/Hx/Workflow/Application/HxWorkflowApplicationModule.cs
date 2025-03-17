@@ -53,6 +53,8 @@ namespace Hx.Workflow.Application
                 ];
                 foreach (var stepbody in stepbodys)
                 {
+                    if (string.IsNullOrEmpty(stepbody.Name) || string.IsNullOrEmpty(stepbody.DisplayName))
+                        continue;
                     if (!await stepbodyRespository.AnyAsync(stepbody.TypeFullName))
                     {
                         var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, "", ps, stepbody.TypeFullName, stepbody.AssemblyFullName);

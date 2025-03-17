@@ -60,5 +60,7 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public virtual ICollection<WkCandidateDto> WkCandidates { get; set; }
         public virtual ICollection<WkParamDto> Params { get; set; }
+        public ICollection<WkNodeParaDto> OutcomeSteps { get; set; }
+        public ICollection<WkNodeMaterialsDto> Materials { get; set; }
     }
 }

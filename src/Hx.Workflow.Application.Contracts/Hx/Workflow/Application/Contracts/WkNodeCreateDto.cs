@@ -1,7 +1,5 @@
 ﻿using Hx.Workflow.Domain.Shared;
-using System;
 using System.Collections.Generic;
-using Volo.Abp.Data;
 using Volo.Abp.ObjectExtending;
 
 namespace Hx.Workflow.Application.Contracts
