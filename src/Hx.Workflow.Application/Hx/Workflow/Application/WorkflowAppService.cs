@@ -7,6 +7,7 @@ using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
 using NUglify.Helpers;
+using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -582,6 +583,25 @@ namespace Hx.Workflow.Application
             {
                 throw new UserFriendlyException("获取当前用户失败！");
             }
+        }
+        /// <summary>
+        /// update execution pointer data
+        /// </summary>
+        /// <param name="executionPointerId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        public virtual async Task SaveExecutionPointerDataAsync(Guid executionPointerId, IDictionary<string, object> data)
+        {
+            var entity = await _wkExecutionPointerRepository.FindAsync(executionPointerId);
+            if (entity == null) throw new UserFriendlyException("执行点不存在！");
+            foreach (var item in data)
+            {
+                entity.ExtensionAttributes.RemoveAll(d => d.AttributeKey == item.Key);
+                var persistedAttr = new WkExtensionAttribute(item.Key, JsonSerializer.Serialize(item.Value));
+                await entity.SetExtensionAttributes(persistedAttr);
+            }
+            await _wkExecutionPointerRepository.UpdateAsync(entity);
         }
     }
 }

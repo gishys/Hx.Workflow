@@ -215,7 +215,6 @@ namespace Hx.Workflow.Domain
                     if (persistedAttr == null)
                     {
                         persistedAttr = new WkExtensionAttribute(
-
                             attr.Key,
                             JsonConvert.SerializeObject(attr.Value, SerializerSettings));
                     }

@@ -91,5 +91,13 @@ namespace Hx.Workflow.Application.Contracts
         /// <param name="data"></param>
         /// <returns></returns>
         Task UpdateExecutionPointerDataAsync(Guid pointerId, IDictionary<string, object> data);
+        /// <summary>
+        /// update execution pointer data
+        /// </summary>
+        /// <param name="executionPointerId"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        Task SaveExecutionPointerDataAsync(Guid executionPointerId, IDictionary<string, object> data);
     }
 }

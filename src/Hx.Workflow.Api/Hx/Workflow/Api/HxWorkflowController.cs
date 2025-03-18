@@ -229,5 +229,11 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.GetAuditAsync(executionPointerId);
         }
+        [HttpPut]
+        [Route("workflow/data")]
+        public Task UpdateAsync(Guid executionPointerId, IDictionary<string, object> data)
+        {
+            return _workflowAppService.SaveExecutionPointerDataAsync(executionPointerId, data);
+        }
     }
 }
