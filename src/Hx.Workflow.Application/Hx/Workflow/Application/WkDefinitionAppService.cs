@@ -110,8 +110,6 @@ namespace Hx.Workflow.Application
                         candidate.DefaultSelection));
                 }
             }
-            entity.ExtraProperties.Clear();
-            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.UpdateAsync(entity);
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
