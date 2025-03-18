@@ -5,6 +5,7 @@ using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using NUglify.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -86,7 +87,7 @@ namespace Hx.Workflow.Application
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual async Task UpdateAsync(WkDefinitionUpdateDto input)
+        public virtual async Task<WkDefinitionDto> UpdateAsync(WkDefinitionUpdateDto input)
         {
             var entity = await _definitionRespository.FindAsync(input.Id);
             await entity.SetVersion(input.Version);
@@ -97,43 +98,22 @@ namespace Hx.Workflow.Application
             await entity.SetProcessType(input.ProcessType);
             await entity.SetEnabled(input.IsEnabled);
             entity.WkCandidates.Clear();
-            foreach (var candidate in input.WkCandidates)
+            if (input.WkCandidates?.Count > 0)
             {
-                entity.WkCandidates.Add(new DefinitionCandidate(
-                    candidate.CandidateId,
-                    candidate.UserName,
-                    candidate.DisplayUserName,
-                    candidate.ExecutorType,
-                    candidate.DefaultSelection));
-            }
-            var nodeEntitys = input.Nodes?.ToWkNodes();
-            if (nodeEntitys != null && nodeEntitys.Count > 0)
-            {
-                foreach (var node in nodeEntitys)
+                foreach (var candidate in input.WkCandidates)
                 {
-                    var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
-                    await node.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, node.StepNodeType));
-                    if (node.ExtraProperties != null)
-                    {
-                        node.ExtraProperties.Clear();
-                        inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
-                    }
+                    entity.WkCandidates.Add(new DefinitionCandidate(
+                        candidate.CandidateId,
+                        candidate.UserName,
+                        candidate.DisplayUserName,
+                        candidate.ExecutorType,
+                        candidate.DefaultSelection));
                 }
-            }
-            if (nodeEntitys != null && nodeEntitys.Count > 0)
-                await entity.UpdateNodes(nodeEntitys);
-            if (entity.LimitTime < entity.Nodes.Sum(d => d.LimitTime))
-            {
-                throw new UserFriendlyException("节点限制时间合计值不能大于流程限制时间！");
-            }
-            var count = entity.Nodes.GroupBy(p => p.Name).Where(g => g.Count() > 1).Select(g => g.Key);
-            if (count.Count() > 0)
-            {
-                throw new UserFriendlyException("节点名称{Name}不能重复！");
             }
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.UpdateAsync(entity);
+            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
         public async Task<WkStepBody> GetStepBodyByIdAsync(string id, StepNodeType type)
         {
@@ -175,7 +155,7 @@ namespace Hx.Workflow.Application
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual async Task UpdateAsync(DefinitionNodeUpdateDto input)
+        public virtual async Task<List<WkNodeDto>> UpdateAsync(DefinitionNodeUpdateDto input)
         {
             var entity = await _definitionRespository.FindAsync(input.Id);
             var nodeEntitys = input.Nodes.ToWkNodes();
@@ -205,8 +185,8 @@ namespace Hx.Workflow.Application
             }
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
-            //await _definitionRespository.UpdateAsync(entity);
             await _hxWorkflowManager.UpdateAsync(entity);
+            return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>(entity.Nodes.ToList());
         }
         /// <summary>
         /// 通过Id获取实体

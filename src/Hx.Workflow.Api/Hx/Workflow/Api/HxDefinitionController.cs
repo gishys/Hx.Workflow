@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -21,13 +22,13 @@ namespace Hx.Workflow.Api
             return _appService.CreateAsync(input);
         }
         [HttpPut]
-        public Task UpdateAsync(WkDefinitionUpdateDto input)
+        public Task<WkDefinitionDto> UpdateAsync(WkDefinitionUpdateDto input)
         {
             return _appService.UpdateAsync(input);
         }
         [HttpPut]
         [Route("nodes")]
-        public Task UpdateAsync(DefinitionNodeUpdateDto input)
+        public Task<List<WkNodeDto>> UpdateAsync(DefinitionNodeUpdateDto input)
         {
             return _appService.UpdateAsync(input);
         }

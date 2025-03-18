@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Hx.Workflow.Application.Contracts
@@ -11,13 +12,13 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        Task UpdateAsync(WkDefinitionUpdateDto input);
+        Task<WkDefinitionDto> UpdateAsync(WkDefinitionUpdateDto input);
         /// <summary>
         /// 更新模板
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        Task UpdateAsync(DefinitionNodeUpdateDto input);
+        Task<List<WkNodeDto>> UpdateAsync(DefinitionNodeUpdateDto input);
         /// <summary>
         /// 通过Id获取实体
         /// </summary>
