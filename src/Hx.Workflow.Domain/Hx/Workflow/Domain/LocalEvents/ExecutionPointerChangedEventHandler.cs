@@ -63,7 +63,8 @@ namespace Hx.Workflow.Domain.LocalEvents
             //流程创建后通知客户端初始化完成
             if (eventData.Entity.WkInstance.CreatorId.HasValue)
             {
-                var step = eventData.Entity.WkInstance.WkDefinition.Nodes.First(d => d.Name == eventData.Entity.StepName);
+                var definition = await _wkDefinitionRespository.FindAsync(eventData.Entity.WkInstance.WkDifinitionId);
+                var step = definition.Nodes.First(d => d.Name == eventData.Entity.StepName);
                 await _workflowInstanceHub.Clients.User(
                                 eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",
                                 new
