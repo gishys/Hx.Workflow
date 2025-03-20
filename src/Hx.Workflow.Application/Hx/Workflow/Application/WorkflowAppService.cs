@@ -277,17 +277,21 @@ namespace Hx.Workflow.Application
             while (instance.ExecutionPointers.Any(d => d.PredecessorId == preId))
             {
                 var node = instance.ExecutionPointers.First(d => d.PredecessorId == preId);
-                result.Add(new WkNodeTreeDto()
+                var defNode = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName);
+                if (defNode.StepNodeType == StepNodeType.Activity)
                 {
-                    Key = node.Id,
-                    Title = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName).DisplayName,
-                    Selected = node.Status != PointerStatus.Complete,
-                    Name = node.StepName,
-                    Receiver = node.Recipient,
-                    CommitmentDeadline = node.CommitmentDeadline,
-                    Status = (int)node.Status,
-                    WkCandidates = ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
-                });
+                    result.Add(new WkNodeTreeDto()
+                    {
+                        Key = node.Id,
+                        Title = defNode.DisplayName,
+                        Selected = node.Status != PointerStatus.Complete,
+                        Name = node.StepName,
+                        Receiver = node.Recipient,
+                        CommitmentDeadline = node.CommitmentDeadline,
+                        Status = (int)node.Status,
+                        WkCandidates = ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
+                    });
+                }
                 preId = node.Id.ToString();
             }
             return result;

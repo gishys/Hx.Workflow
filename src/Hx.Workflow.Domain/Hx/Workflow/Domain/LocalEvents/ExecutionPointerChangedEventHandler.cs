@@ -16,7 +16,7 @@ namespace Hx.Workflow.Domain.LocalEvents
 {
     [LocalEventHandlerOrder(10)]
     public class ExecutionPointerChangedEventHandler
-    : ILocalEventHandler<EntityCreatedEventData<WkExecutionPointer>>, ITransientDependency
+    : ILocalEventHandler<EntityChangedEventData<WkExecutionPointer>>, ITransientDependency
     {
         private readonly IWkExecutionPointerRepository _wkExecutionPointer;
         private readonly IWkEventRepository _eventRepository;
@@ -42,7 +42,7 @@ namespace Hx.Workflow.Domain.LocalEvents
         }
 
         public async Task HandleEventAsync(
-            EntityCreatedEventData<WkExecutionPointer> eventData)
+            EntityChangedEventData<WkExecutionPointer> eventData)
         {
             if (eventData.Entity.Status == PointerStatus.Complete)
             {
@@ -60,19 +60,20 @@ namespace Hx.Workflow.Domain.LocalEvents
                     await _wkExecutionPointer.UpdateAsync(eventData.Entity);
                 }
             }
-            //流程创建后通知客户端初始化完成，只提示第一个活动节点
-            if (eventData.Entity.WkInstance.ExecutionPointers.Count(d => d.EventPublished) == 1)
+            //流程创建后通知客户端初始化完成
+            if (eventData.Entity.WkInstance.CreatorId.HasValue)
             {
-                var subscriptions = await _wkSubscriptionRepository.GetSubscriptionsByExecutionPointerAsync(eventData.Entity.Id);
-                if (subscriptions.Any(d => d.ExternalToken == null))
-                {
-                    if (eventData.Entity.WkInstance.CreatorId.HasValue)
-                    {
-                        await _workflowInstanceHub.Clients.User(
-                            eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",
-                            new { eventData.Entity.WkInstanceId, eventData.Entity.Status });
-                    }
-                }
+                var step = eventData.Entity.WkInstance.WkDefinition.Nodes.First(d => d.Name == eventData.Entity.StepName);
+                await _workflowInstanceHub.Clients.User(
+                                eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",
+                                new
+                                {
+                                    eventData.Entity.WkInstanceId,
+                                    eventData.Entity.Status,
+                                    StepTitle = step.DisplayName,
+                                    step.StepNodeType,
+                                    eventData.Entity.Active
+                                });
             }
         }
     }

@@ -167,7 +167,14 @@ namespace Hx.Workflow.Application
         {
             var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
             var currentPointerDto = ObjectMapper.Map<WkExecutionPointer, WkExecutionPointerDto>(pointer);
-            currentPointerDto.Forms = ObjectMapper.Map<ICollection<ApplicationForm>, ICollection<ApplicationFormDto>>(step.ApplicationForms.OrderBy(d => d.SequenceNumber).Select(d => d.ApplicationForm).ToList());
+            var forms = new List<ApplicationFormDto>();
+            foreach (var form in step.ApplicationForms.OrderBy(d => d.SequenceNumber))
+            {
+                var f = ObjectMapper.Map<ApplicationForm, ApplicationFormDto>(form.ApplicationForm);
+                f.Params = ObjectMapper.Map<ICollection<WkParam>, ICollection<WkParamDto>>(form.Params);
+                forms.Add(f);
+            }
+            currentPointerDto.Forms = forms;
             currentPointerDto.StepDisplayName = step.DisplayName;
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
             currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());
