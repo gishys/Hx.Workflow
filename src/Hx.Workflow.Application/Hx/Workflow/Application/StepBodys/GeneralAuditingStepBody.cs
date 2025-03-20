@@ -52,6 +52,11 @@ namespace Hx.Workflow.Application.StepBodys
         {
             try
             {
+                if (string.IsNullOrEmpty(Candidates))
+                {
+                    if ((context.Workflow.Data as IDictionary<string, object>).ContainsKey("Candidates"))
+                        Candidates = (context.Workflow.Data as IDictionary<string, object>)["Candidates"]?.ToString();
+                }
                 var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
                 try
                 {
@@ -120,11 +125,6 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     if (!beRolledBack)
                     {
-                        if (string.IsNullOrEmpty(Candidates))
-                        {
-                            if ((context.Workflow.Data as IDictionary<string, object>).ContainsKey("Candidates"))
-                                Candidates = (context.Workflow.Data as IDictionary<string, object>)["Candidates"]?.ToString();
-                        }
                         if (pointer.StepNodeType == StepNodeType.Activity || pointer.StepNodeType == StepNodeType.End)
                         {
                             if (!string.IsNullOrEmpty(Candidates))
