@@ -43,6 +43,7 @@ namespace Hx.Workflow.Domain.Repositories
         /// <returns></returns>
         Task<int> GetMaxNumberAsync();
         Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId);
+        Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId, string recepient, Guid recepientId);
         /// <summary>
         /// 流程实例添加业务数据
         /// </summary>

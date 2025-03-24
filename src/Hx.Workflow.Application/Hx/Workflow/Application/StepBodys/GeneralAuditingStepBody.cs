@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Users;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -98,9 +99,10 @@ namespace Hx.Workflow.Application.StepBodys
                         throw new UserFriendlyException("获取流程节点失败！");
                     List<WkNodeCandidate> dcandidate = null;
                     bool beRolledBack = false;
-                    //回退逻辑
+
                     if (executionPointer.PredecessorId != null)
                     {
+                        //回退逻辑
                         var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId);
                         if (preNode == null)
                         {
@@ -162,11 +164,27 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     if (dcandidate != null)
                     {
-                        await _wkInstance.UpdateCandidateAsync(
+
+                        if (executionPointer.PredecessorId != null)
+                        {
+                            var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId);
+                            var preStep = definition.Nodes.FirstOrDefault(d => d.Name == preNode.StepName);
+                            if (preStep.StepNodeType == StepNodeType.Start)
+                            {
+                                var cs = dcandidate.ToCandidates();
+                                cs.First().SetParentState(ExeCandidateState.Pending);
+                                await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, cs, ExePersonnelOperateType.Host);
+                                await _wkInstance.RecipientExePointerAsync(instance.Id, executionPointer.Id, cs.First().UserName, cs.First().CandidateId);
+                            }
+                        }
+                        else
+                        {
+                            await _wkInstance.UpdateCandidateAsync(
                             instance.Id,
                             executionPointer.Id,
                             dcandidate.ToCandidates(),
                             ExePersonnelOperateType.Host);
+                        }
                     }
                     else
                     {

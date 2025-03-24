@@ -338,6 +338,13 @@ namespace Hx.Workflow.EntityFrameworkCore
             await exePointer.SetRecipientInfo(candidate.UserName, currentUserId);
             return await UpdateAsync(instance);
         }
+        public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId, string recepient, Guid recepientId)
+        {
+            var instance = await FindAsync(workflowId);
+            var exePointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
+            await exePointer.SetRecipientInfo(recepient, recepientId);
+            return await UpdateAsync(instance);
+        }
         /// <summary>
         /// 流程实例添加业务数据
         /// </summary>
