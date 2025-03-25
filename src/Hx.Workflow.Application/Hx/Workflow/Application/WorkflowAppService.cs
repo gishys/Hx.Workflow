@@ -193,7 +193,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = [CurrentUser.Id.Value];
             }
-            //userIds = [new Guid("3a140076-3f3e-0ae6-56ad-2c3f1c06508f")];
+            userIds = [new Guid("3a140076-3f3e-0ae6-56ad-2c3f1c06508f")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds,

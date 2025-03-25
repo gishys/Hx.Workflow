@@ -132,7 +132,7 @@ namespace Hx.Workflow.Application
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             //如果节点不是已完成状态则获取当前节点（后续需要确定其他状态的含义）
             WkExecutionPointer pointer = instance.ExecutionPointers.FirstOrDefault(d => d.Status != PointerStatus.Complete);
-            var step = pointer != null ? instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName) : null;
+            var step = pointer != null ? instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == pointer.StepName) : null;
             var processInstance = new WkProcessInstanceDto
             {
                 Id = instance.Id,

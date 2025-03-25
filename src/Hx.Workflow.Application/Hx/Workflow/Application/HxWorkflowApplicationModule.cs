@@ -35,28 +35,28 @@ namespace Hx.Workflow.Application
                 var stepbodyRespository = scope.ServiceProvider.GetService<IWkStepBodyRespository>();
                 var stepbodys = ReflectionHelper.GetStepBodyAsyncDerivatives();
                 var sList = new List<WkStepBody>();
-                List<WkStepBodyParam> ps = [
-                    new WkStepBodyParam(
-                Guid.NewGuid(),
-                "Candidates",
-                "Candidates",
-                "审核人",
-                "data.Candidates",
-                StepBodyParaType.Inputs),
-                new WkStepBodyParam(
-                Guid.NewGuid(),
-                "DecideBranching",
-                "DecideBranching",
-                "步骤分支",
-                "step.DecideBranching",
-                StepBodyParaType.Outputs),
-                ];
                 foreach (var stepbody in stepbodys)
                 {
                     if (string.IsNullOrEmpty(stepbody.Name) || string.IsNullOrEmpty(stepbody.DisplayName))
                         continue;
                     if (!await stepbodyRespository.AnyAsync(stepbody.TypeFullName))
                     {
+                        List<WkStepBodyParam> ps = [
+                            new WkStepBodyParam(
+                                Guid.NewGuid(),
+                                "Candidates",
+                                "Candidates",
+                                "审核人",
+                                "data.Candidates",
+                                StepBodyParaType.Inputs),
+                                new WkStepBodyParam(
+                                Guid.NewGuid(),
+                                "DecideBranching",
+                                "DecideBranching",
+                                "步骤分支",
+                                "step.DecideBranching",
+                StepBodyParaType.Outputs),
+                ];
                         var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, "", ps, stepbody.TypeFullName, stepbody.AssemblyFullName);
                         if (!sList.Any(d => d.Name == s.Name))
                             sList.Add(s);
