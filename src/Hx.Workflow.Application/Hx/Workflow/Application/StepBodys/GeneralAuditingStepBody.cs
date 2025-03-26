@@ -162,34 +162,39 @@ namespace Hx.Workflow.Application.StepBodys
                         defCandidate.DefaultSelection)];
                         }
                     }
-                    if (dcandidate != null)
-                    {
-
-                        if (executionPointer.PredecessorId != null)
-                        {
-                            var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId);
-                            var preStep = definition.Nodes.FirstOrDefault(d => d.Name == preNode.StepName);
-                            if (preStep.StepNodeType == StepNodeType.Start)
-                            {
-                                var cs = dcandidate.ToCandidates();
-                                cs.First().SetParentState(ExeCandidateState.Pending);
-                                await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, cs, ExePersonnelOperateType.Host);
-                                await _wkInstance.RecipientExePointerAsync(instance.Id, executionPointer.Id, cs.First().UserName, cs.First().CandidateId);
-                            }
-                        }
-                        else
-                        {
-                            await _wkInstance.UpdateCandidateAsync(
-                            instance.Id,
-                            executionPointer.Id,
-                            dcandidate.ToCandidates(),
-                            ExePersonnelOperateType.Host);
-                        }
-                    }
-                    else
-                    {
+                    if (dcandidate == null)
                         throw new UserFriendlyException("未传入正确的接收者!");
+
+                    var candidates = dcandidate.ToCandidates();
+                    var (instanceId, pointerId) = (instance.Id, executionPointer.Id);
+
+                    // 当存在前置节点时处理特殊逻辑
+                    if (executionPointer.PredecessorId != null)
+                    {
+                        var preNode = instance.ExecutionPointers.FirstOrDefault(
+                            x => x.Id.ToString() == executionPointer.PredecessorId);
+
+                        var preStep = preNode != null
+                            ? definition.Nodes.FirstOrDefault(x => x.Name == preNode.StepName)
+                            : null;
+
+                        if (preStep?.StepNodeType == StepNodeType.Start)
+                        {
+                            var firstCandidate = candidates.FirstOrDefault();
+                            if (firstCandidate == null)  // 确保候选人存在
+                                throw new UserFriendlyException("候选人列表不能为空");
+
+                            firstCandidate.SetParentState(ExeCandidateState.Pending);
+                            await _wkInstance.UpdateCandidateAsync(
+                                instanceId, pointerId, candidates, ExePersonnelOperateType.Host);
+                            await _wkInstance.RecipientExePointerAsync(
+                                instanceId, pointerId, firstCandidate.UserName, firstCandidate.CandidateId);
+                        }
                     }
+
+                    // 通用处理逻辑
+                    await _wkInstance.UpdateCandidateAsync(
+                        instanceId, pointerId, candidates, ExePersonnelOperateType.Host);
                     var effectiveData = DateTime.MinValue;
                     var executionResult = ExecutionResult.WaitForActivity(
                         context.ExecutionPointer.Id,
