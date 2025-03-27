@@ -24,13 +24,15 @@ namespace Hx.Workflow.Domain.LocalEvents
         private readonly IHubContext<WorkflowInstanceHub> _workflowInstanceHub;
         private readonly IWkSubscriptionRepository _wkSubscriptionRepository;
         private readonly IWkDefinitionRespository _wkDefinitionRespository;
+        private readonly IWkInstanceRepository _instanceRepository;
         public ExecutionPointerChangedEventHandler(
             IWkExecutionPointerRepository wkExecutionPointer,
             IWkEventRepository wkEventRepository,
             IServiceProvider serviceProvider,
             IHubContext<WorkflowInstanceHub> workflowInstanceHub,
             IWkSubscriptionRepository wkSubscriptionRepository,
-            IWkDefinitionRespository wkDefinitionRespository
+            IWkDefinitionRespository wkDefinitionRespository,
+            IWkInstanceRepository instanceRepository
             )
         {
             _wkExecutionPointer = wkExecutionPointer;
@@ -39,6 +41,7 @@ namespace Hx.Workflow.Domain.LocalEvents
             _workflowInstanceHub = workflowInstanceHub;
             _wkSubscriptionRepository = wkSubscriptionRepository;
             _wkDefinitionRespository = wkDefinitionRespository;
+            _instanceRepository = instanceRepository;
         }
 
         public async Task HandleEventAsync(
@@ -60,13 +63,18 @@ namespace Hx.Workflow.Domain.LocalEvents
                     await _wkExecutionPointer.UpdateAsync(eventData.Entity);
                 }
             }
-            //流程创建后通知客户端初始化完成
-            if (eventData.Entity.WkInstance.CreatorId.HasValue)
+            //流程执行点创建后通知客户端
+            var wkInstance = eventData.Entity.WkInstance;
+            if (wkInstance == null)
             {
-                var definition = await _wkDefinitionRespository.FindAsync(eventData.Entity.WkInstance.WkDifinitionId);
+                wkInstance = await _instanceRepository.FindAsync(eventData.Entity.WkInstanceId);
+            }
+            if (wkInstance.CreatorId.HasValue)
+            {
+                var definition = await _wkDefinitionRespository.FindAsync(wkInstance.WkDifinitionId);
                 var step = definition.Nodes.First(d => d.Name == eventData.Entity.StepName);
                 await _workflowInstanceHub.Clients.User(
-                                eventData.Entity.WkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",
+                                wkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",
                                 new
                                 {
                                     eventData.Entity.WkInstanceId,

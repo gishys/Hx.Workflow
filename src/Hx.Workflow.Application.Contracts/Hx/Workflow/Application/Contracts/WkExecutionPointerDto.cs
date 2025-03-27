@@ -27,5 +27,6 @@ namespace Hx.Workflow.Application.Contracts
         public WkPointerCandidateDto CurrentCandidateInfo { get; set; }
         public ICollection<WkNextPointerDto> NextPointers { get; set; }
         public ICollection<WkExecutionPointerMaterialsDto> Materials { get; set; }
+        public IDictionary<string,object> ExtensionAttributes {  get; set; }
     }
 }

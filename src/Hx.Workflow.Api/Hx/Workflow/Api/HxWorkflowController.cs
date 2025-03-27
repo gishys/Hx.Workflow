@@ -139,12 +139,6 @@ namespace Hx.Workflow.Api
             return _workflowAppService.UpdateInstanceBusinessDataAsync(workflowId, data);
         }
         [HttpPut]
-        [Route("instance/executionpointer/data")]
-        public Task UpdateExecutionPointerDataAsync(Guid pointerId, [FromBody] IDictionary<string, object> data)
-        {
-            return _workflowAppService.UpdateExecutionPointerDataAsync(pointerId, data);
-        }
-        [HttpPut]
         [Route("instance/follow")]
         public Task FollowAsync(Guid pointerId, bool follow)
         {

@@ -1,9 +1,7 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
-using NUglify.Helpers;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,13 +37,21 @@ namespace Hx.Workflow.EntityFrameworkCore
         public override async Task<WkExecutionPointer> FindAsync(Guid id, bool includeDetails = true, CancellationToken cancellationToken = default)
         {
             var dbSet = await GetDbSetAsync();
-            return await dbSet.Include(d => d.WkCandidates).FirstAsync(d => d.Id == id, cancellationToken: cancellationToken);
+            return await dbSet
+                .Include(d => d.WkCandidates)
+                .Include(d => d.ExtensionAttributes)
+                .FirstAsync(d => d.Id == id, cancellationToken: cancellationToken);
         }
         public async Task UpdateDataAsync(Guid id, Dictionary<string, string> data)
         {
-            var entity = await (await GetDbSetAsync()).Include(d => d.ExtensionAttributes).FirstAsync(d => d.Id == id);
-            data.ForEach(item => entity.ExtensionAttributes.RemoveAll(d => d.AttributeKey == item.Key));
-            data.ForEach(item => entity.ExtensionAttributes.Add(new WkExtensionAttribute(item.Key, item.Value)));
+            var entity = await FindAsync(id);
+            foreach (var item in data)
+            {
+                entity.ExtensionAttributes.RemoveAll(d => d.AttributeKey == item.Key);
+                var persistedAttr = new WkExtensionAttribute(item.Key, item.Value);
+                await entity.SetExtensionAttributes(persistedAttr);
+            }
+            await UpdateAsync(entity);
         }
     }
 }

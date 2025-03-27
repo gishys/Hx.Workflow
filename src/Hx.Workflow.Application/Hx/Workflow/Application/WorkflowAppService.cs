@@ -446,19 +446,6 @@ namespace Hx.Workflow.Application
             await _wkInstanceRepository.UpdateDataAsync(workflowId, data);
         }
         /// <summary>
-        /// 流程实例添加业务数据
-        /// </summary>
-        /// <param name="workflowId"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public virtual async Task UpdateExecutionPointerDataAsync(Guid pointerId, IDictionary<string, object> data)
-        {
-            var exts = new Dictionary<string, string>();
-
-            data.ForEach(item => exts.Add(item.Key, JsonSerializer.Serialize(item.Value)));
-            await _wkExecutionPointerRepository.UpdateDataAsync(pointerId, exts);
-        }
-        /// <summary>
         /// 关注实例（取消关注）
         /// </summary>
         /// <param name="pointerId"></param>
@@ -597,15 +584,8 @@ namespace Hx.Workflow.Application
         /// <exception cref="UserFriendlyException"></exception>
         public virtual async Task SaveExecutionPointerDataAsync(Guid executionPointerId, IDictionary<string, object> data)
         {
-            var entity = await _wkExecutionPointerRepository.FindAsync(executionPointerId);
-            if (entity == null) throw new UserFriendlyException("执行点不存在！");
-            foreach (var item in data)
-            {
-                entity.ExtensionAttributes.RemoveAll(d => d.AttributeKey == item.Key);
-                var persistedAttr = new WkExtensionAttribute(item.Key, JsonSerializer.Serialize(item.Value));
-                await entity.SetExtensionAttributes(persistedAttr);
-            }
-            await _wkExecutionPointerRepository.UpdateAsync(entity);
+            var dics = data.ToDictionary(x => x.Key, x => JsonSerializer.Serialize(x.Value));
+            await _wkExecutionPointerRepository.UpdateDataAsync(executionPointerId, dics);
         }
     }
 }
