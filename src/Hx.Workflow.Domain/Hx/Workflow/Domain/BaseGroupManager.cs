@@ -13,7 +13,7 @@ namespace Hx.Workflow.Domain
         public IDistributedCache<SortCacheItem> SortCache { get; }
         public IDistributedCache<CodeCacheItem> CodeCache { get; }
         public IRepository GroupRepository { get; }
-        protected abstract string CachePrefix { get; }
+        protected abstract string CachePrefix { get;}
         public BaseGroupManager(
             IDistributedCache<SortCacheItem> sortCache,
             IRepository groupRepository,
