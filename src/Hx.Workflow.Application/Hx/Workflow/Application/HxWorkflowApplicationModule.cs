@@ -1,4 +1,5 @@
 ﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.DynamicCode;
 using Hx.Workflow.Application.StepBodys;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
@@ -27,10 +28,6 @@ namespace Hx.Workflow.Application
             {
                 options.AddProfile<HxWorkflowAutoMapperProfile>(validate: true);
             });
-            // Manually register IAbpApplicationWithInternalServiceProvider
-            context.Services.AddSingleton(provider =>
-                provider.GetRequiredService<IAbpApplicationWithExternalServiceProvider>()
-                    as IAbpApplicationWithInternalServiceProvider);
         }
         public async override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
