@@ -53,5 +53,11 @@ namespace Hx.Workflow.EntityFrameworkCore
             }
             await UpdateAsync(entity);
         }
+        public async Task RetryAsync(Guid id)
+        {
+            var entity = await FindAsync(id);
+            await entity.SetSleepUntil(null);
+            await UpdateAsync(entity);
+        }
     }
 }

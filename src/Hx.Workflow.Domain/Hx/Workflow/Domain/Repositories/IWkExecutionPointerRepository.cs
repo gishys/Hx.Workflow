@@ -16,5 +16,6 @@ namespace Hx.Workflow.Domain.Repositories
         /// <returns></returns>
         Task InitMaterialsAsync(Guid executionPointerId);
         Task UpdateDataAsync(Guid id, Dictionary<string, string> data);
+        Task RetryAsync(Guid id);
     }
 }

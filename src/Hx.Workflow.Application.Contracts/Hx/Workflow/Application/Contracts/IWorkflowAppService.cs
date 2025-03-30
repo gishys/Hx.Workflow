@@ -92,5 +92,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <returns></returns>
         /// <exception cref="UserFriendlyException"></exception>
         Task SaveExecutionPointerDataAsync(Guid executionPointerId, IDictionary<string, object> data);
+        Task RetryAsync(Guid executionPointerId);
     }
 }

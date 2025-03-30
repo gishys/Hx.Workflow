@@ -587,5 +587,9 @@ namespace Hx.Workflow.Application
             var dics = data.ToDictionary(x => x.Key, x => JsonSerializer.Serialize(x.Value));
             await _wkExecutionPointerRepository.UpdateDataAsync(executionPointerId, dics);
         }
+        public virtual Task RetryAsync(Guid executionPointerId)
+        {
+            return _wkExecutionPointerRepository.RetryAsync(executionPointerId);
+        }
     }
 }

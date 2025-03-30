@@ -229,5 +229,11 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.SaveExecutionPointerDataAsync(executionPointerId, data);
         }
+        [HttpPut]
+        [Route("workflow/retry")]
+        public Task RetryAsync(Guid executionPointerId)
+        {
+            return _workflowAppService.RetryAsync(executionPointerId);
+        }
     }
 }
