@@ -221,7 +221,9 @@ namespace Hx.Workflow.Application.StepBodys
                     if (executionPointer.WkCandidates.Any(d =>
                     (d.ExeOperateType == ExePersonnelOperateType.Countersign ||
                     d.ExeOperateType == ExePersonnelOperateType.Host) &&
-                    (d.ParentState == ExeCandidateState.Completed)))
+                    (d.ParentState == ExeCandidateState.Pending ||
+                    d.ParentState == ExeCandidateState.Waiting ||
+                    d.ParentState == ExeCandidateState.WaitingReceipt)))
                     {
                         var effectiveData = DateTime.MinValue;
                         var executionResult = ExecutionResult.WaitForActivity(
