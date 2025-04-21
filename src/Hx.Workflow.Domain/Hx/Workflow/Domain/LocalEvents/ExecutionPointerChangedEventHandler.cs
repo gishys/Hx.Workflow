@@ -22,7 +22,6 @@ namespace Hx.Workflow.Domain.LocalEvents
         private readonly IWkEventRepository _eventRepository;
         private readonly IServiceProvider _serviceProvider;
         private readonly IHubContext<WorkflowInstanceHub> _workflowInstanceHub;
-        private readonly IWkSubscriptionRepository _wkSubscriptionRepository;
         private readonly IWkDefinitionRespository _wkDefinitionRespository;
         private readonly IWkInstanceRepository _instanceRepository;
         public ExecutionPointerChangedEventHandler(
@@ -39,7 +38,6 @@ namespace Hx.Workflow.Domain.LocalEvents
             _eventRepository = wkEventRepository;
             _serviceProvider = serviceProvider;
             _workflowInstanceHub = workflowInstanceHub;
-            _wkSubscriptionRepository = wkSubscriptionRepository;
             _wkDefinitionRespository = wkDefinitionRespository;
             _instanceRepository = instanceRepository;
         }

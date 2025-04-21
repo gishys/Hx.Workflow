@@ -1,18 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
 using Volo.Abp.AspNetCore.SignalR;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Guids;
 using Volo.Abp.Uow;
-using Volo.Abp.Users;
 
 namespace Hx.Workflow.Domain.LocalEvents
 {
-    [Authorize]
     [HubRoute("/api/app/workflowinstance")]
     public class WorkflowInstanceHub : AbpHub, ITransientDependency
     {
