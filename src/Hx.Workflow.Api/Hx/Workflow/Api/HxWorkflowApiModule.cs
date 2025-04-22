@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Application;
 using Hx.Workflow.Domain;
 using Hx.Workflow.EntityFrameworkCore;
+using Hx.Workflow.HttpApi;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,9 +19,10 @@ using Volo.Abp.MultiTenancy;
 
 namespace Hx.Workflow.Api
 {
-    [DependsOn(typeof(AbpMultiTenancyModule))]
     [DependsOn(typeof(AbpAutofacModule))]
+    [DependsOn(typeof(AbpMultiTenancyModule))]
     [DependsOn(typeof(AbpAspNetCoreMvcModule))]
+    [DependsOn(typeof(HxWorkflowHttpApiModule))]
     [DependsOn(typeof(HxWorkflowApplicationModule))]
     [DependsOn(typeof(HxEntityFrameworkCoreModule))]
     public class HxWorkflowApiModule : AbpModule

@@ -1,23 +1,18 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
 
-namespace Hx.Workflow.Api
+namespace Hx.Workflow.HttpApi
 {
     [ApiController]
     [Route("applicationform")]
-    public class ApplicationFormController : AbpController
+    public class ApplicationFormController(
+        IWkApplicationFormAppService formAppService
+            ) : AbpController
     {
-        public IWkApplicationFormAppService FormAppService { get; set; }
-        public ApplicationFormController(
-            IWkApplicationFormAppService formAppService
-            )
-        {
-            FormAppService = formAppService;
-        }
+        public IWkApplicationFormAppService FormAppService { get; set; } = formAppService;
+
         [HttpPost]
         public Task CreateAsync(ApplicationFormCreateDto input)
         {

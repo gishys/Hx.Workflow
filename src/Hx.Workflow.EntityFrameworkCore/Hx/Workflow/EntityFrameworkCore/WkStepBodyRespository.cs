@@ -18,13 +18,13 @@ namespace Hx.Workflow.EntityFrameworkCore
         public WkStepBodyRespository(IDbContextProvider<WkDbContext> options)
             : base(options)
         { }
-        public async virtual Task<WkStepBody> GetStepBodyAsync(string name)
+        public async virtual Task<WkStepBody?> GetStepBodyAsync(string name)
         {
             return await (await GetDbSetAsync())
                 .Include(d => d.Inputs)
                 .FirstOrDefaultAsync(d => d.Name == name);
         }
-        public override async Task<WkStepBody> FindAsync(
+        public override async Task<WkStepBody?> FindAsync(
             Guid id,
             bool includeDetails = true,
             CancellationToken cancellationToken = default)

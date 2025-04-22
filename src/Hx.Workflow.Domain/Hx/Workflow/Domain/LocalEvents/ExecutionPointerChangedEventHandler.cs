@@ -51,10 +51,10 @@ namespace Hx.Workflow.Domain.LocalEvents
                 if (wkEvent != null && wkEvent.CreatorId.HasValue)
                 {
                     var userRepository = _serviceProvider.GetService<IIdentityUserRepository>();
-                    string userName = null;
+                    string? userName = null;
                     if (userRepository != null)
                     {
-                        var creator = await userRepository.FindAsync(wkEvent.CreatorId.Value, false);
+                        var creator = await userRepository.GetAsync(wkEvent.CreatorId.Value, false);
                         userName = creator.UserName;
                     }
                     await eventData.Entity.SetSubmitterInfo(userName, wkEvent.CreatorId.Value);

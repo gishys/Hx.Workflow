@@ -44,7 +44,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                           && p.Status == WorkflowStatus.Runnable
                           select p.Id).ToListAsync();
         }
-        public override async Task<WkInstance> FindAsync(
+        public override async Task<WkInstance?> FindAsync(
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
             return await (await GetDbSetAsync())

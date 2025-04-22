@@ -1,24 +1,18 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
 
-namespace Hx.Workflow.Api
+namespace Hx.Workflow.HttpApi
 {
     [ApiController]
     [Route("stepbody")]
-    public class WkStepBodyController : AbpController
+    public class WkStepBodyController(
+        IWkStepBodyAppService wkStepBody
+            ) : AbpController
     {
-        public IWkStepBodyAppService WkStepBody { get; set; }
-        public WkStepBodyController(
-            IWkStepBodyAppService wkStepBody
-            )
-        {
-            WkStepBody = wkStepBody;
-        }
+        public IWkStepBodyAppService WkStepBody { get; set; } = wkStepBody;
+
         [HttpPost]
         public Task CreateAsync(WkSepBodyCreateDto input)
         {

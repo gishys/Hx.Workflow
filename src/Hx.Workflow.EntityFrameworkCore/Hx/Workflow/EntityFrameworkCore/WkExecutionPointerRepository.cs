@@ -34,7 +34,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 await UpdateAsync(updateEntity);
             }
         }
-        public override async Task<WkExecutionPointer> FindAsync(Guid id, bool includeDetails = true, CancellationToken cancellationToken = default)
+        public override async Task<WkExecutionPointer?> FindAsync(Guid id, bool includeDetails = true, CancellationToken cancellationToken = default)
         {
             var dbSet = await GetDbSetAsync();
             return await dbSet

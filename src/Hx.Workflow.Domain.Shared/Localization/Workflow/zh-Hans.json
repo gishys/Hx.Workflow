@@ -33,6 +33,18 @@
     "Permission:Workflow.Instance.Create": "创建",
     "Permission:Workflow.Instance.Terminate": "终止",
     "Permission:Workflow.Instance.Suspend": "暂停",
-    "Permission:Workflow.Instance.Delete": "删除"
+    "Permission:Workflow.Instance.Delete": "删除",
+    "Permission:Workflow.MyWork": "我的工作",
+    "Permission:Workflow.MyWork.BeingProcessed": "我的在办件",
+    "Permission:Workflow.MyWork.WaitingReceipt": "我的待收件",
+    "Permission:Workflow.MyWork.Pending": "我的待办件",
+    "Permission:Workflow.MyWork.Participation": "我的参与件",
+    "Permission:Workflow.MyWork.Entrusted": "我的受托件",
+    "Permission:Workflow.MyWork.Handled": "我的受理件",
+    "Permission:Workflow.MyWork.Follow": "我的关注件",
+    "Permission:Workflow.MyWork.Suspended": "我得挂起件",
+    "Permission:Workflow.MyWork.Countersign": "我的会签件",
+    "Permission:Workflow.MyWork.CarbonCopy": "我的抄送件",
+    "Permission:Workflow.MyWork.Abnormal": "异常审批件"
   }
 }

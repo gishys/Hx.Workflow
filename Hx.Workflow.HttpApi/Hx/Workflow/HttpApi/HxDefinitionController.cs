@@ -1,11 +1,8 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Volo.Abp.AspNetCore.Mvc;
 
-namespace Hx.Workflow.Api
+namespace Hx.Workflow.HttpApi
 {
     [ApiController]
     [Route("hxdefinition")]

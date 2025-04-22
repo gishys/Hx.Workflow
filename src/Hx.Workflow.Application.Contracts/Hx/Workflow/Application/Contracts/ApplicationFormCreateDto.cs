@@ -1,7 +1,6 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
-using Volo.Abp.Data;
 using Volo.Abp.ObjectExtending;
 
 namespace Hx.Workflow.Application.Contracts
@@ -20,16 +19,16 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// application name
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
         /// <summary>
         /// application node type
         /// </summary>
-        public string Title { get; set; }
+        public required string Title { get; set; }
         /// <summary>
         /// application type
         /// </summary>
         public ApplicationType ApplicationType { get; set; } = ApplicationType.Form;
-        public ICollection<WkParamCreateDto> Params { get; set; }
+        public ICollection<WkParamCreateDto>? Params { get; set; }
         public bool IsPublish { get; set; }
         /// <summary>
         /// 描述

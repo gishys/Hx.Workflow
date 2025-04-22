@@ -58,7 +58,7 @@ namespace Hx.Workflow.Domain
         {
             var uid = new Guid(eventSubscriptionId);
             var existingEntity = await _wkSubscriptionRepository.FindAsync(uid, true);
-            if (existingEntity.ExternalToken != token)
+            if (existingEntity?.ExternalToken != token)
                 throw new InvalidOperationException();
             await existingEntity.SetExternalToken(null);
             await existingEntity.SetExternalWorkerId(null);
@@ -252,14 +252,14 @@ namespace Hx.Workflow.Domain
         public async Task MarkEventProcessed(string id, CancellationToken cancellationToken = default)
         {
             var uid = new Guid(id);
-            var existingEntity = await _wkEventRepository.FindAsync(uid);
+            var existingEntity = await _wkEventRepository.GetAsync(uid, true, cancellationToken);
             await existingEntity.SetProcessed(true);
             await _wkEventRepository.UpdateAsync(existingEntity);
         }
         public async Task MarkEventUnprocessed(string id, CancellationToken cancellationToken = default)
         {
             var uid = new Guid(id);
-            var existingEntity = await _wkEventRepository.FindAsync(uid);
+            var existingEntity = await _wkEventRepository.GetAsync(uid, true, cancellationToken);
             await existingEntity.SetProcessed(false);
             await _wkEventRepository.UpdateAsync(existingEntity);
         }
@@ -334,12 +334,13 @@ namespace Hx.Workflow.Domain
 
         public async Task<bool> SetSubscriptionToken(string eventSubscriptionId, string token, string workerId, DateTime expiry, CancellationToken cancellationToken = default)
         {
-            var wkInstance = await _wkInstanceRepository.FindAsync(new Guid(workerId));
+            var wkInstance = await _wkInstanceRepository.FindAsync(new Guid(workerId), true, cancellationToken);
             if (wkInstance == null)
+            {
                 throw new UserFriendlyException("流程实例不存在！");
+            }
             var uid = new Guid(eventSubscriptionId);
-            var existingEntity = await _wkSubscriptionRepository.FindAsync(uid);
-
+            var existingEntity = await _wkSubscriptionRepository.GetAsync(uid);
             await existingEntity.SetExternalToken(token);
             await existingEntity.SetExternalWorkerId(workerId);
             if (expiry > new DateTime(9999, 12, 31))

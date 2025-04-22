@@ -20,7 +20,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public WkDefinitionRespository(IDbContextProvider<WkDbContext> options)
             : base(options)
         { }
-        public override async Task<WkDefinition> FindAsync(
+        public override async Task<WkDefinition?> FindAsync(
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
             return await (await GetDbSetAsync())
@@ -86,11 +86,11 @@ namespace Hx.Workflow.EntityFrameworkCore
             if (entity?.WkCandidates != null)
             {
                 var updateCnadidates = entity.WkCandidates.Where(d => d.CandidateId == userId).ToList();
-                if (updateCnadidates.Count() > 0)
+                if (updateCnadidates.Count > 0)
                 {
                     foreach (var candidate in updateCnadidates.ToList())
                     {
-                        DefinitionCandidate updateCandidate = wkCandidates.FirstOrDefault(
+                        DefinitionCandidate? updateCandidate = wkCandidates.FirstOrDefault(
                             d => d.CandidateId == candidate.CandidateId);
                         if (updateCandidate != null)
                             continue;

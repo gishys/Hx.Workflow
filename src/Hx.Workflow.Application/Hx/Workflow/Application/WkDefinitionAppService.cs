@@ -3,6 +3,7 @@ using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
+using Microsoft.AspNetCore.Authorization;
 using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using Volo.Abp;
 
 namespace Hx.Workflow.Application
 {
+    [Authorize]
     public class WkDefinitionAppService : WorkflowAppServiceBase, IWkDefinitionAppService
     {
         private readonly IWkDefinitionRespository _definitionRespository;

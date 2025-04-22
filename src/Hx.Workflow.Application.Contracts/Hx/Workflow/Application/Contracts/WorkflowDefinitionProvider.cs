@@ -47,6 +47,19 @@ namespace Hx.Workflow.Application.Contracts
             instance.AddChild("Workflow.Instance.Terminate", L("Permission:Workflow.Instance.Terminate"));
             instance.AddChild("Workflow.Instance.Suspend", L("Permission:Workflow.Instance.Suspend"));
             instance.AddChild("Workflow.Instance.Delete", L("Permission:Workflow.Instance.Delete"));
+
+            var instanceState = myGroup.AddPermission("Workflow.MyWork", L("Permission:Workflow.MyWork"));
+            instanceState.AddChild("Workflow.MyWork.BeingProcessed", L("Permission:Workflow.MyWork.BeingProcessed"));
+            instanceState.AddChild("Workflow.MyWork.WaitingReceipt", L("Permission:Workflow.MyWork.WaitingReceipt"));
+            instanceState.AddChild("Workflow.MyWork.Pending", L("Permission:Workflow.MyWork.Pending"));
+            instanceState.AddChild("Workflow.MyWork.Participation", L("Permission:Workflow.MyWork.Participation"));
+            instanceState.AddChild("Workflow.MyWork.Entrusted", L("Permission:Workflow.MyWork.Entrusted"));
+            instanceState.AddChild("Workflow.MyWork.Handled", L("Permission:Workflow.MyWork.Handled"));
+            instanceState.AddChild("Workflow.MyWork.Follow", L("Permission:Workflow.MyWork.Follow"));
+            instanceState.AddChild("Workflow.MyWork.Suspended", L("Permission:Workflow.MyWork.Suspended"));
+            instanceState.AddChild("Workflow.MyWork.Countersign", L("Permission:Workflow.MyWork.Countersign"));
+            instanceState.AddChild("Workflow.MyWork.CarbonCopy", L("Permission:Workflow.MyWork.CarbonCopy"));
+            instanceState.AddChild("Workflow.MyWork.Abnormal", L("Permission:Workflow.MyWork.Abnormal"));
         }
         private static LocalizableString L(string name)
         {

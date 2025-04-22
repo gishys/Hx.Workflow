@@ -19,16 +19,16 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// application name
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
         /// <summary>
         /// application node type
         /// </summary>
-        public string Title { get; set; }
+        public required string Title { get; set; }
         /// <summary>
         /// application type
         /// </summary>
         public ApplicationType ApplicationType { get; set; }
-        public ICollection<WkParamDto> Params { get; set; }
+        public ICollection<WkParamDto>? Params { get; set; }
         public bool IsPublish { get; set; }
         public Guid? GroupId { get; set; }
         /// <summary>

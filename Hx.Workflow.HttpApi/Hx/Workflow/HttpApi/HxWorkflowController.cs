@@ -1,24 +1,18 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Mvc;
 
-namespace Hx.Workflow.Api
+namespace Hx.Workflow.HttpApi
 {
     [ApiController]
     [Route("hxworkflow")]
-    public class HxWorkflowController : AbpController
+    public class HxWorkflowController(
+        IWorkflowAppService workflowAppService) : AbpController
     {
-        private readonly IWorkflowAppService _workflowAppService;
-        public HxWorkflowController(
-            IWorkflowAppService workflowAppService)
-        {
-            _workflowAppService = workflowAppService;
-        }
+        private readonly IWorkflowAppService _workflowAppService = workflowAppService;
+
         [HttpPost]
         [Route("workflow")]
         public Task<string> StartWorkflowAsync([FromBody] StartWorkflowInput input)
@@ -53,8 +47,8 @@ namespace Hx.Workflow.Api
         [Route("workflow/mywkinstances")]
         public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             MyWorkState? status = null,
-            string reference = null,
-            ICollection<Guid> userIds = null,
+            string? reference = null,
+            ICollection<Guid>? userIds = null,
             int skipCount = 0,
             int maxResultCount = 20)
         {
