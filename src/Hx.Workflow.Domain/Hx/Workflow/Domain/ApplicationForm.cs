@@ -64,6 +64,7 @@ namespace Hx.Workflow.Domain
             GroupId = groupId;
             IsPublish = isPublish;
             Description = description;
+            ExtraProperties = new ExtraPropertyDictionary();
         }
         public Task SetName(string name)
         {

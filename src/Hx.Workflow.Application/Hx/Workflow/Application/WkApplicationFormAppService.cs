@@ -11,7 +11,7 @@ using Volo.Abp.Application.Dtos;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WkApplicationFormAppService : WorkflowAppServiceBase, IWkApplicationFormAppService
     {
         public IWkApplicationFormRepository WkApplicationFormRepository { get; }

@@ -79,7 +79,7 @@ namespace Hx.Workflow.Domain
         }
         internal static Event ToEvent(this WkEvent instance)
         {
-            Event result = new Event();
+            Event result = new();
             result.Id = instance.Id.ToString();
             result.EventKey = instance.Key;
             result.EventName = instance.Name;

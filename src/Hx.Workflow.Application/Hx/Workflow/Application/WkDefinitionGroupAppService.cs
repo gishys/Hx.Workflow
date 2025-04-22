@@ -11,7 +11,7 @@ using Volo.Abp;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WkDefinitionGroupAppService : HxWorkflowAppServiceBase, IWkDefinitionGroupAppService
     {
         private IWkDefinitionGroupRepository GroupRepository { get; }

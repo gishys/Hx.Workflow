@@ -13,7 +13,7 @@ using Volo.Abp;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WkDefinitionAppService : WorkflowAppServiceBase, IWkDefinitionAppService
     {
         private readonly IWkDefinitionRespository _definitionRespository;

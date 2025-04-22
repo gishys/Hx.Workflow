@@ -14,26 +14,26 @@ namespace Hx.Workflow.Domain.Persistence
         public int StepId { get; protected set; }
         public bool Active { get; protected set; }
         public DateTime? SleepUntil { get; protected set; }
-        public string PersistenceData { get; protected set; }
+        public string? PersistenceData { get; protected set; }
         public DateTime? StartTime { get; protected set; }
         public DateTime? EndTime { get; protected set; }
-        public string EventName { get; protected set; }
-        public string EventKey { get; protected set; }
+        public string? EventName { get; protected set; }
+        public string? EventKey { get; protected set; }
         public bool EventPublished { get; protected set; }
-        public string EventData { get; protected set; }
+        public string? EventData { get; protected set; }
         public string StepName { get; protected set; }
         public ICollection<WkExtensionAttribute> ExtensionAttributes { get; protected set; }
         public int RetryCount { get; protected set; }
-        public string Children { get; protected set; }
-        public string ContextItem { get; protected set; }
-        public string PredecessorId { get; protected set; }
-        public string Outcome { get; protected set; }
+        public string? Children { get; protected set; }
+        public string? ContextItem { get; protected set; }
+        public string? PredecessorId { get; protected set; }
+        public string? Outcome { get; protected set; }
         public PointerStatus Status { get; protected set; }
-        public string Scope { get; protected set; }
+        public string? Scope { get; protected set; }
         public Guid? TenantId { get; protected set; }
-        public string Recipient { get; protected set; }
-        public Guid RecipientId { get; protected set; }
-        public string Submitter { get; protected set; }
+        public string? Recipient { get; protected set; }
+        public Guid? RecipientId { get; protected set; }
+        public string? Submitter { get; protected set; }
         public Guid? SubmitterId { get; protected set; }
         public DateTime? CommitmentDeadline { get; protected set; }
         public bool? IsInitMaterials { get; protected set; }
@@ -46,21 +46,21 @@ namespace Hx.Workflow.Domain.Persistence
             int stepId,
             bool active,
             DateTime? sleepUntil,
-            string persistenceData,
+            string? persistenceData,
             DateTime? startTime,
             DateTime? endTime,
-            string eventName,
-            string eventKey,
+            string? eventName,
+            string? eventKey,
             bool eventPublished,
-            string eventData,
+            string? eventData,
             string stepName,
             int retryCount,
-            string children,
-            string contextItem,
-            string predecessorId,
-            string outcome,
+            string? children,
+            string? contextItem,
+            string? predecessorId,
+            string? outcome,
             PointerStatus status,
-            string scope,
+            string? scope,
             DateTime? commitmentDeadline,
             Guid? tenantId = null
             )
@@ -85,8 +85,10 @@ namespace Hx.Workflow.Domain.Persistence
             Scope = scope;
             TenantId = tenantId;
             CommitmentDeadline = commitmentDeadline;
-            ExtensionAttributes = new List<WkExtensionAttribute>();
-            WkCandidates = new List<ExePointerCandidate>();
+            ExtensionAttributes = [];
+            WkCandidates = [];
+            WkSubscriptions = [];
+
         }
         public Task SetStepId(int stepId)
         {
@@ -103,7 +105,7 @@ namespace Hx.Workflow.Domain.Persistence
             SleepUntil = sleepUntil;
             return Task.CompletedTask;
         }
-        public Task SetPersistenceData(string persistenceData)
+        public Task SetPersistenceData(string? persistenceData)
         {
             PersistenceData = persistenceData;
             return Task.CompletedTask;
@@ -118,12 +120,12 @@ namespace Hx.Workflow.Domain.Persistence
             EndTime = endTime;
             return Task.CompletedTask;
         }
-        public Task SetEventName(string eventName)
+        public Task SetEventName(string? eventName)
         {
             EventName = eventName;
             return Task.CompletedTask;
         }
-        public Task SetEventKey(string eventKey)
+        public Task SetEventKey(string? eventKey)
         {
             EventKey = eventKey;
             return Task.CompletedTask;
@@ -133,7 +135,7 @@ namespace Hx.Workflow.Domain.Persistence
             EventPublished = eventPublished;
             return Task.CompletedTask;
         }
-        public Task SetEventData(string eventData)
+        public Task SetEventData(string? eventData)
         {
             EventData = eventData;
             return Task.CompletedTask;
@@ -148,22 +150,22 @@ namespace Hx.Workflow.Domain.Persistence
             RetryCount = retryCount;
             return Task.CompletedTask;
         }
-        public Task SetChildren(string children)
+        public Task SetChildren(string? children)
         {
             Children = children;
             return Task.CompletedTask;
         }
-        public Task SetContextItem(string contextItem)
+        public Task SetContextItem(string? contextItem)
         {
             ContextItem = contextItem;
             return Task.CompletedTask;
         }
-        public Task SetPredecessorId(string predecessorId)
+        public Task SetPredecessorId(string? predecessorId)
         {
             PredecessorId = predecessorId;
             return Task.CompletedTask;
         }
-        public Task SetOutcome(string outcome)
+        public Task SetOutcome(string? outcome)
         {
             Outcome = outcome;
             return Task.CompletedTask;
@@ -173,7 +175,7 @@ namespace Hx.Workflow.Domain.Persistence
             Status = status;
             return Task.CompletedTask;
         }
-        public Task SetScope(string scope)
+        public Task SetScope(string? scope)
         {
             Scope = scope;
             return Task.CompletedTask;

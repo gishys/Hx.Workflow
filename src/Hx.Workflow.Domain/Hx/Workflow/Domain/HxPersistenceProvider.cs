@@ -91,7 +91,7 @@ namespace Hx.Workflow.Domain
             if (wkInstance.ExecutionPointers.Count > 0)
             {
                 wkInstance = await CreateExePointerMaterials(wkInstance, new Guid(workflow.WorkflowDefinitionId), workflow.Version, workflow.Reference);
-                if (_currentUser.Id.HasValue)
+                if (_currentUser.Id.HasValue && _currentUser.UserName != null)
                 {
                     foreach (var executionPointer in wkInstance.ExecutionPointers)
                     {

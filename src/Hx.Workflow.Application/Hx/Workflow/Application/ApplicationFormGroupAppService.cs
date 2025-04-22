@@ -10,7 +10,7 @@ using Volo.Abp;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class ApplicationFormGroupAppService : HxWorkflowAppServiceBase, IApplicationFormGroupAppService
     {
         private IApplicationFormGroupRepository GroupRepository { get; }

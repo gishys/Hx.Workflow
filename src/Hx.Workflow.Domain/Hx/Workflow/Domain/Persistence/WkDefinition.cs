@@ -29,7 +29,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// <summary>
         /// 描述
         /// </summary>
-        public string Description { get; protected set; }
+        public string? Description { get; protected set; }
         /// <summary>
         /// 排序
         /// </summary>
@@ -64,7 +64,7 @@ namespace Hx.Workflow.Domain.Persistence
             Guid id,
             string title,
             int sortNumber,
-            string description,
+            string? description,
             string businessType,
             string processType,
             bool isEnabled = true,
@@ -107,7 +107,7 @@ namespace Hx.Workflow.Domain.Persistence
             IsEnabled = isEnabled;
             return Task.CompletedTask;
         }
-        public Task SetDescription(string discription)
+        public Task SetDescription(string? discription)
         {
             Description = discription;
             return Task.CompletedTask;
