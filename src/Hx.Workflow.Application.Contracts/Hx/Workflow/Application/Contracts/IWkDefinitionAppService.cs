@@ -31,5 +31,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <param name="id"></param>
         /// <returns></returns>
         Task DeleteAsync(Guid id);
+        Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1);
     }
 }

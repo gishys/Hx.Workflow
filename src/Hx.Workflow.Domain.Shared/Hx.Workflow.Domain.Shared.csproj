@@ -6,4 +6,16 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Localization\Workflow\zh-Hans.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Workflow\zh-Hans.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.Validation" Version="8.1.1" />
+  </ItemGroup>
+
 </Project>

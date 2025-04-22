@@ -30,7 +30,7 @@ namespace Hx.Workflow.Api
             return FormAppService.GetPagedAsync(input);
         }
         [HttpGet]
-        public Task<ApplicationFormDto> GetPagedAsync(Guid id)
+        public Task<ApplicationFormDto> GetAsync(Guid id)
         {
             return FormAppService.GetAsync(id);
         }

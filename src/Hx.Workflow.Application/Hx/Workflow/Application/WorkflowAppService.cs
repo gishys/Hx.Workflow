@@ -6,8 +6,6 @@ using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
-using NUglify.Helpers;
-using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,82 +42,6 @@ namespace Hx.Workflow.Application
             _errorRepository = errorRepository;
             _wkExecutionPointerRepository = wkExecutionPointerRepository;
             _wkAuditor = wkAuditor;
-        }
-        /// <summary>
-        /// 创建流程模版
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        /// <exception cref="BusinessException"></exception>
-        public virtual async Task CreateAsync(WkDefinitionCreateDto input)
-        {
-            var sortNumber = await _wkDefinition.GetMaxSortNumberAsync();
-            var entity = new WkDefinition(
-                GuidGenerator.Create(),
-                    input.Title,
-                    sortNumber,
-                    input.Description,
-                    input.BusinessType,
-                    input.ProcessType,
-                    limitTime: input.LimitTime,
-                    version: input.Version <= 0 ? 1 : input.Version);
-            foreach (var candidate in input.WkCandidates)
-            {
-                entity.WkCandidates.Add(new DefinitionCandidate(
-                    candidate.CandidateId,
-                    candidate.UserName,
-                    candidate.DisplayUserName,
-                    candidate.ExecutorType,
-                    candidate.DefaultSelection));
-            }
-            var nodeEntitys = input.Nodes?.ToWkNodes();
-            foreach (var node in nodeEntitys)
-            {
-                var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name).WkStepBodyId;
-                if (wkStepBodyId?.Length > 0)
-                {
-                    Guid.TryParse(wkStepBodyId, out Guid guidStepBodyId);
-                    var stepBodyEntity = await _wkStepBody.FindAsync(guidStepBodyId);
-                    if (stepBodyEntity == null)
-                        throw new BusinessException(message: "StepBody没有查询到");
-                    await node.SetWkStepBody(stepBodyEntity);
-                }
-                await entity.AddWkNode(node);
-            }
-            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
-            await _hxWorkflowManager.CreateAsync(entity);
-        }
-        /// <summary>
-        /// 获取流程模版
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public virtual async Task<WkDefinitionDto> GetDefinitionByNameAsync(string name)
-        {
-            var entity = await _hxWorkflowManager.GetDefinitionAsync(name);
-            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
-        }
-        /// <summary>
-        /// 获取流程模版
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public virtual async Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1)
-        {
-            var entity = await _wkDefinition.GetDefinitionAsync(id, version);
-            var result = ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
-            if (result != null && result.Nodes.Count > 0)
-                result.Nodes = result.Nodes.OrderBy(n => n.SortNumber).ToList();
-            return result;
-        }
-        /// <summary>
-        /// 获取全部流程模版
-        /// </summary>
-        /// <returns></returns>
-        public virtual async Task<List<WkDefinitionDto>> GetDefinitionsAsync()
-        {
-            var entitys = await _wkDefinition.GetListAsync(true);
-            return ObjectMapper.Map<List<WkDefinition>, List<WkDefinitionDto>>(entitys);
         }
         /// <summary>
         /// 获取可创建的模板（赋予权限）
@@ -297,61 +219,6 @@ namespace Hx.Workflow.Application
             return result;
         }
         /// <summary>
-        /// 获得实例节点（流程所有节点）
-        /// </summary>
-        /// <param name="workflowId"></param>
-        /// <returns></returns>
-        public virtual async Task<List<WkNodeTreeDto>> GetInstanceAllNodesAsync(Guid workflowId)
-        {
-            var instance = await _wkInstanceRepository.FindAsync(workflowId);
-            var result = new List<WkNodeTreeDto>();
-            string preId = null;
-            WkExecutionPointer currentNode = null;
-            while (instance.ExecutionPointers.Any(d => d.PredecessorId == preId))
-            {
-                var node = instance.ExecutionPointers.First(d => d.PredecessorId == preId);
-                result.Add(new WkNodeTreeDto()
-                {
-                    Key = node.Id,
-                    Title = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName).DisplayName,
-                    Selected = node.Status != PointerStatus.Complete,
-                    Name = node.StepName,
-                    Receiver = node.Recipient,
-                    CommitmentDeadline = node.CommitmentDeadline,
-                    Status = (int)node.Status,
-                    WkCandidates = ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
-                });
-                preId = node.Id.ToString();
-                currentNode = node;
-            }
-            if (currentNode.Status != PointerStatus.Complete)
-            {
-                var entity = await _wkDefinition.GetDefinitionAsync(instance.WkDifinitionId, instance.Version);
-                var node = entity.Nodes.First(d => d.Name == currentNode.StepName);
-                do
-                {
-                    var nextNode = node.NextNodes.FirstOrDefault(n => n.NodeType == WkRoleNodeType.Forward);
-                    if (nextNode != null)
-                    {
-                        node = entity.Nodes.First(d => d.Name == nextNode.NextNodeName);
-                        result.Add(new WkNodeTreeDto()
-                        {
-                            Key = node.Id,
-                            Title = node.DisplayName,
-                            Selected = false,
-                            Name = node.Name,
-                            Receiver = null,
-                            CommitmentDeadline = null,
-                            Status = 20,
-                            WkCandidates = ObjectMapper.Map<ICollection<WkNodeCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
-                        });
-                    }
-                }
-                while (node.NextNodes.Any(n => n.NodeType == WkRoleNodeType.Forward));
-            }
-            return result;
-        }
-        /// <summary>
         /// 终止工作流
         /// </summary>
         /// <param name="workflowId"></param>
@@ -377,53 +244,6 @@ namespace Hx.Workflow.Application
         public virtual async Task<bool> ResumeWorkflowAsync(string workflowId)
         {
             return await _hxWorkflowManager.ResumeWorkflowAsync(workflowId);
-        }
-        /// <summary>
-        /// 更新模板定义候选人
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        public virtual async Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateWkCandidateDto entity)
-        {
-            var wkCandidates = entity.WkCandidates.ToWkCandidate();
-            var resultEntity = await _wkDefinition.UpdateCandidatesAsync(entity.Id, entity.UserId, wkCandidates as ICollection<DefinitionCandidate>);
-            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(resultEntity);
-        }
-        /// <summary>
-        /// 更新实例候选人（委托、抄送、会签）
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        public virtual async Task<WkInstancesDto> UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity)
-        {
-            var instance = await _wkInstanceRepository.FindAsync(entity.WkInstanceId);
-            WkExecutionPointer pointer = instance.ExecutionPointers.First(d => d.Id == entity.WkExecutionPointerId);
-            var step = instance.WkDefinition.Nodes.First(d => d.Name == pointer.StepName);
-            if (pointer.Status != PointerStatus.WaitingForEvent)
-            {
-                throw new UserFriendlyException("当前流程环节不是活动节点！");
-            }
-            if (!entity.WkCandidates.All(id => step.WkCandidates.Any(d => d.CandidateId == id)))
-            {
-                throw new UserFriendlyException("选择的用户没有办理此节点的权限！");
-            }
-            var wkCandidates = step.WkCandidates.Where(d => entity.WkCandidates.Any(f => f == d.CandidateId)).Select(d =>
-                new ExePointerCandidate(
-                    d.CandidateId,
-                    d.UserName,
-                    d.DisplayUserName,
-                    entity.ExeOperateType,
-                    ExeCandidateState.WaitingReceipt,
-                    d.ExecutorType)).ToList();
-            var resultEntity = await _wkInstanceRepository.UpdateCandidateAsync(
-                entity.WkInstanceId,
-                entity.WkExecutionPointerId,
-                wkCandidates,
-                entity.ExeOperateType);
-            var result = ObjectMapper.Map<WkInstance, WkInstancesDto>(resultEntity);
-            result.CurrentStepName = step.DisplayName;
-            result.StepStartTime = pointer.StartTime;
-            return result;
         }
         /// <summary>
         /// 通过实例Id获取可选择的人员

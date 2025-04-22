@@ -42,5 +42,11 @@ namespace Hx.Workflow.Api
         {
             return _appService.DeleteAsync(id);
         }
+        [HttpGet]
+        [Route("details")]
+        public Task<WkDefinitionDto> GetAsync(Guid id, int version = 1)
+        {
+            return _appService.GetDefinitionAsync(id, version);
+        }
     }
 }

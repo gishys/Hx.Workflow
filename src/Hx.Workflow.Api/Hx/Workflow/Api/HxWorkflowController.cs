@@ -20,36 +20,6 @@ namespace Hx.Workflow.Api
             _workflowAppService = workflowAppService;
         }
         [HttpPost]
-        [Route("definition")]
-        public Task CreateDefinition(WkDefinitionCreateDto input)
-        {
-            return _workflowAppService.CreateAsync(input);
-        }
-        [HttpPut]
-        [Route("definition")]
-        public Task<WkDefinitionDto> UpdateDefinition(WkDefinitionUpdateWkCandidateDto entity)
-        {
-            return _workflowAppService.UpdateDefinitionAsync(entity);
-        }
-        [HttpGet]
-        [Route("definition/{name}")]
-        public Task<WkDefinitionDto> GetDefinitionByName(string name)
-        {
-            return _workflowAppService.GetDefinitionByNameAsync(name);
-        }
-        [HttpGet]
-        [Route("definition/details")]
-        public Task<WkDefinitionDto> GetDefinition(Guid id, int version = 1)
-        {
-            return _workflowAppService.GetDefinitionAsync(id, version);
-        }
-        [HttpGet]
-        [Route("definition")]
-        public Task<List<WkDefinitionDto>> GetDefinitionsAsync()
-        {
-            return _workflowAppService.GetDefinitionsAsync();
-        }
-        [HttpPost]
         [Route("workflow")]
         public Task<string> StartWorkflowAsync([FromBody] StartWorkflowInput input)
         {
@@ -102,12 +72,6 @@ namespace Hx.Workflow.Api
         {
             return _workflowAppService.GetDefinitionsCanCreateAsync();
         }
-        [HttpPut]
-        [Route("workflow/recipientinstance")]
-        public Task RecipientInstanceAsync(Guid workflowId)
-        {
-            return _workflowAppService.RecipientInstanceAsync(workflowId);
-        }
         [HttpGet]
         [Route("workflow/workflowinstance")]
         public Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
@@ -119,12 +83,6 @@ namespace Hx.Workflow.Api
         public Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
             return _workflowAppService.GetInstanceNodesAsync(workflowId);
-        }
-        [HttpGet]
-        [Route("workflow/workflowinstanceallnodes")]
-        public Task<List<WkNodeTreeDto>> GetInstanceAllNodesAsync(Guid workflowId)
-        {
-            return _workflowAppService.GetInstanceAllNodesAsync(workflowId);
         }
         [HttpPut]
         [Route("instance/receive")]
@@ -143,12 +101,6 @@ namespace Hx.Workflow.Api
         public Task FollowAsync(Guid pointerId, bool follow)
         {
             return _workflowAppService.FollowAsync(pointerId, follow);
-        }
-        [HttpPut]
-        [Route("instance/candidate")]
-        public Task UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity)
-        {
-            return _workflowAppService.UpdateInstanceCandidatesAsync(entity);
         }
         /// <summary>
         /// 通过业务编号或者实例

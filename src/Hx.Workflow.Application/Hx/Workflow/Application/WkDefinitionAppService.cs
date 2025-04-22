@@ -205,5 +205,26 @@ namespace Hx.Workflow.Application
         {
             await _definitionRespository.DeleteAsync(id);
         }
+        /// <summary>
+        /// 获取流程模版
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual async Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1)
+        {
+            var entity = await _definitionRespository.GetDefinitionAsync(id, version);
+            var result = ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
+            result.Nodes = [];
+            WkNode node = entity.Nodes.FirstOrDefault(d => d.StepNodeType == StepNodeType.Start);
+            while (node != null)
+            {
+                result.Nodes.Add(ObjectMapper.Map<WkNode, WkNodeDto>(node));
+                if (node.NextNodes.Any(n => n.NodeType == WkRoleNodeType.Forward))
+                    node = entity.Nodes.FirstOrDefault(d => d.Name == node.NextNodes.First().NextNodeName);
+                else
+                    break;
+            }
+            return result;
+        }
     }
 }

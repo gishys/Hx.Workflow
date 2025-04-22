@@ -8,9 +8,6 @@ namespace Hx.Workflow.Application.Contracts
 {
     public interface IWorkflowAppService
     {
-        Task CreateAsync(WkDefinitionCreateDto input);
-        Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1);
-        Task<WkDefinitionDto> GetDefinitionByNameAsync(string name);
         Task<string> StartAsync(StartWorkflowInput input);
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
@@ -22,9 +19,7 @@ namespace Hx.Workflow.Application.Contracts
         Task<bool> ResumeWorkflowAsync(string workflowId);
         Task<bool> SuspendWorkflowAsync(string workflowId);
         Task<bool> TerminateWorkflowAsync(string workflowId);
-        Task<WkDefinitionDto> UpdateDefinitionAsync(WkDefinitionUpdateWkCandidateDto entity);
         Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId);
-        Task<List<WkDefinitionDto>> GetDefinitionsAsync();
         /// <summary>
         /// 获取可创建的模板（赋予权限）
         /// </summary>
@@ -53,13 +48,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <param name="follow"></param>
         /// <returns></returns>
         Task FollowAsync(Guid pointerId, bool follow);
-        /// <summary>
-        /// 更新实例候选人（委托、抄送、会签）
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        Task<WkInstancesDto> UpdateInstanceCandidatesAsync(WkInstanceUpdateDto entity);
-        Task<List<WkNodeTreeDto>> GetInstanceAllNodesAsync(Guid workflowId);
         /// <summary>
         /// 通过业务编号或者实例
         /// </summary>
