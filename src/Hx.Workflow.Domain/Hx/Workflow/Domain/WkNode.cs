@@ -13,11 +13,11 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 步骤体Id
         /// </summary>
-        public virtual Guid? WkStepBodyId { get; protected set; }
+        public virtual Guid WkStepBodyId { get; protected set; }
         /// <summary>
         /// 节点Id
         /// </summary>
-        public virtual Guid? WkDefinitionId { get; protected set; }
+        public virtual Guid WkDefinitionId { get; protected set; }
         /// <summary>
         /// 步骤名称
         /// </summary>
@@ -72,9 +72,13 @@ namespace Hx.Workflow.Domain
         public virtual int SortNumber { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
         public virtual ICollection<WkNodeMaterials> Materials { get; protected set; } = new List<WkNodeMaterials>();
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkNode()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         { }
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkNode(
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
             string name,
             string displayName,
             StepNodeType stepNodeType,
@@ -93,30 +97,7 @@ namespace Hx.Workflow.Domain
             WkCandidates = new List<WkNodeCandidate>();
             ApplicationForms = new List<WkNode_ApplicationForms>();
             Materials = new List<WkNodeMaterials>();
-            ExtraProperties = new ExtraPropertyDictionary();
-        }
-        public WkNode(
-            Guid id,
-            string name,
-            string displayName,
-            StepNodeType stepNodeType,
-            int version,
-            int sortNumber,
-            int? limitTime = null)
-        {
-            Id = id;
-            Name = name;
-            DisplayName = displayName;
-            StepNodeType = stepNodeType;
-            Version = version;
-            LimitTime = limitTime;
-            SortNumber = sortNumber;
-            NextNodes = new List<WkConditionNode>();
-            OutcomeSteps = new List<WkNodePara>();
-            WkCandidates = new List<WkNodeCandidate>();
-            ApplicationForms = new List<WkNode_ApplicationForms>();
-            Materials = new List<WkNodeMaterials>();
-            ExtraProperties = new ExtraPropertyDictionary();
+            ExtraProperties = [];
         }
         public Task SetStepName(string name)
         {

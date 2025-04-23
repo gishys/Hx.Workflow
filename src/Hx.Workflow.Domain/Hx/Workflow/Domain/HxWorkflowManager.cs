@@ -16,36 +16,26 @@ using WorkflowCore.Services.DefinitionStorage;
 
 namespace Hx.Workflow.Domain
 {
-    public class HxWorkflowManager : DomainService
+    public class HxWorkflowManager(
+        IWorkflowRegistry registry,
+        IWkStepBodyRespository wkStepBodyRespository,
+        IDefinitionLoader definitionLoader,
+        IWorkflowController workflowService,
+        IUnitOfWorkManager unitOfWorkManager,
+        IWkDefinitionRespository wkDefinitionRespository,
+        IWorkflowHost workflowHost,
+        IWkInstanceRepository instanceRepository) : DomainService
     {
-        private readonly IWorkflowRegistry _registry;
-        private readonly IWkStepBodyRespository _wkStepBodyRespository;
-        private readonly IDefinitionLoader _definitionLoader;
-        protected readonly IWorkflowController _workflowService;
-        private readonly IUnitOfWorkManager _unitOfWorkManager;
-        private readonly IWkDefinitionRespository _wkDefinitionRespository;
-        protected readonly IWorkflowHost _workflowHost;
+        private readonly IWorkflowRegistry _registry = registry;
+        private readonly IWkStepBodyRespository _wkStepBodyRespository = wkStepBodyRespository;
+        private readonly IDefinitionLoader _definitionLoader = definitionLoader;
+        protected readonly IWorkflowController _workflowService = workflowService;
+        private readonly IUnitOfWorkManager _unitOfWorkManager = unitOfWorkManager;
+        private readonly IWkDefinitionRespository _wkDefinitionRespository = wkDefinitionRespository;
+        protected readonly IWorkflowHost _workflowHost = workflowHost;
         private List<WkNode>? _WkNodes;
-        public IWkInstanceRepository WkInstanceRepository { get; set; }
-        public HxWorkflowManager(
-            IWorkflowRegistry registry,
-            IWkStepBodyRespository wkStepBodyRespository,
-            IDefinitionLoader definitionLoader,
-            IWorkflowController workflowService,
-            IUnitOfWorkManager unitOfWorkManager,
-            IWkDefinitionRespository wkDefinitionRespository,
-            IWorkflowHost workflowHost,
-            IWkInstanceRepository instanceRepository)
-        {
-            _registry = registry;
-            _wkStepBodyRespository = wkStepBodyRespository;
-            _definitionLoader = definitionLoader;
-            _workflowService = workflowService;
-            _unitOfWorkManager = unitOfWorkManager;
-            _wkDefinitionRespository = wkDefinitionRespository;
-            _workflowHost = workflowHost;
-            WkInstanceRepository = instanceRepository;
-        }
+        public IWkInstanceRepository WkInstanceRepository { get; set; } = instanceRepository;
+
         /// <summary>
         /// terminate workflow
         /// </summary>
@@ -79,7 +69,7 @@ namespace Hx.Workflow.Domain
         /// <param name="workflowId"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        public virtual async Task<WkDefinition> GetDefinitionAsync(string name)
+        public virtual async Task<WkDefinition?> GetDefinitionAsync(string name)
         {
             return await _wkDefinitionRespository.GetDefinitionAsync(name);
         }
@@ -88,17 +78,15 @@ namespace Hx.Workflow.Domain
         /// </summary>
         public async virtual Task Initialize()
         {
-            using (var uow = _unitOfWorkManager.Begin(
+            using var uow = _unitOfWorkManager.Begin(
                 requiresNew: true, isTransactional: false
-            ))
+            );
+            var workflows = await _wkDefinitionRespository.GetListAsync(includeDetails: true);
+            foreach (var workflow in workflows)
             {
-                var workflows = await _wkDefinitionRespository.GetListAsync(includeDetails: true);
-                foreach (var workflow in workflows)
-                {
-                    LoadDefinitionByJson(workflow);
-                }
-                await uow.CompleteAsync();
+                LoadDefinitionByJson(workflow);
             }
+            await uow.CompleteAsync();
         }
         public async virtual Task StartHostAsync()
         {
@@ -145,7 +133,7 @@ namespace Hx.Workflow.Domain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual async Task<string> StartWorlflowAsync(string id, int version, Dictionary<string, object> inputs)
+        public virtual async Task<string> StartWorkflowAsync(string id, int version, Dictionary<string, object> inputs)
         {
             if (!_registry.IsRegistered(id, version))
             {
@@ -174,11 +162,13 @@ namespace Hx.Workflow.Domain
             {
                 throw new AbpException($"the workflow {input.Id} has ben defined!");
             }
-            var definitionSource = new JDefinitionSource();
-            definitionSource.Id = input.Id.ToString();
-            definitionSource.Version = input.Version;
-            definitionSource.Description = input.Title;
-            definitionSource.DataType = $"{typeof(Dictionary<string, object>).FullName}, {typeof(Dictionary<string, object>).Assembly.FullName}";
+            var definitionSource = new JDefinitionSource
+            {
+                Id = input.Id.ToString(),
+                Version = input.Version,
+                Description = input.Title,
+                DataType = $"{typeof(Dictionary<string, object>).FullName}, {typeof(Dictionary<string, object>).Assembly.FullName}"
+            };
             BuildWorkflowStep(input.Nodes, definitionSource);
             string json = System.Text.Json.JsonSerializer.Serialize(definitionSource);
             return _definitionLoader.LoadDefinition(json, Deserializers.Json);
@@ -200,13 +190,13 @@ namespace Hx.Workflow.Domain
             JDefinitionSource source,
             WkNode step)
         {
-            var stepSource = new JStepSource();
-            stepSource.Id = step.Id.ToString();
-            stepSource.Name = step.Name;
-            var stepBody = step.StepBody;
-            if (stepBody == null)
+            var stepSource = new JStepSource
             {
-                stepBody = new WkStepBody(
+                Id = step.Id.ToString(),
+                Name = step.Name
+            };
+            var stepBody = step.StepBody;
+            stepBody ??= new WkStepBody(
                     "",
                     "",
                     null,
@@ -214,7 +204,6 @@ namespace Hx.Workflow.Domain
                     typeof(NullStepBody).FullName ?? "",
                     typeof(NullStepBody).Assembly.FullName ?? ""
                     );
-            }
             stepSource.StepType = $"{stepBody.TypeFullName}, {stepBody.AssemblyFullName}";
             if (stepBody == null)
                 throw new BusinessException(message: "Definition step body is null!");
@@ -242,7 +231,7 @@ namespace Hx.Workflow.Domain
                         stepSource.SelectNextStep[subStepNode.Id.ToString()] = "1==1";
                         if (nextName.WkConNodeConditions?.Count > 0)
                         {
-                            List<string> exps = new List<string>();
+                            List<string> exps = [];
                             foreach (var cond in nextName.WkConNodeConditions)
                             {
                                 if ((!decimal.TryParse(cond.Value, out decimal tempValue)) && cond.Value is string)
@@ -265,7 +254,7 @@ namespace Hx.Workflow.Domain
                 }
             }
         }
-        private void GetValue(IHxKeyValueConvert input, IDictionary<string, object> dics)
+        private static void GetValue(IHxKeyValueConvert input, IDictionary<string, object> dics)
         {
             var value = input.Value;
             if (value != null)

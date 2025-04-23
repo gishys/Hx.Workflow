@@ -45,10 +45,12 @@ namespace Hx.Workflow.Domain.Persistence
         public void SetDescription(string? description) => Description = description;
         public void AddChildren(WkDefinitionGroup group)
         {
-            if (Children == null) Children = new List<WkDefinitionGroup>();
+            Children ??= [];
             Children.Add(group);
         }
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkDefinitionGroup() { }
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         /// <summary>
         /// 初始化
         /// </summary>
@@ -65,8 +67,8 @@ namespace Hx.Workflow.Domain.Persistence
             Order = order;
             ParentId = parentId;
             Description = description;
-            Children = new List<WkDefinitionGroup>();
-            Items = new List<WkDefinition>();
+            Children = [];
+            Items = [];
         }
         /// <summary>
         /// Calculates next code for given code.
@@ -97,7 +99,7 @@ namespace Hx.Workflow.Domain.Persistence
             }
 
             var splittedCode = code.Split('.');
-            return splittedCode[splittedCode.Length - 1];
+            return splittedCode[^1];
         }
 
         /// <summary>

@@ -20,11 +20,11 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// application name
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
         /// <summary>
         /// application node type
         /// </summary>
-        public string Title { get; set; }
+        public required string Title { get; set; }
         /// <summary>
         /// application type
         /// </summary>
@@ -34,6 +34,6 @@ namespace Hx.Workflow.Application.Contracts
         /// 描述
         /// </summary>
         public string? Description { get; set; }
-        public ICollection<WkParamCreateDto> Params { get; set; }
+        public ICollection<WkParamCreateDto>? Params { get; set; }
     }
 }

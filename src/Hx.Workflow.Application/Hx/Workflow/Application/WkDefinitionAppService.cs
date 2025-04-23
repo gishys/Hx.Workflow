@@ -14,23 +14,17 @@ using Volo.Abp;
 namespace Hx.Workflow.Application
 {
     //[Authorize]
-    public class WkDefinitionAppService : WorkflowAppServiceBase, IWkDefinitionAppService
+    public class WkDefinitionAppService(
+        IWkDefinitionRespository definitionRespository,
+        IWkStepBodyRespository wkStepBody,
+        HxWorkflowManager hxWorkflowManager,
+        IWkDefinitionGroupRepository groupRepository) : WorkflowAppServiceBase, IWkDefinitionAppService
     {
-        private readonly IWkDefinitionRespository _definitionRespository;
-        private readonly IWkStepBodyRespository _wkStepBody;
-        private readonly HxWorkflowManager _hxWorkflowManager;
-        private IWkDefinitionGroupRepository GroupRepository { get; }
-        public WkDefinitionAppService(
-            IWkDefinitionRespository definitionRespository,
-            IWkStepBodyRespository wkStepBody,
-            HxWorkflowManager hxWorkflowManager,
-            IWkDefinitionGroupRepository groupRepository)
-        {
-            _definitionRespository = definitionRespository;
-            _wkStepBody = wkStepBody;
-            _hxWorkflowManager = hxWorkflowManager;
-            GroupRepository = groupRepository;
-        }
+        private readonly IWkDefinitionRespository _definitionRespository = definitionRespository;
+        private readonly IWkStepBodyRespository _wkStepBody = wkStepBody;
+        private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
+        private IWkDefinitionGroupRepository GroupRepository { get; } = groupRepository;
+
         /// <summary>
         /// 创建模板
         /// </summary>
@@ -41,11 +35,7 @@ namespace Hx.Workflow.Application
         {
             if (input.GroupId.HasValue)
             {
-                var group = await GroupRepository.FindAsync(input.GroupId.Value);
-                if (group == null)
-                {
-                    throw new UserFriendlyException("模板组不存在！");
-                }
+                var group = await GroupRepository.FindAsync(input.GroupId.Value) ?? throw new UserFriendlyException($"Id为：{input.GroupId}模板组不存在！");
             }
             var sortNumber = await _definitionRespository.GetMaxSortNumberAsync();
             var entity = new WkDefinition(
@@ -75,7 +65,7 @@ namespace Hx.Workflow.Application
             {
                 foreach (var node in nodeEntitys)
                 {
-                    var wkStepBodyId = input.Nodes.FirstOrDefault(d => d.Name == node.Name)?.WkStepBodyId;
+                    var wkStepBodyId = input.Nodes?.FirstOrDefault(d => d.Name == node.Name)?.WkStepBodyId ?? throw new UserFriendlyException($"节点：{node.Name}的WkStepBodyId不存在！");
                     await node.SetWkStepBody(await GetStepBodyByIdAsync(wkStepBodyId, node.StepNodeType));
                     await entity.AddWkNode(node);
                 }
@@ -91,7 +81,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkDefinitionDto> UpdateAsync(WkDefinitionUpdateDto input)
         {
-            var entity = await _definitionRespository.FindAsync(input.Id);
+            var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException($"Id为：{input.Id}模板不存在！");
             await entity.SetVersion(input.Version);
             await entity.SetTitle(input.Title);
             await entity.SetLimitTime(input.LimitTime);
@@ -115,11 +105,11 @@ namespace Hx.Workflow.Application
             await _hxWorkflowManager.UpdateAsync(entity);
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
-        public async Task<WkStepBody> GetStepBodyByIdAsync(string id, StepNodeType type)
+        public async Task<WkStepBody> GetStepBodyByIdAsync(string? id, StepNodeType type)
         {
             if (type == StepNodeType.Start || type == StepNodeType.End)
             {
-                WkStepBody stepBody;
+                WkStepBody? stepBody;
                 if (string.IsNullOrEmpty(id))
                 {
                     string stepName = type == StepNodeType.Start
@@ -145,7 +135,7 @@ namespace Hx.Workflow.Application
                 {
                     throw new ArgumentException($"参数 {nameof(id)} 不是有效的 Guid 格式。");
                 }
-                WkStepBody stepBody = await _wkStepBody.FindAsync(stepBodyId);
+                WkStepBody? stepBody = await _wkStepBody.FindAsync(stepBodyId);
                 return stepBody ?? throw new UserFriendlyException($"未找到 ID 为 {id} 的 stepbody 实体。");
             }
             throw new ArgumentException($"不支持的节点类型：{type}。");
@@ -157,13 +147,13 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<List<WkNodeDto>> UpdateAsync(DefinitionNodeUpdateDto input)
         {
-            var entity = await _definitionRespository.FindAsync(input.Id);
+            var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException($"Id为：{input.Id}模板不存在！");
             var nodeEntitys = input.Nodes.ToWkNodes();
             if (nodeEntitys != null && nodeEntitys.Count > 0)
             {
                 foreach (var node in nodeEntitys)
                 {
-                    var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
+                    var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name) ?? throw new UserFriendlyException($"节点：{node.Name}不存在！");
                     await node.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, node.StepNodeType));
                     if (node.ExtraProperties != null)
                     {
@@ -179,14 +169,14 @@ namespace Hx.Workflow.Application
                 throw new UserFriendlyException("节点限制时间合计值不能大于流程限制时间！");
             }
             var count = entity.Nodes.GroupBy(p => p.Name).Where(g => g.Count() > 1).Select(g => g.Key);
-            if (count.Count() > 0)
+            if (count.Any())
             {
                 throw new UserFriendlyException("节点名称{Name}不能重复！");
             }
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _hxWorkflowManager.UpdateAsync(entity);
-            return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>(entity.Nodes.ToList());
+            return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. entity.Nodes]);
         }
         /// <summary>
         /// 通过Id获取实体
@@ -214,10 +204,10 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1)
         {
-            var entity = await _definitionRespository.GetDefinitionAsync(id, version);
+            var entity = await _definitionRespository.GetDefinitionAsync(id, version) ?? throw new UserFriendlyException($"Id为：{id}模板不存在！");
             var result = ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
             result.Nodes = [];
-            WkNode node = entity.Nodes.FirstOrDefault(d => d.StepNodeType == StepNodeType.Start);
+            WkNode? node = entity.Nodes.FirstOrDefault(d => d.StepNodeType == StepNodeType.Start);
             while (node != null)
             {
                 result.Nodes.Add(ObjectMapper.Map<WkNode, WkNodeDto>(node));

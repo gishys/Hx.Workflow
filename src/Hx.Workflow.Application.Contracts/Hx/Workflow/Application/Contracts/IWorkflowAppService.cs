@@ -9,11 +9,11 @@ namespace Hx.Workflow.Application.Contracts
     public interface IWorkflowAppService
     {
         Task<string> StartAsync(StartWorkflowInput input);
-        Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null);
+        Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             MyWorkState? status = null,
-            string reference = null,
-            ICollection<Guid> userIds = null,
+            string? reference = null,
+            ICollection<Guid>? userIds = null,
             int skipCount = 0,
             int maxResultCount = 20);
         Task<bool> ResumeWorkflowAsync(string workflowId);

@@ -9,11 +9,11 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 步骤名称
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
         /// <summary>
         /// 显示名称
         /// </summary>
-        public string DisplayName { get; set; }
+        public required string DisplayName { get; set; }
         /// <summary>
         /// 步骤节点类型
         /// </summary>
@@ -25,16 +25,16 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 步骤体Id
         /// </summary>
-        public string WkStepBodyId { get; set; }
+        public string? WkStepBodyId { get; set; }
         /// <summary>
         /// 限制时间
         /// </summary>
         public int? LimitTime { get; set; }
-        public ICollection<WkConditionNodeCreateDto> NextNodes { get; set; }
-        public ICollection<WkNodeParaCreateDto> OutcomeSteps { get; set; }
-        public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
-        public ICollection<NodeAddApplicationFormDto> ApplicationForms { get; set; }
-        public ICollection<WkParamCreateDto> Params { get; set; }
-        public ICollection<WkNodeMaterialsDto> Materials { get; set; }
+        public ICollection<WkConditionNodeCreateDto>? NextNodes { get; set; }
+        public ICollection<WkNodeParaCreateDto>? OutcomeSteps { get; set; }
+        public ICollection<WkCandidateCreateDto>? WkCandidates { get; set; }
+        public ICollection<NodeAddApplicationFormDto>? ApplicationForms { get; set; }
+        public ICollection<WkParamCreateDto>? Params { get; set; }
+        public ICollection<WkNodeMaterialsDto>? Materials { get; set; }
     }
 }

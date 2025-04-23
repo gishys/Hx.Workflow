@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Volo.Abp;
-using Volo.Abp.Guids;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -31,23 +30,20 @@ namespace Hx.Workflow.Application
                 {
                     foreach (var condition in node.NextNodes)
                     {
-                        if (condition.NextNodeName.Length > 0)
+                        var conditionEntity = new WkConditionNode(condition.NextNodeName, condition.NodeType);
+                        if (condition.WkConNodeConditions?.Count > 0)
                         {
-                            var conditionEntity = new WkConditionNode(condition.NextNodeName, condition.NodeType);
-                            if (condition.WkConNodeConditions?.Count > 0)
+                            foreach (var conCondition in condition.WkConNodeConditions)
                             {
-                                foreach (var conCondition in condition.WkConNodeConditions)
-                                {
-                                    conditionEntity.AddConNodeCondition(
-                                        new WkConNodeCondition(
-                                            conCondition.Field,
-                                            conCondition.Operator,
-                                            conCondition.Value
-                                            ));
-                                }
+                                conditionEntity.AddConNodeCondition(
+                                    new WkConNodeCondition(
+                                        conCondition.Field,
+                                        conCondition.Operator,
+                                        conCondition.Value
+                                        ));
                             }
-                            nodeEntity.AddNextNode(conditionEntity);
                         }
+                        nodeEntity.AddNextNode(conditionEntity);
                     }
                 }
                 if (node.OutcomeSteps?.Count > 0)
@@ -143,8 +139,8 @@ namespace Hx.Workflow.Application
                 ReceivingTime = instance.CreateTime,
                 State = instance.Status.ToString(),
                 ProcessType = instance.WkDefinition.ProcessType,
-                IsSign = instance.Status != WorkflowStatus.Runnable || (pointer != null ? userIds.Any(id => id == pointer.RecipientId) : true),
-                IsProcessed = pointer != null ? pointer.WkSubscriptions.Any(d => d.ExternalToken != null) : false,
+                IsSign = instance.Status != WorkflowStatus.Runnable || (pointer == null || userIds.Any(id => id == pointer.RecipientId)),
+                IsProcessed = pointer != null && pointer.WkSubscriptions.Any(d => d.ExternalToken != null),
                 Data = businessData
             };
             if (pointer == null)

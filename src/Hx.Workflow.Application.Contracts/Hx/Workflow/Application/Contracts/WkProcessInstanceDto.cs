@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -12,19 +9,19 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 受理编号
         /// </summary>
-        public string Reference { get; set; }
+        public required string Reference { get; set; }
         /// <summary>
         /// 办理步骤
         /// </summary>
-        public string ProcessingStepName { get; set; }
+        public string? ProcessingStepName { get; set; }
         /// <summary>
         /// 收件人
         /// </summary>
-        public string Recipient { get; set; }
+        public string? Recipient { get; set; }
         /// <summary>
         /// 提交人
         /// </summary>
-        public string Submitter { get; set; }
+        public string? Submitter { get; set; }
         /// <summary>
         /// 接收时间
         /// </summary>
@@ -32,15 +29,15 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 步骤期限
         /// </summary>
-        public string StepCommitmentDeadline { get; set; }
+        public string? StepCommitmentDeadline { get; set; }
         /// <summary>
         /// 状态
         /// </summary>
-        public string State { get; set; }
+        public required string State { get; set; }
         /// <summary>
         /// 流程类型
         /// </summary>
-        public string ProcessType { get; set; }
+        public required string ProcessType { get; set; }
         /// <summary>
         /// 是否已签收
         /// </summary>
@@ -52,6 +49,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 业务数据
         /// </summary>
-        public IDictionary<string, object> Data { get; set; }
+        public IDictionary<string, object>? Data { get; set; }
     }
 }

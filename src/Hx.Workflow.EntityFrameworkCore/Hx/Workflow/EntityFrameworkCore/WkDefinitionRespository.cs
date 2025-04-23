@@ -1,7 +1,6 @@
 ﻿using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
-using Hx.Workflow.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -13,13 +12,10 @@ using Volo.Abp.EntityFrameworkCore;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public class WkDefinitionRespository
-        : EfCoreRepository<WkDbContext, WkDefinition, Guid>,
+    public class WkDefinitionRespository(IDbContextProvider<WkDbContext> options)
+                : EfCoreRepository<WkDbContext, WkDefinition, Guid>(options),
         IWkDefinitionRespository
     {
-        public WkDefinitionRespository(IDbContextProvider<WkDbContext> options)
-            : base(options)
-        { }
         public override async Task<WkDefinition?> FindAsync(
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
@@ -61,7 +57,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(d => d.WkConNodeConditions)
                 .ToListAsync(GetCancellationToken(cancellationToken));
         }
-        public virtual async Task<WkDefinition> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)
+        public virtual async Task<WkDefinition?> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)
         {
             return await (await GetDbSetAsync())
                 .IncludeDetails(includeDetails)
@@ -77,7 +73,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             }
             return 0;
         }
-        public virtual async Task<WkDefinition> UpdateCandidatesAsync(
+        public virtual async Task<WkDefinition?> UpdateCandidatesAsync(
             Guid wkDefinitionId,
             Guid userId,
             ICollection<DefinitionCandidate> wkCandidates)

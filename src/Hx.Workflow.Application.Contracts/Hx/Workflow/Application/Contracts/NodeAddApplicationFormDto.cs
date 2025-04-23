@@ -10,6 +10,6 @@ namespace Hx.Workflow.Application.Contracts
     {
         public Guid ApplicationFormId { get; set; }
         public int SequenceNumber {  get; set; }
-        public ICollection<WkParamCreateDto> Params { get; set; }
+        public ICollection<WkParamCreateDto>? Params { get; set; }
     }
 }

@@ -59,7 +59,7 @@ namespace Hx.Workflow.Domain
                 };
 
                 if (!string.IsNullOrEmpty(ep.Children))
-                    pointer.Children = ep.Children.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    pointer.Children = [.. ep.Children.Split(';', StringSplitOptions.RemoveEmptyEntries)];
 
                 pointer.EventName = ep.EventName;
                 pointer.EventKey = ep.EventKey;
@@ -70,7 +70,7 @@ namespace Hx.Workflow.Domain
 
                 if (!string.IsNullOrEmpty(ep.Scope))
                 {
-                    pointer.Scope = new List<string>(ep.Scope.Split(separator: [';'], StringSplitOptions.RemoveEmptyEntries));
+                    pointer.Scope = new List<string>(ep.Scope.Split(';', StringSplitOptions.RemoveEmptyEntries));
                 }
 
                 foreach (var attr in ep.ExtensionAttributes)
@@ -85,10 +85,12 @@ namespace Hx.Workflow.Domain
         }
         internal static Event ToEvent(this WkEvent instance)
         {
-            Event result = new();
-            result.Id = instance.Id.ToString();
-            result.EventKey = instance.Key;
-            result.EventName = instance.Name;
+            Event result = new()
+            {
+                Id = instance.Id.ToString(),
+                EventKey = instance.Key,
+                EventName = instance.Name
+            };
             result.EventTime = result.EventTime;
             result.IsProcessed = instance.IsProcessed;
             result.EventData = JsonConvert.DeserializeObject(instance.Data, SerializerSettings);

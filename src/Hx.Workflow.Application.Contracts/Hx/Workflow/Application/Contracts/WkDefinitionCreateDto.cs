@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Volo.Abp.ObjectExtending;
 
 namespace Hx.Workflow.Application.Contracts
@@ -14,7 +13,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 流程定义名称
         /// </summary>
-        public string Title { get; set; }
+        public required string Title { get; set; }
         /// <summary>
         /// 限制时间（分钟）
         /// </summary>
@@ -22,15 +21,15 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 描述
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
         /// <summary>
         /// 业务类型
         /// </summary>
-        public string BusinessType { get; set; }
+        public required string BusinessType { get; set; }
         /// <summary>
         /// 流程类型
         /// </summary>
-        public string ProcessType { get; set; }
+        public required string ProcessType { get; set; }
         /// <summary>
         /// 模板组Id
         /// </summary>
@@ -38,11 +37,11 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 节点组
         /// </summary>
-        public ICollection<WkNodeCreateDto> Nodes { get; set; }
+        public ICollection<WkNodeCreateDto>? Nodes { get; set; }
         /// <summary>
         /// 是否启用
         /// </summary>
         public bool IsEnabled { get; set; }
-        public ICollection<WkCandidateCreateDto> WkCandidates { get; set; }
+        public ICollection<WkCandidateCreateDto>? WkCandidates { get; set; }
     }
 }

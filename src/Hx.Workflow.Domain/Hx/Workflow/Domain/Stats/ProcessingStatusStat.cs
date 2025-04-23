@@ -15,7 +15,7 @@ namespace Hx.Workflow.Domain.Stats
         /// <summary>
         /// 办理状态
         /// </summary>
-        public string Status {  get; set; }
+        public required string Status {  get; set; }
         /// <summary>
         /// 数量
         /// </summary>

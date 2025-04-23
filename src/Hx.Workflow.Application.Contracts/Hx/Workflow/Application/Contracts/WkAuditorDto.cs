@@ -14,9 +14,9 @@ namespace Hx.Workflow.Application.Contracts
         public Guid ExecutionPointerId { get; set; }
         public EnumAuditStatus Status { get; set; }
         public DateTime? AuditTime { get; set; }
-        public string Remark { get; set; }
+        public string? Remark { get; set; }
         public Guid? UserId { get; set; }
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
         public Guid? TenantId { get; set; }
     }
 }

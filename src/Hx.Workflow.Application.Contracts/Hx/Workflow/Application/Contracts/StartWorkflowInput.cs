@@ -6,8 +6,8 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class StartWorkflowInput
     {
-        public string Id { get; set; }
+        public required string Id { get; set; }
         public int Version { get; set; }
-        public Dictionary<string, object> Inputs { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, object> Inputs { get; set; } = [];
     }
 }

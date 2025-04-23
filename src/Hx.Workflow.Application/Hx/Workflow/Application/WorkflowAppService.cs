@@ -9,7 +9,6 @@ using Hx.Workflow.Domain.StepBodys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -19,32 +18,23 @@ using WorkflowCore.Models;
 namespace Hx.Workflow.Application
 {
     //[Authorize]
-    public class WorkflowAppService : HxWorkflowAppServiceBase, IWorkflowAppService
+    public class WorkflowAppService(
+        IWkStepBodyRespository wkStepBody,
+        HxWorkflowManager hxWorkflowManager,
+        IWkDefinitionRespository wkDefinition,
+        IWkInstanceRepository wkInstanceRepository,
+        IWkErrorRepository errorRepository,
+        IWkExecutionPointerRepository wkExecutionPointerRepository,
+        IWkAuditorRespository wkAuditor) : HxWorkflowAppServiceBase, IWorkflowAppService
     {
-        private readonly IWkStepBodyRespository _wkStepBody;
-        private readonly HxWorkflowManager _hxWorkflowManager;
-        private readonly IWkDefinitionRespository _wkDefinition;
-        private readonly IWkInstanceRepository _wkInstanceRepository;
-        private readonly IWkErrorRepository _errorRepository;
-        private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository;
-        private readonly IWkAuditorRespository _wkAuditor;
-        public WorkflowAppService(
-            IWkStepBodyRespository wkStepBody,
-            HxWorkflowManager hxWorkflowManager,
-            IWkDefinitionRespository wkDefinition,
-            IWkInstanceRepository wkInstanceRepository,
-            IWkErrorRepository errorRepository,
-            IWkExecutionPointerRepository wkExecutionPointerRepository,
-            IWkAuditorRespository wkAuditor)
-        {
-            _wkStepBody = wkStepBody;
-            _hxWorkflowManager = hxWorkflowManager;
-            _wkDefinition = wkDefinition;
-            _wkInstanceRepository = wkInstanceRepository;
-            _errorRepository = errorRepository;
-            _wkExecutionPointerRepository = wkExecutionPointerRepository;
-            _wkAuditor = wkAuditor;
-        }
+        private readonly IWkStepBodyRespository _wkStepBody = wkStepBody;
+        private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
+        private readonly IWkDefinitionRespository _wkDefinition = wkDefinition;
+        private readonly IWkInstanceRepository _wkInstanceRepository = wkInstanceRepository;
+        private readonly IWkErrorRepository _errorRepository = errorRepository;
+        private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
+        private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
+
         /// <summary>
         /// 获取可创建的模板（赋予权限）
         /// </summary>
@@ -68,16 +58,24 @@ namespace Hx.Workflow.Application
         {
             try
             {
-                if (!input.Inputs.Any(d => d.Key == "Candidates" && Guid.TryParse(d.Value.ToString(), out _)))
+                // 1. 候选人参数解析优化
+                var candidateKeyValue = input.Inputs.FirstOrDefault(kv => kv.Key == "Candidates");
+                if (candidateKeyValue.Equals(default(KeyValuePair<string, object>)))
                 {
-                    throw new UserFriendlyException("请传入有效的接收人Id！");
+                    throw new UserFriendlyException("流程启动参数中缺少候选人信息");
                 }
-                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version);
-                if (!entity.WkCandidates.Any(d => d.CandidateId == new Guid(input.Inputs["Candidates"].ToString())))
+
+                if (!Guid.TryParse(candidateKeyValue.Value?.ToString(), out Guid candidateId))
                 {
-                    throw new UserFriendlyException($"无权限，请在流程定义中配置Id为（{input.Inputs["Candidates"].ToString()}）的权限！");
+                    throw new UserFriendlyException("候选人ID格式无效，请提供有效的GUID格式");
                 }
-                return await _hxWorkflowManager.StartWorlflowAsync(input.Id, input.Version, input.Inputs);
+
+                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version) ?? throw new UserFriendlyException($"不存在Id为：[{input.Id},{input.Version}]流程模板！");
+                if (!entity.WkCandidates.Any(d => d.CandidateId == candidateId))
+                {
+                    throw new UserFriendlyException($"无权限，请在流程定义中配置Id为（{input.Inputs["Candidates"]}）的权限！");
+                }
+                return await _hxWorkflowManager.StartWorkflowAsync(input.Id, input.Version, input.Inputs);
             }
             catch (Exception ex)
             {
@@ -91,10 +89,10 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object> data = null)
+        public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null)
         {
             var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(data));
-            if (string.IsNullOrEmpty(eventPointerEventData.DecideBranching))
+            if (string.IsNullOrEmpty(eventPointerEventData?.DecideBranching))
                 throw new UserFriendlyException("提交必须携带分支节点名称！");
             await _hxWorkflowManager.StartActivityAsync(actName, workflowId, data);
         }
@@ -120,15 +118,15 @@ namespace Hx.Workflow.Application
             //userIds = [new Guid("3a140076-3f3e-0ae6-56ad-2c3f1c06508f")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
-                userIds,
+                userIds ?? [],
                 reference,
                 status,
                 skipCount,
                 maxResultCount);
-            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds, reference, status);
+            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds ?? [], reference, status);
             foreach (var instance in instances)
             {
-                var processInstance = instance.ToProcessInstanceDto(userIds);
+                var processInstance = instance.ToProcessInstanceDto(userIds ?? []);
                 result.Add(processInstance);
             }
             return new PagedResultDto<WkProcessInstanceDto>(count, result);
@@ -328,11 +326,13 @@ namespace Hx.Workflow.Application
 
             foreach (var item in result)
             {
-                if (!fullYearData.ContainsKey(item.PClassification))
+                if (!fullYearData.TryGetValue(item.PClassification, out List<ProcessTypeStatDto>? value))
                 {
-                    fullYearData[item.PClassification] = new List<ProcessTypeStatDto>();
+                    value = ([]);
+                    fullYearData[item.PClassification] = value;
                 }
-                fullYearData[item.PClassification].Add(item);
+
+                value.Add(item);
             }
 
             // 确保每个ProcessType都包含全年的每个月份

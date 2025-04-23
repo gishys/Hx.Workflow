@@ -5,9 +5,9 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkConditionNodeDto
     {
-        public string Label { get; set; }
-        public string NextNodeName { get; set; }
+        public string? Label { get; set; }
+        public required string NextNodeName { get; set; }
         public WkRoleNodeType NodeType { get; set; }
-        public virtual ICollection<WkConNodeConditionDto> WkConNodeConditions { get; set; }
+        public virtual ICollection<WkConNodeConditionDto>? WkConNodeConditions { get; set; }
     }
 }

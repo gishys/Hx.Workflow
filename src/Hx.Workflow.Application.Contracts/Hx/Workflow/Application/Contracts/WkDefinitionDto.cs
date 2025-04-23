@@ -1,13 +1,11 @@
-﻿using Hx.Workflow.Domain.Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Auditing;
-using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Application.Contracts
 {
-    public class WkDefinitionDto : ExtensibleEntityDto<Guid>, IHasConcurrencyStamp, IHasCreationTime
+    public class WkDefinitionDto : ExtensibleEntityDto<Guid>, IHasCreationTime
     {
         /// <summary>
         /// 版本号
@@ -16,7 +14,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 流程定义名称
         /// </summary>
-        public string Title { get; set; }
+        public required string Title { get; set; }
         /// <summary>
         /// 限制时间
         /// </summary>
@@ -28,7 +26,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 描述
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
         /// <summary>
         /// 排序
         /// </summary>
@@ -40,13 +38,11 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 业务类型
         /// </summary>
-        public string BusinessType { get; set; }
+        public required string BusinessType { get; set; }
         /// <summary>
         /// 流程类型
         /// </summary>
-        public string ProcessType { get; set; }
-        public string ConcurrencyStamp { get; set; }
-
+        public required string ProcessType { get; set; }
         public DateTime CreationTime { get; set; }
         /// <summary>
         /// 是否启用
@@ -55,10 +51,10 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 节点集合
         /// </summary>
-        public virtual ICollection<WkNodeDto> Nodes { get; set; }
+        public required ICollection<WkNodeDto> Nodes { get; set; }
         /// <summary>
         /// 后选者
         /// </summary>
-        public ICollection<WkCandidateDto> WkCandidates { get; set; }
+        public required ICollection<WkCandidateDto> WkCandidates { get; set; }
     }
 }

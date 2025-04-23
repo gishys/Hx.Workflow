@@ -10,7 +10,7 @@ namespace Hx.Workflow.Application.Contracts
     public class DefinitionNodeUpdateDto
     {
         public Guid Id { get; set; }
-        public ExtraPropertyDictionary ExtraProperties { get; set; }
-        public ICollection<WkNodeCreateDto> Nodes { get; set; }
+        public required ExtraPropertyDictionary ExtraProperties { get; set; }
+        public required ICollection<WkNodeCreateDto> Nodes { get; set; }
     }
 }

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Hx.Workflow.Application.Contracts
+﻿namespace Hx.Workflow.Application.Contracts
 {
     public class WkConNodeConditionCreateDto
     {
-        public string Field { get; set; }
-        public string Operator { get; set; }
-        public string Value { get; set; }
+        public required string Field { get; set; }
+        public required string Operator { get; set; }
+        public required string Value { get; set; }
     }
 }

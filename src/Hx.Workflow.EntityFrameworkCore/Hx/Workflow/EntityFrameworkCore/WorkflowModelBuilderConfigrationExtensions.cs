@@ -10,13 +10,10 @@ using Volo.Abp.EntityFrameworkCore.Modeling;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public class HxWorkflowModelBuilderConfigrationOptions : AbpModelBuilderConfigurationOptions
+    public class HxWorkflowModelBuilderConfigrationOptions(
+        [NotNull] string tablePrefix,
+        [CanBeNull] string schema) : AbpModelBuilderConfigurationOptions(tablePrefix, schema)
     {
-        public HxWorkflowModelBuilderConfigrationOptions(
-            [NotNull] string tablePrefix,
-            [CanBeNull] string schema)
-            : base(tablePrefix, schema)
-        { }
     }
     public static class WorkflowModelBuilderConfigrationExtensions
     {
@@ -145,6 +142,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.ConfigureExtraProperties();
                 t.ToTable(model.TablePrefix + "WKNODES", model.Schema, tb => { tb.HasComment("执行节点"); });
                 t.Property(d => d.Id).HasColumnName("ID");
+                t.Property(d => d.WkStepBodyId).HasColumnName("WKSTEPBODYID");
                 t.Property(d => d.WkDefinitionId).HasColumnName("WKDIFINITIONID");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(WkNodeConsts.MaxName);
                 t.Property(d => d.StepNodeType).HasColumnName("STEPNODETYPE").HasPrecision(1);
@@ -180,11 +178,11 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.OwnsMany(p => p.Params, param =>
                 {
-                    param.ToJson();
+                    param.ToJson("PARAMS");
                 });
                 t.OwnsMany(p => p.Materials, param =>
                 {
-                    param.ToJson();
+                    param.ToJson("MATERIALS");
                     param.OwnsMany(d => d.Children, cparam =>
                     {
                         cparam.ToJson();
