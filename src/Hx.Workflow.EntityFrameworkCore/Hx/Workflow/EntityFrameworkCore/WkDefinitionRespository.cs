@@ -33,7 +33,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <param name="id"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        public virtual async Task<WkDefinition> GetDefinitionAsync(Guid id, int version, CancellationToken cancellation = default)
+        public virtual async Task<WkDefinition?> GetDefinitionAsync(Guid id, int version, CancellationToken cancellation = default)
         {
             return (await GetDbSetAsync())
                 .IncludeDetails(true)

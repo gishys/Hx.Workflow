@@ -51,7 +51,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                     .IncludeDetails(includeDetails)
                     .FirstOrDefaultAsync(d => d.Id == id, cancellation);
         }
-        public virtual async Task<WkExecutionPointer> GetPointerAsync(Guid pointerId)
+        public virtual async Task<WkExecutionPointer?> GetPointerAsync(Guid pointerId)
         {
             var entitys = (await GetDbSetAsync()).IncludeDetails(true);
             var pointers = await (from p in entitys
@@ -75,7 +75,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                    .ThenInclude(x => x.ExtensionAttributes)
                    .ToListAsync();
         }
-        public virtual async Task<WkInstance> GetByReferenceAsync(string reference)
+        public virtual async Task<WkInstance?> GetByReferenceAsync(string reference)
         {
             return await (await GetDbSetAsync())
                 .IncludeDetails(true)
@@ -159,11 +159,12 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> ids,
-            string reference,
+            string? reference,
             MyWorkState? state,
             int skipCount,
             int maxResultCount)
         {
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
             var queryable = (await GetDbSetAsync())
                 .Include(x => x.ExecutionPointers)
                 .ThenInclude(x => x.WkCandidates)
@@ -194,15 +195,17 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.CarbonCopy)))
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
-                .WhereIf(reference != null, d => d.Reference.Contains(reference))
+                .WhereIf(!string.IsNullOrEmpty(reference), d => d.Reference.Contains(reference))
                 .OrderByDescending(d => d.CreateTime);
-            return await queryable.PageBy(skipCount, maxResultCount).ToListAsync();
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+            return await queryable.OrderByDescending(d => d.CreationTime).PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
-            string reference,
+            string? reference,
             MyWorkState? state)
         {
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
             var queryable = (await GetDbSetAsync())
                 .WhereIf(state == MyWorkState.BeingProcessed, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
@@ -227,6 +230,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(reference != null, d => d.Reference.Contains(reference));
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
             return await queryable.CountAsync();
         }
         public virtual async Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId)
@@ -279,8 +283,9 @@ namespace Hx.Workflow.EntityFrameworkCore
                         await executionPointer.AddCandidates(wkCandidates);
                     }
                 }
+                return await UpdateAsync(updateEntity);
             }
-            return await UpdateAsync(updateEntity);
+            throw new UserFriendlyException($"Id为：[{wkinstanceId}]的实例为空！");
         }
         /// <summary>
         /// 修改候选人办理状态
@@ -299,11 +304,14 @@ namespace Hx.Workflow.EntityFrameworkCore
             if (updateEntity != null)
             {
                 var executionPointer = updateEntity.ExecutionPointers.FirstOrDefault(d => d.Id == executionPointerId);
-                foreach (var item in executionPointer.WkCandidates)
+                if (executionPointer != null)
                 {
-                    item.SetParentState(parentState);
+                    foreach (var item in executionPointer.WkCandidates)
+                    {
+                        item.SetParentState(parentState);
+                    }
+                    await UpdateAsync(updateEntity);
                 }
-                await UpdateAsync(updateEntity);
             }
         }
         /// <summary>
@@ -326,7 +334,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         private static partial Regex IntRegex();
         public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId)
         {
-            var instance = await FindAsync(workflowId);
+            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException($"Id为：[{workflowId}]的实例为空！");
             var exePointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             if (!exePointer.WkCandidates.Any(d => d.CandidateId == currentUserId))
             {
@@ -340,7 +348,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId, string recepient, Guid recepientId)
         {
-            var instance = await FindAsync(workflowId);
+            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException($"Id为：[{workflowId}]的实例为空！");
             var exePointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             await exePointer.SetRecipientInfo(recepient, recepientId);
             return await UpdateAsync(instance);
@@ -353,10 +361,13 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <returns></returns>
         public async Task UpdateDataAsync(Guid workflowId, IDictionary<string, object> data)
         {
-            var instance = await FindAsync(workflowId);
+            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException($"Id为：[{workflowId}]的实例为空！");
             var instanceData = JsonSerializer.Deserialize<IDictionary<string, object>>(instance.Data);
-            await instance.SetData(JsonSerializer.Serialize(instanceData.ConcatenateAndReplace(data)));
-            await UpdateAsync(instance);
+            if (instanceData != null)
+            {
+                await instance.SetData(JsonSerializer.Serialize(instanceData.ConcatenateAndReplace(data)));
+                await UpdateAsync(instance);
+            }
         }
     }
 }

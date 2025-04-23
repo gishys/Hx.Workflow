@@ -37,6 +37,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             return await (await GetDbSetAsync())
                 .WhereIf(!string.IsNullOrEmpty(filter), d => d.Name.Contains(filter))
+                .OrderBy(d => d.CreationTime)
                 .PageBy(skipCount, maxResultCount)
                 .ToListAsync();
         }
@@ -46,7 +47,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(!string.IsNullOrEmpty(filter), d => d.Name.Contains(filter))
                 .CountAsync();
         }
-        public async Task<bool> AnyAsync(string typeFullName,CancellationToken cancellationToken = default)
+        public async Task<bool> AnyAsync(string typeFullName, CancellationToken cancellationToken = default)
         {
             return await (await GetDbSetAsync())
                 .AnyAsync(d => d.TypeFullName == typeFullName);

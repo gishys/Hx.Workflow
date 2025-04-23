@@ -15,17 +15,19 @@ namespace Hx.Workflow.Domain.StepBodys
         public WkExecutionPointer ExecutionPointer { get; protected set; }
         public EnumAuditStatus Status { get; protected set; }
         public DateTime? AuditTime { get; protected set; }
-        public string Remark { get; protected set; }
-        public Guid? UserId { get; protected set; }
+        public string? Remark { get; protected set; }
+        public Guid UserId { get; protected set; }
         public string UserName { get; protected set; }
         public Guid? TenantId { get; protected set; }
         public WkAuditor()
         { }
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkAuditor(
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
             Guid workflowId,
             Guid executionPointerId,
             string userName,
-            Guid? userId = null,
+            Guid userId,
             EnumAuditStatus status = EnumAuditStatus.UnAudited,
             Guid? tenantId = null)
         {
@@ -42,8 +44,8 @@ namespace Hx.Workflow.Domain.StepBodys
             return Task.CompletedTask;
         }
         public virtual Task Audit(
-            DateTime? auditTime,
-            string remark
+            DateTime auditTime,
+            string? remark
             )
         {
             AuditTime = auditTime;

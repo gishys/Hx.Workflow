@@ -20,9 +20,12 @@ namespace Hx.Workflow.EntityFrameworkCore
         { }
         public virtual async Task<List<ApplicationForm>> GetPagedAsync(string? filter, int skipCount, int maxResultCount)
         {
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
             return await (await GetDbSetAsync())
                 .WhereIf(!string.IsNullOrEmpty(filter), d => d.Title.Contains(filter))
+                .OrderBy(d => d.Name)
                 .PageBy(skipCount, maxResultCount).ToListAsync();
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
         }
         public virtual async Task<bool> ExistByNameAsync(string name)
         {
@@ -34,9 +37,11 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public virtual async Task<int> GetPagedCountAsync(string? filter)
         {
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
             return await (await GetDbSetAsync())
                 .WhereIf(!string.IsNullOrEmpty(filter), d => d.Title.Contains(filter))
                 .CountAsync();
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
         }
         public override async Task<ApplicationForm> GetAsync(Guid id, bool includeDetails = true, CancellationToken cancellationToken = default)
         {

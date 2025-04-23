@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using AutoMapper.Internal.Mappers;
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
@@ -7,7 +6,6 @@ using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Hx.Workflow.Application
@@ -47,8 +45,10 @@ namespace Hx.Workflow.Application
             CreateMap<WkDefinitionGroup, WkDefinitionGroupDto>(MemberList.Destination);
             CreateMap<ProcessingStatusStat, ProcessingStatusStatDto>(MemberList.Destination);
             CreateMap<ApplicationFormGroup, ApplicationFormGroupDto>(MemberList.Destination);
+
+            CreateMap<ProcessTypeStat, ProcessTypeStatDto>(MemberList.Destination);
         }
-        public IDictionary<string,object> ToDic(ICollection<WkExtensionAttribute> source)
+        public static IDictionary<string,object?> ToDic(ICollection<WkExtensionAttribute> source)
         {
             return source.ToDictionary(key => key.AttributeKey, v => JsonSerializer.Deserialize<object>(v.AttributeValue));
         }

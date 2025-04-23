@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
-using Volo.Abp.Users;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 
@@ -48,7 +47,7 @@ namespace Hx.Workflow.Application.StepBodys
         /// <summary>
         /// 分支判断
         /// </summary>
-        public string DecideBranching { get; set; } = null;
+        public string DecideBranching { get; set; }
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             try
@@ -245,17 +244,20 @@ namespace Hx.Workflow.Application.StepBodys
                 throw new UserFriendlyException($"{ex.Message}");
             }
         }
-        private void AnalysisEventData(ref string Remark, object eventData)
+        private void AnalysisEventData(ref string? Remark, object eventData)
         {
             if (eventData is IDictionary<string, object>)
             {
                 var dataDic = eventData as IDictionary<string, object>;
+                if (dataDic == null) return;
                 foreach (var kv in dataDic)
                 {
                     switch (kv.Key)
                     {
                         case "DecideBranching":
-                            DecideBranching = kv.Value.ToString();
+                            var value = kv.Value.ToString();
+                            if (value != null)
+                                DecideBranching = value;
                             break;
                         case "Remark":
                             Remark = kv.Value.ToString();
@@ -266,7 +268,7 @@ namespace Hx.Workflow.Application.StepBodys
         }
         private async Task Audit(object data, Guid instanceId, WkExecutionPointer execution, Guid candicateId, EnumAuditStatus auditStatus)
         {
-            string Remark = null;
+            string? Remark = null;
             if (data != null)
                 AnalysisEventData(ref Remark, data);
             var user = execution.WkCandidates.FirstOrDefault(d => d.CandidateId == candicateId);

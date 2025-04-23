@@ -131,7 +131,7 @@ namespace Hx.Workflow.Application
         {
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             //如果节点不是已完成状态则获取当前节点（后续需要确定其他状态的含义）
-            WkExecutionPointer pointer = instance.ExecutionPointers.FirstOrDefault(d => d.Status != PointerStatus.Complete);
+            WkExecutionPointer? pointer = instance.ExecutionPointers.FirstOrDefault(d => d.Status != PointerStatus.Complete);
             var step = pointer != null ? instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == pointer.StepName) : null;
             var processInstance = new WkProcessInstanceDto
             {
@@ -159,7 +159,7 @@ namespace Hx.Workflow.Application
         public static WkCurrentInstanceDetailsDto ToWkInstanceDetailsDto(
             this WkInstance instance,
             Volo.Abp.ObjectMapping.IObjectMapper ObjectMapper,
-            Dictionary<string, object> businessData,
+            Dictionary<string, object>? businessData,
             WkExecutionPointer pointer,
             Guid? currentUserId,
             List<WkExecutionError> errors
@@ -179,7 +179,7 @@ namespace Hx.Workflow.Application
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
             currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());
             currentPointerDto.NextPointers = [];
-            WkExecutionPointer prePointer = null;
+            WkExecutionPointer? prePointer = null;
             if (!string.IsNullOrEmpty(pointer.PredecessorId))
             {
                 prePointer = instance.ExecutionPointers.First(d => d.Id.ToString() == pointer.PredecessorId);

@@ -9,7 +9,7 @@ namespace Hx.Workflow.Application.Contracts
     {
         Task CreateAsync(WkSepBodyCreateDto input);
         Task DeleteAsync(Guid id);
-        Task<WkStepBodyDto> GetStepBodyAsync(string name);
+        Task<WkStepBodyDto?> GetStepBodyAsync(string name);
         Task<PagedResultDto<WkStepBodyDto>> GetPagedAsync(WkStepBodyPagedInput input);
         Task UpdateAsync(WkStepBodyUpdateDto input);
         Task<List<WkStepBodyDto>> GetAllAsync();

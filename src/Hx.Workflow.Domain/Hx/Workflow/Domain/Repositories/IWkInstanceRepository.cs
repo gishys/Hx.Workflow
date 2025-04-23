@@ -15,16 +15,16 @@ namespace Hx.Workflow.Domain.Repositories
         Task<List<Guid>> GetRunnableInstancesAsync(DateTime nextExecute);
         Task<IQueryable<WkInstance>> GetDetails(bool tracking = false);
         Task<List<WkInstance>> GetDetails(List<Guid> ids);
-        Task<WkExecutionPointer> GetPointerAsync(Guid pointerId);
+        Task<WkExecutionPointer?> GetPointerAsync(Guid pointerId);
         Task<List<WkInstance>> GetMyInstancesAsync(
             ICollection<Guid> id,
-            string reference,
+            string? reference,
             MyWorkState? state,
             int skipCount,
             int maxResultCount);
         Task<int> GetMyInstancesCountAsync(
             ICollection<Guid> ids,
-            string reference,
+            string? reference,
             MyWorkState? state);
         Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
@@ -51,7 +51,7 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="data"></param>
         /// <returns></returns>
         Task UpdateDataAsync(Guid workflowId, IDictionary<string, object> data);
-        Task<WkInstance> GetByReferenceAsync(string reference);
+        Task<WkInstance?> GetByReferenceAsync(string reference);
         Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid transactorId);
         Task<List<ProcessTypeStat>> GetBusinessTypeListAsync();
         Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();

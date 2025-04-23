@@ -9,6 +9,7 @@ using Hx.Workflow.Domain.StepBodys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -107,8 +108,8 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             MyWorkState? status = null,
-            string reference = null,
-            ICollection<Guid> userIds = null,
+            string? reference = null,
+            ICollection<Guid>? userIds = null,
             int skipCount = 0,
             int maxResultCount = 20)
         {
@@ -140,7 +141,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference)
         {
-            var instance = await _wkInstanceRepository.GetByReferenceAsync(reference);
+            var instance = await _wkInstanceRepository.GetByReferenceAsync(reference) ?? throw new UserFriendlyException($"不存在reference为：[{reference}]流程实例！");
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             WkExecutionPointer pointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             var errors = await _errorRepository.GetListByIdAsync(instance.Id, pointer.Id);
@@ -173,7 +174,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
-            var instance = await _wkInstanceRepository.FindAsync(workflowId);
+            var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException($"不存在Id为：[{workflowId}]流程实例！");
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             WkExecutionPointer pointer;
             if (pointerId.HasValue)
@@ -194,9 +195,9 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
-            var instance = await _wkInstanceRepository.FindAsync(workflowId);
+            var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException($"不存在Id为：[{workflowId}]流程实例！");
             var result = new List<WkNodeTreeDto>();
-            string preId = null;
+            string? preId = null;
             while (instance.ExecutionPointers.Any(d => d.PredecessorId == preId))
             {
                 var node = instance.ExecutionPointers.First(d => d.PredecessorId == preId);
@@ -276,7 +277,7 @@ namespace Hx.Workflow.Application
         {
             if (CurrentUser.Id.HasValue)
             {
-                var pointer = await _wkExecutionPointerRepository.FindAsync(pointerId);
+                var pointer = await _wkExecutionPointerRepository.FindAsync(pointerId) ?? throw new UserFriendlyException($"不存在Id为：[{pointerId}]执行节点！");
                 var exeCandidate = pointer.WkCandidates.Where(d => d.CandidateId == CurrentUser.Id.Value).FirstOrDefault();
                 if (exeCandidate != null)
                 {
@@ -306,12 +307,14 @@ namespace Hx.Workflow.Application
             {
                 transactorId = CurrentUser.Id.Value;
             }
+            if (!transactorId.HasValue) throw new UserFriendlyException("计算我的工作状态数量，办理人为空！");
             return ObjectMapper.Map<List<ProcessingStatusStat>, List<ProcessingStatusStatDto>>(
                 await _wkInstanceRepository.GetProcessingStatusStatListAsync(transactorId.Value));
         }
         public virtual async Task<List<ProcessTypeStatDto>> GetBusinessTypeListAsync()
         {
-            return ObjectMapper.Map<List<ProcessTypeStat>, List<ProcessTypeStatDto>>(await _wkInstanceRepository.GetBusinessTypeListAsync());
+            var result = await _wkInstanceRepository.GetBusinessTypeListAsync();
+            return ObjectMapper.Map<List<ProcessTypeStat>, List<ProcessTypeStatDto>>(result);
         }
         public virtual async Task<List<ProcessTypeStatDto>> GetProcessTypeStatListAsync()
         {
@@ -359,7 +362,7 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task AuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark)
         {
-            if (CurrentUser.Id.HasValue)
+            if (CurrentUser.Id.HasValue && !string.IsNullOrEmpty(CurrentUser.UserName))
             {
                 var entity = await _wkAuditor.GetAuditorAsync(executionPointerId, CurrentUser.Id.Value);
                 if (entity != null)

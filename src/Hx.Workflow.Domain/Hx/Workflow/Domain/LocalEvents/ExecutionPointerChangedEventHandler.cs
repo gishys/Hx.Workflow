@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Entities.Events;
 using Volo.Abp.EventBus;
@@ -63,13 +64,12 @@ namespace Hx.Workflow.Domain.LocalEvents
             }
             //流程执行点创建后通知客户端
             var wkInstance = eventData.Entity.WkInstance;
-            if (wkInstance == null)
+            wkInstance ??= await _instanceRepository.FindAsync(eventData.Entity.WkInstanceId)
+                ?? throw new UserFriendlyException($"[{eventData.Entity.WkInstanceId}]流程实例不存在！");
+            if (wkInstance.CreatorId != null && wkInstance.CreatorId.HasValue)
             {
-                wkInstance = await _instanceRepository.FindAsync(eventData.Entity.WkInstanceId);
-            }
-            if (wkInstance.CreatorId.HasValue)
-            {
-                var definition = await _wkDefinitionRespository.FindAsync(wkInstance.WkDifinitionId);
+                var definition = await _wkDefinitionRespository.FindAsync(wkInstance.WkDifinitionId)
+                    ?? throw new UserFriendlyException($"[{wkInstance.WkDifinitionId}]流程模板不存在！");
                 var step = definition.Nodes.First(d => d.Name == eventData.Entity.StepName);
                 await _workflowInstanceHub.Clients.User(
                                 wkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",

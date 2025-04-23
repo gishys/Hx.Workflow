@@ -1,7 +1,6 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
-using Microsoft.AspNetCore.Authorization;
 using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
@@ -12,15 +11,12 @@ using Volo.Abp.Application.Dtos;
 namespace Hx.Workflow.Application
 {
     //[Authorize]
-    public class WkApplicationFormAppService : WorkflowAppServiceBase, IWkApplicationFormAppService
+    public class WkApplicationFormAppService(
+        IWkApplicationFormRepository wkApplicationFormRepository
+            ) : WorkflowAppServiceBase, IWkApplicationFormAppService
     {
-        public IWkApplicationFormRepository WkApplicationFormRepository { get; }
-        public WkApplicationFormAppService(
-            IWkApplicationFormRepository wkApplicationFormRepository
-            )
-        {
-            WkApplicationFormRepository = wkApplicationFormRepository;
-        }
+        public IWkApplicationFormRepository WkApplicationFormRepository { get; } = wkApplicationFormRepository;
+
         public virtual async Task CreateAsync(ApplicationFormCreateDto input)
         {
             if (await WkApplicationFormRepository.ExistByNameAsync(input.Name))
@@ -90,7 +86,7 @@ namespace Hx.Workflow.Application
                     await entity.AddParam(new WkParam(param.WkParamKey, param.Name, param.DisplayName, param.Value));
                 }
             }
-            entity.ExtraProperties?.Clear();
+            entity.ExtraProperties.Clear();
             input.ExtraProperties?.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await WkApplicationFormRepository.UpdateAsync(entity);
         }

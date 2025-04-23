@@ -25,7 +25,7 @@ namespace Hx.Workflow.Domain
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly IWkDefinitionRespository _wkDefinitionRespository;
         protected readonly IWorkflowHost _workflowHost;
-        private List<WkNode> _WkNodes;
+        private List<WkNode>? _WkNodes;
         public IWkInstanceRepository WkInstanceRepository { get; set; }
         public HxWorkflowManager(
             IWorkflowRegistry registry,
@@ -154,7 +154,7 @@ namespace Hx.Workflow.Domain
             return await _workflowHost.StartWorkflow(id, version, inputs?.Count > 0 ? inputs : null);
         }
         public virtual async Task StartActivityAsync(
-            string actName, string workflowId, object data = null)
+            string actName, string workflowId, object? data = null)
         {
 
             var activity = await _workflowHost.GetPendingActivity(actName, workflowId);
@@ -188,7 +188,7 @@ namespace Hx.Workflow.Domain
             IEnumerable<WkNode> allNodes,
             JDefinitionSource source)
         {
-            _WkNodes = new List<WkNode>();
+            _WkNodes = [];
             if (allNodes.Any(d => d.StepNodeType == StepNodeType.Start))
                 BuildBranching(
                     allNodes,
@@ -209,10 +209,10 @@ namespace Hx.Workflow.Domain
                 stepBody = new WkStepBody(
                     "",
                     "",
-                    "",
                     null,
-                    typeof(NullStepBody).FullName,
-                    typeof(NullStepBody).Assembly.FullName
+                    [],
+                    typeof(NullStepBody).FullName ?? "",
+                    typeof(NullStepBody).Assembly.FullName ?? ""
                     );
             }
             stepSource.StepType = $"{stepBody.TypeFullName}, {stepBody.AssemblyFullName}";
@@ -228,7 +228,9 @@ namespace Hx.Workflow.Domain
                         GetValue(input, stepSource.Outputs);
                 }
             }
+#pragma warning disable CS8602 // 解引用可能出现空引用。
             _WkNodes.Add(step);
+#pragma warning restore CS8602 // 解引用可能出现空引用。
             source.Steps.Add(stepSource);
             if (step.NextNodes?.Count > 0)
             {
@@ -268,8 +270,8 @@ namespace Hx.Workflow.Domain
             var value = input.Value;
             if (value != null)
             {
-                IDictionary<object, object> value2 = value.ToDictionaryObject();
-                IDictionary<string, object> value1 = value.ToDictionaryString();
+                IDictionary<object, object>? value2 = value.ToDictionaryObject();
+                IDictionary<string, object>? value1 = value.ToDictionaryString();
                 if (value2 != null)
                 {
                     dics.TryAdd(input.Key, value2);

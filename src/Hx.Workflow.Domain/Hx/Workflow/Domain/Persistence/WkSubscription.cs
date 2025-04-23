@@ -13,9 +13,9 @@ namespace Hx.Workflow.Domain.Persistence
         public string EventName { get; protected set; }
         public string EventKey { get; protected set; }
         public DateTime SubscribeAsOf { get; protected set; }
-        public string SubscriptionData { get; protected set; }
-        public string ExternalToken { get; protected set; }
-        public string ExternalWorkerId { get; protected set; }
+        public string? SubscriptionData { get; protected set; }
+        public string? ExternalToken { get; protected set; }
+        public string? ExternalWorkerId { get; protected set; }
         public DateTime? ExternalTokenExpiry { get; protected set; }
         public Guid? TenantId { get; protected set; }
         public WkSubscription()
@@ -28,9 +28,9 @@ namespace Hx.Workflow.Domain.Persistence
             string eventName,
             string eventKey,
             DateTime subscribeAsOf,
-            string subscriptionData,
-            string externalToken,
-            string externalWorkerId,
+            string? subscriptionData,
+            string? externalToken,
+            string? externalWorkerId,
             DateTime? externalTokenExpiry,
             Guid? tenantId = null)
         {
@@ -47,12 +47,12 @@ namespace Hx.Workflow.Domain.Persistence
             ExternalTokenExpiry = externalTokenExpiry;
             TenantId = tenantId;
         }
-        public Task SetExternalToken(string externalToken)
+        public Task SetExternalToken(string? externalToken)
         {
             ExternalToken = externalToken;
             return Task.CompletedTask;
         }
-        public Task SetExternalWorkerId(string externalWorkerId)
+        public Task SetExternalWorkerId(string? externalWorkerId)
         {
             ExternalWorkerId = externalWorkerId;
             return Task.CompletedTask;

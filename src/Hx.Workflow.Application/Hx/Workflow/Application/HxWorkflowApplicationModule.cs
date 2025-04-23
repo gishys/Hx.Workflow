@@ -1,5 +1,4 @@
 ﻿using Hx.Workflow.Application.Contracts;
-using Hx.Workflow.Application.DynamicCode;
 using Hx.Workflow.Application.StepBodys;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
@@ -34,6 +33,7 @@ namespace Hx.Workflow.Application
             using (var scope = context.ServiceProvider.CreateScope())
             {
                 var stepbodyRespository = scope.ServiceProvider.GetService<IWkStepBodyRespository>();
+                if (stepbodyRespository == null) throw new UserFriendlyException("IWkStepBodyRespository服务依赖注入失败！");
                 var stepbodys = ReflectionHelper.GetStepBodyAsyncDerivatives();
                 var sList = new List<WkStepBody>();
                 foreach (var stepbody in stepbodys)
@@ -58,7 +58,7 @@ namespace Hx.Workflow.Application
                                 "step.DecideBranching",
                 StepBodyParaType.Outputs),
                 ];
-                        var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, "", ps, stepbody.TypeFullName, stepbody.AssemblyFullName);
+                        var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, null, ps, stepbody.TypeFullName, stepbody.AssemblyFullName);
                         if (!sList.Any(d => d.Name == s.Name))
                             sList.Add(s);
                     }

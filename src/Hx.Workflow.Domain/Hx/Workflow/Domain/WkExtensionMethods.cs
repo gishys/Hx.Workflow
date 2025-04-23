@@ -2,6 +2,7 @@
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using Newtonsoft.Json;
+using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Hx.Workflow.Domain
 {
     public static class WkExtensionMethods
     {
-        private static JsonSerializerSettings SerializerSettings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All };
+        private static readonly JsonSerializerSettings SerializerSettings = new() { TypeNameHandling = TypeNameHandling.All };
         internal static WkExecutionError ToPersistable(this ExecutionError instance)
         {
             return new WkExecutionError(
@@ -23,36 +24,39 @@ namespace Hx.Workflow.Domain
         }
         internal static WorkflowInstance ToWorkflowInstance(this WkInstance instance)
         {
-            WorkflowInstance result = new WorkflowInstance();
-            result.Data = JsonConvert.DeserializeObject(instance.Data, SerializerSettings);
-            result.Description = instance.Description;
-            result.Reference = instance.Reference;
-            result.Id = instance.Id.ToString();
-            result.NextExecution = instance.NextExecution;
-            result.Version = instance.Version;
-            result.WorkflowDefinitionId = instance.WkDifinitionId.ToString();
-            result.Status = instance.Status;
-            result.CreateTime = instance.CreateTime;
-            result.CompleteTime = instance.CompleteTime;
-            result.ExecutionPointers = new ExecutionPointerCollection(instance.ExecutionPointers.Count + 8);
+            WorkflowInstance result = new()
+            {
+                Data = JsonConvert.DeserializeObject(instance.Data, SerializerSettings),
+                Description = instance.Description,
+                Reference = instance.Reference,
+                Id = instance.Id.ToString(),
+                NextExecution = instance.NextExecution,
+                Version = instance.Version,
+                WorkflowDefinitionId = instance.WkDifinitionId.ToString(),
+                Status = instance.Status,
+                CreateTime = instance.CreateTime,
+                CompleteTime = instance.CompleteTime,
+                ExecutionPointers = new ExecutionPointerCollection(instance.ExecutionPointers.Count + 8)
+            };
 
             foreach (var ep in instance.ExecutionPointers)
             {
-                var pointer = new ExecutionPointer();
+                var pointer = new ExecutionPointer
+                {
+                    Id = ep.Id.ToString(),
+                    StepId = ep.StepId,
+                    Active = ep.Active,
+                    SleepUntil = ep.SleepUntil,
 
-                pointer.Id = ep.Id.ToString();
-                pointer.StepId = ep.StepId;
-                pointer.Active = ep.Active;
-                pointer.SleepUntil = ep.SleepUntil;
+                    PersistenceData = ep.PersistenceData.SafeDeserialize<Dictionary<string, object>>(SerializerSettings),
+                    StartTime = ep.StartTime,
+                    EndTime = ep.EndTime,
+                    StepName = ep.StepName,
 
-                pointer.PersistenceData = JsonConvert.DeserializeObject(ep.PersistenceData ?? string.Empty, SerializerSettings);
-                pointer.StartTime = ep.StartTime;
-                pointer.EndTime = ep.EndTime;
-                pointer.StepName = ep.StepName;
-
-                pointer.RetryCount = ep.RetryCount;
-                pointer.PredecessorId = ep.PredecessorId;
-                pointer.ContextItem = JsonConvert.DeserializeObject(ep.ContextItem ?? string.Empty, SerializerSettings);
+                    RetryCount = ep.RetryCount,
+                    PredecessorId = ep.PredecessorId,
+                    ContextItem = JsonConvert.DeserializeObject(ep.ContextItem ?? string.Empty, SerializerSettings)
+                };
 
                 if (!string.IsNullOrEmpty(ep.Children))
                     pointer.Children = ep.Children.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -65,7 +69,9 @@ namespace Hx.Workflow.Domain
                 pointer.Status = ep.Status;
 
                 if (!string.IsNullOrEmpty(ep.Scope))
-                    pointer.Scope = new List<string>(ep.Scope.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
+                {
+                    pointer.Scope = new List<string>(ep.Scope.Split(separator: [';'], StringSplitOptions.RemoveEmptyEntries));
+                }
 
                 foreach (var attr in ep.ExtensionAttributes)
                 {
@@ -117,21 +123,23 @@ namespace Hx.Workflow.Domain
         }
         internal static EventSubscription ToEventSubscription(this WkSubscription instance)
         {
-            EventSubscription result = new EventSubscription();
-            result.Id = instance.Id.ToString();
-            result.EventKey = instance.EventKey;
-            result.EventName = instance.EventName;
-            result.StepId = instance.StepId;
-            result.ExecutionPointerId = instance.ExecutionPointerId.ToString();
-            result.WorkflowId = instance.WorkflowId.ToString();
+            EventSubscription result = new()
+            {
+                Id = instance.Id.ToString(),
+                EventKey = instance.EventKey,
+                EventName = instance.EventName,
+                StepId = instance.StepId,
+                ExecutionPointerId = instance.ExecutionPointerId.ToString(),
+                WorkflowId = instance.WorkflowId.ToString()
+            };
             result.SubscribeAsOf = result.SubscribeAsOf;
-            result.SubscriptionData = JsonConvert.DeserializeObject(instance.SubscriptionData, SerializerSettings);
+            result.SubscriptionData = JsonConvert.DeserializeObject(instance.SubscriptionData ?? string.Empty, SerializerSettings);
             result.ExternalToken = instance.ExternalToken;
             result.ExternalTokenExpiry = instance.ExternalTokenExpiry;
             result.ExternalWorkerId = instance.ExternalWorkerId;
             return result;
         }
-        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstance persistable = null)
+        internal static async Task<WkInstance> ToPersistable(this WorkflowInstance instance, WkInstance? persistable = null)
         {
             if (persistable == null)
             {
@@ -191,7 +199,9 @@ namespace Hx.Workflow.Domain
                     await epTemp.SetStepId(exe.StepId);
                     await epTemp.SetActive(exe.Active);
                     await epTemp.SetSleepUntil(exe.SleepUntil);
-                    await epTemp.SetPersistenceData(JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings));
+                    await epTemp.SetPersistenceData(exe.PersistenceData != null
+                        ? JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings)
+                        : null);
                     await epTemp.SetStartTime(exe.StartTime);
                     await epTemp.SetEndTime(exe.EndTime);
                     await epTemp.SetEventName(exe.EventName);
@@ -212,12 +222,10 @@ namespace Hx.Workflow.Domain
                 foreach (var attr in exe.ExtensionAttributes)
                 {
                     var persistedAttr = epTemp.ExtensionAttributes.FirstOrDefault(x => x.AttributeKey == attr.Key);
-                    if (persistedAttr == null)
-                    {
-                        persistedAttr = new WkExtensionAttribute(
+                    persistedAttr ??= new WkExtensionAttribute(
                             attr.Key,
-                            JsonConvert.SerializeObject(attr.Value, SerializerSettings));
-                    }
+                            JsonConvert.SerializeObject(attr.Value, SerializerSettings)
+                            );
                     await persistedAttr.SetAttributeKey(attr.Key);
                     await persistedAttr.SetAttributeValue(JsonConvert.SerializeObject(attr.Value, SerializerSettings));
                     await epTemp.SetExtensionAttributes(persistedAttr);

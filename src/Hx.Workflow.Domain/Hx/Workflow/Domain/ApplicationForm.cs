@@ -42,18 +42,20 @@ namespace Hx.Workflow.Domain
         /// 描述
         /// </summary>
         public virtual string? Description { get; protected set; }
-        public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
+        public virtual ICollection<WkParam> Params { get; protected set; } = [];
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public ApplicationForm()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         { }
         public ApplicationForm(
             string name,
             string title,
             ApplicationType applicationType,
-            string data,
+            string? data,
             ApplicationComponentType applicationComponentType,
             Guid? groupId,
             bool isPublish,
-            string description
+            string? description
             )
         {
             Name = name;
@@ -64,7 +66,7 @@ namespace Hx.Workflow.Domain
             GroupId = groupId;
             IsPublish = isPublish;
             Description = description;
-            ExtraProperties = new ExtraPropertyDictionary();
+            ExtraProperties = [];
         }
         public Task SetName(string name)
         {
@@ -106,7 +108,7 @@ namespace Hx.Workflow.Domain
             IsPublish = isPublish;
             return Task.CompletedTask;
         }
-        public Task SetDescription(string description)
+        public Task SetDescription(string? description)
         {
             Description = description;
             return Task.CompletedTask;

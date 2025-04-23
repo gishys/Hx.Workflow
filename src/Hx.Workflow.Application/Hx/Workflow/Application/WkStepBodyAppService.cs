@@ -33,24 +33,25 @@ namespace Hx.Workflow.Application
             var entity = await _wkStepBody.GetStepBodyAsync(input.Name);
             if (entity != null)
                 throw new UserFriendlyException("已存在相同名称的StepBody!");
-            entity.ExtraProperties.Clear();
-            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
-            await _wkStepBody.InsertAsync(new WkStepBody(
+            entity = new WkStepBody(
                     input.Name,
                     input.DisplayName,
                     input.Data,
-                    bodyParams,
+                    bodyParams ?? [],
                     input.TypeFullName,
-                    input.AssemblyFullName));
+                    input.AssemblyFullName);
+            entity.ExtraProperties.Clear();
+            input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+            await _wkStepBody.InsertAsync(entity);
         }
         public virtual async Task DeleteAsync(Guid id)
         {
             await _wkStepBody.DeleteAsync(id);
         }
-        public virtual async Task<WkStepBodyDto> GetStepBodyAsync(string name)
+        public virtual async Task<WkStepBodyDto?> GetStepBodyAsync(string name)
         {
             var entity = await _wkStepBody.GetStepBodyAsync(name);
-            return ObjectMapper.Map<WkStepBody, WkStepBodyDto>(entity);
+            return ObjectMapper.Map<WkStepBody?, WkStepBodyDto?>(entity);
         }
         public virtual async Task<PagedResultDto<WkStepBodyDto>> GetPagedAsync(WkStepBodyPagedInput input)
         {
@@ -60,12 +61,12 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task UpdateAsync(WkStepBodyUpdateDto input)
         {
-            var entity = await _wkStepBody.FindAsync(input.Id);
+            var entity = await _wkStepBody.FindAsync(input.Id) ?? throw new UserFriendlyException($"Id为：[{input.Id}]的stepbody不存在!");
             await entity.SetName(input.Name);
-            await entity.SetDisplayName(input.Name);
-            await entity.SetData(input.Name);
-            await entity.SetTypeFullName(input.Name);
-            await entity.SetAssemblyFullName(input.Name);
+            await entity.SetDisplayName(input.DisplayName);
+            await entity.SetData(input.Data);
+            await entity.SetTypeFullName(input.TypeFullName);
+            await entity.SetAssemblyFullName(input.AssemblyFullName);
             var bodyParams = input.Inputs?.Select(d =>
             new WkStepBodyParam(
                 GuidGenerator.Create(),

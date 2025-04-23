@@ -12,7 +12,7 @@ namespace Hx.Workflow.Application.Contracts
         public Guid DefinitionId { get; set; }
         public string Reference { get; set; }
         public string RegistrationCategory { get; set; }
-        public string Receiver { get; set; }
+        public string? Receiver { get; set; }
         public DateTime? ReceiveTime { get; set; }
         public WkExecutionPointerDto CurrentExecutionPointer { get; set; }
         public ICollection<WkAuditorDto> WkAuditors {  get; set; }
@@ -31,6 +31,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 业务数据
         /// </summary>
-        public IDictionary<string,object> Data { get; set; }
+        public IDictionary<string,object>? Data { get; set; }
     }
 }
