@@ -27,7 +27,7 @@ namespace Hx.Workflow.Application.StepBodys
         /// <summary>
         /// 分支判断
         /// </summary>
-        public string DecideBranching { get; set; }
+        public string? DecideBranching { get; set; }
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException($"Id为：{context.Workflow.Id}的实例不存在！");

@@ -22,10 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Hx.Workflow.HttpApi\Hx.Workflow.HttpApi.csproj" />
     <ProjectReference Include="..\Hx.Workflow.Application\Hx.Workflow.Application.csproj" />
     <ProjectReference Include="..\Hx.Workflow.EntityFrameworkCore.DbMigrations\Hx.Workflow.EntityFrameworkCore.DbMigrations.csproj" />
     <ProjectReference Include="..\Hx.Workflow.EntityFrameworkCore\Hx.Workflow.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\Hx.Workflow.HttpApi\Hx.Workflow.HttpApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>

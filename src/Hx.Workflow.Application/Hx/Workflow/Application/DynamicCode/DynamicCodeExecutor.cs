@@ -96,7 +96,7 @@ namespace Hx.Workflow.Application.DynamicCode
             return AssemblyLoadContext.Default.LoadFromStream(ms);
         }
 
-        private static Assembly ResolveAssemblyFromUsingDirective(string usingDirective)
+        private static Assembly? ResolveAssemblyFromUsingDirective(string usingDirective)
         {
             // Check cache first
             if (_assemblyCache.TryGetValue(usingDirective, out var cachedAssembly))
@@ -195,6 +195,7 @@ namespace Hx.Workflow.Application.DynamicCode
             {
                 try
                 {
+                    if (reference?.Display == null) continue;
                     var assembly = Assembly.LoadFrom(reference.Display);
                     foreach (var referencedAssembly in assembly.GetReferencedAssemblies())
                     {

@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Hx.Workflow.Application.Contracts\Hx.Workflow.Application.Contracts.csproj" />
+    <ProjectReference Include="..\Hx.Workflow.Application.Contracts\Hx.Workflow.Application.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
