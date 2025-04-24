@@ -31,11 +31,14 @@ jobs:
         dotnet pack src/Hx.Workflow.Domain.Shared/Hx.Workflow.Domain.Shared.csproj -c Release -o ./src/Hx.Workflow.Domain.Shared /p:PackageVersion=$version
         dotnet build src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release
         dotnet pack src/Hx.Workflow.EntityFrameworkCore/Hx.Workflow.EntityFrameworkCore.csproj -c Release -o ./src/Hx.Workflow.EntityFrameworkCore /p:PackageVersion=$version
+        dotnet build src/Hx.Workflow.HttpApi/Hx.Workflow.HttpApi.csproj -c Release
+        dotnet pack src/Hx.Workflow.HttpApi/Hx.Workflow.HttpApi.csproj -c Release -o ./src/Hx.Workflow.HttpApi /p:PackageVersion=$version
         cp ./src/Hx.Workflow.Application/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Application.Contracts/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Domain/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.Domain.Shared/*.nupkg $GITHUB_WORKSPACE
         cp ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg $GITHUB_WORKSPACE
+        cp ./src/Hx.Workflow.HttpApi/*.nupkg $GITHUB_WORKSPACE
 
     - name: Push NuGet packages
       run: |
@@ -44,3 +47,4 @@ jobs:
         dotnet nuget push ./src/Hx.Workflow.Domain/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
         dotnet nuget push ./src/Hx.Workflow.Domain.Shared/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
         dotnet nuget push ./src/Hx.Workflow.EntityFrameworkCore/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        dotnet nuget push ./src/Hx.Workflow.HttpApi/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
