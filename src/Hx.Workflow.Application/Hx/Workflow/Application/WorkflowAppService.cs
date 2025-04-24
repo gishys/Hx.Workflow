@@ -19,7 +19,6 @@ namespace Hx.Workflow.Application
 {
     //[Authorize]
     public class WorkflowAppService(
-        IWkStepBodyRespository wkStepBody,
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
         IWkInstanceRepository wkInstanceRepository,
@@ -27,7 +26,6 @@ namespace Hx.Workflow.Application
         IWkExecutionPointerRepository wkExecutionPointerRepository,
         IWkAuditorRespository wkAuditor) : HxWorkflowAppServiceBase, IWorkflowAppService
     {
-        private readonly IWkStepBodyRespository _wkStepBody = wkStepBody;
         private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
         private readonly IWkDefinitionRespository _wkDefinition = wkDefinition;
         private readonly IWkInstanceRepository _wkInstanceRepository = wkInstanceRepository;
@@ -391,7 +389,7 @@ namespace Hx.Workflow.Application
         {
             if (CurrentUser.Id.HasValue)
             {
-                var entity = await _wkAuditor.GetAuditorAsync(executionPointerId, CurrentUser.Id.Value);
+                var entity = await _wkAuditor.GetAuditorAsync(executionPointerId, CurrentUser.Id.Value) ?? throw new UserFriendlyException($"Id为：[{executionPointerId}]的执行点不存在！");
                 return ObjectMapper.Map<WkAuditor, WkAuditorDto>(entity);
             }
             else

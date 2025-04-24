@@ -10,13 +10,10 @@ using Volo.Abp.EntityFrameworkCore;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public class WkEventRepository
-        : EfCoreRepository<WkDbContext, WkEvent, Guid>,
+    public class WkEventRepository(IDbContextProvider<WkDbContext> options)
+                : EfCoreRepository<WkDbContext, WkEvent, Guid>(options),
         IWkEventRepository
     {
-        public WkEventRepository(IDbContextProvider<WkDbContext> options)
-            : base(options)
-        { }
         /// <summary>
         /// get entity by event event name,event key,event time
         /// </summary>
@@ -48,7 +45,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// </summary>
         /// <param name="eventKey"></param>
         /// <returns></returns>
-        public virtual async Task<WkEvent> GetByEventKeyAsync(string eventKey)
+        public virtual async Task<WkEvent?> GetByEventKeyAsync(string eventKey)
         {
             return await (from x in await GetDbSetAsync()
                           where x.Key == eventKey

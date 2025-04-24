@@ -173,7 +173,7 @@ namespace Hx.Workflow.Application
             currentPointerDto.Forms = forms;
             currentPointerDto.StepDisplayName = step.DisplayName;
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
-            currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>(step.Params.ToList());
+            currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>([.. step.Params]);
             currentPointerDto.NextPointers = [];
             WkExecutionPointer? prePointer = null;
             if (!string.IsNullOrEmpty(pointer.PredecessorId))
@@ -216,32 +216,6 @@ namespace Hx.Workflow.Application
                 && currentUserId.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == currentUserId.Value),
                 Data = businessData,
             };
-        }
-        private static string GetEarlyWarning(DateTime businessCommitmentDeadline, WkInstance instance)
-        {
-            var earlyWarning = "green";
-            if (instance.Status == WorkflowStatus.Runnable)
-            {
-                if (businessCommitmentDeadline <= DateTime.Now)
-                {
-                    earlyWarning = "red";
-                }
-                else if (businessCommitmentDeadline.AddHours(2) <= DateTime.Now)
-                {
-                    earlyWarning = "yellow";
-                }
-            }
-            return earlyWarning;
-        }
-        private static DateTime GetDateTime(Dictionary<string, object> data, string key)
-        {
-            DateTime time = DateTime.MinValue;
-            if (data.TryGetValue(key, out var valueStr))
-            {
-                if (DateTime.TryParse(valueStr.ToString(), out DateTime result))
-                    time = result;
-            }
-            return time;
         }
     }
 }

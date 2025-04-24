@@ -12,14 +12,11 @@ using Volo.Abp.Application.Dtos;
 namespace Hx.Workflow.Application
 {
     //[Authorize]
-    public class WkStepBodyAppService : WorkflowAppServiceBase, IWkStepBodyAppService
+    public class WkStepBodyAppService(
+        IWkStepBodyRespository wkStepBody) : WorkflowAppServiceBase, IWkStepBodyAppService
     {
-        private readonly IWkStepBodyRespository _wkStepBody;
-        public WkStepBodyAppService(
-            IWkStepBodyRespository wkStepBody)
-        {
-            _wkStepBody = wkStepBody;
-        }
+        private readonly IWkStepBodyRespository _wkStepBody = wkStepBody;
+
         public virtual async Task CreateAsync(WkSepBodyCreateDto input)
         {
             var bodyParams = input.Inputs?.Select(d =>

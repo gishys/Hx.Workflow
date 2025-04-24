@@ -18,28 +18,23 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-    public class GeneralAuditingStepBody : StepBodyAsync, ITransientDependency
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    public class GeneralAuditingStepBody(
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+        IWkAuditorRespository wkAuditor,
+        IWkInstanceRepository wkInstance,
+        IWkDefinitionRespository wkDefinition,
+        ILimitTimeManager limitTimeManager,
+        ILocalEventBus localEventBus) : StepBodyAsync, ITransientDependency
     {
-        private readonly IWkAuditorRespository _wkAuditor;
-        private readonly IWkInstanceRepository _wkInstance;
-        private readonly IWkDefinitionRespository _wkDefinition;
-        private readonly ILimitTimeManager _limitTimeManager;
-        private readonly ILocalEventBus _localEventBus;
+        private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
+        private readonly IWkInstanceRepository _wkInstance = wkInstance;
+        private readonly IWkDefinitionRespository _wkDefinition = wkDefinition;
+        private readonly ILimitTimeManager _limitTimeManager = limitTimeManager;
+        private readonly ILocalEventBus _localEventBus = localEventBus;
         public const string Name = "GeneralAuditingStepBody";
         public const string DisplayName = "指定用户审核";
-        public GeneralAuditingStepBody(
-            IWkAuditorRespository wkAuditor,
-            IWkInstanceRepository wkInstance,
-            IWkDefinitionRespository wkDefinition,
-            ILimitTimeManager limitTimeManager,
-            ILocalEventBus localEventBus)
-        {
-            _wkAuditor = wkAuditor;
-            _wkInstance = wkInstance;
-            _wkDefinition = wkDefinition;
-            _limitTimeManager = limitTimeManager;
-            _localEventBus = localEventBus;
-        }
+
         /// <summary>
         /// 审核人
         /// </summary>
@@ -52,33 +47,42 @@ namespace Hx.Workflow.Application.StepBodys
         {
             try
             {
+                var dataDict = context.Workflow.Data as IDictionary<string, object> ?? throw new InvalidOperationException("Workflow.Data 必须为字典类型");
                 if (string.IsNullOrEmpty(Candidates))
                 {
-                    if ((context.Workflow.Data as IDictionary<string, object>).ContainsKey("Candidates"))
-                        Candidates = (context.Workflow.Data as IDictionary<string, object>)["Candidates"]?.ToString();
+                    const string key = "Candidates";
+
+                    if (!dataDict.TryGetValue(key, out object? candidatesValue))
+                    {
+                        throw new UserFriendlyException("必须提供接收者参数 [Candidates]");
+                    }
+                    string? candidatesStr = candidatesValue?.ToString();
+                    if (string.IsNullOrEmpty(candidatesStr))
+                    {
+                        throw new UserFriendlyException($"接收者参数格式无效，应为非空字符串 [实际值类型: {candidatesValue?.GetType().Name}]");
+                    }
+
+                    Candidates = candidatesStr;
                 }
-                var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
+                var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException($"Id为：{context.Workflow.Id}的实例不存在！");
                 try
                 {
                     await _localEventBus.PublishAsync(new WkGeneralAuditStepBodyChangeEvent(
                         new Guid(context.Workflow.Id),
                         instance.Reference,
-                        context.Workflow.Data as IDictionary<string, object>));
+                        dataDict));
                 }
                 catch (Exception ex)
                 {
                     throw new UserFriendlyException($"WkGeneralAuditStepBodyChangeEvent 改变事件异常：{ex.Message}");
                 }
-                if (instance.WkDefinition.LimitTime.HasValue)
+                if (instance.WkDefinition.LimitTime is int limitTime)
                 {
-                    var workflowData = new Dictionary<string, object>
-                {
-                    { "BusinessCommitmentDeadline",  await _limitTimeManager.GetAsync(context.Workflow.CreateTime,instance.WkDefinition.LimitTime)}
-                };
-                    context.Workflow.Data = (context.Workflow.Data as IDictionary<string, object>).ConcatenateAndReplace(workflowData);
+                    DateTime? deadline = await _limitTimeManager.GetAsync(context.Workflow.CreateTime, limitTime);
+                    dataDict["BusinessCommitmentDeadline"] = deadline;
                 }
-                var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id));
-                var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId);
+                var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id)) ?? throw new UserFriendlyException($"Id为：{context.ExecutionPointer.Id}的执行点不存在！");
+                var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId) ?? throw new UserFriendlyException($"Id为：{instance.WkDifinitionId}的流程模板不存在！");
                 var pointer = definition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException($"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                 if (pointer.LimitTime != null)
                 {
@@ -91,7 +95,7 @@ namespace Hx.Workflow.Application.StepBodys
                         throw new UserFriendlyException("获取实例流程模板失败！");
                     if (pointer == null)
                         throw new UserFriendlyException("获取流程节点失败！");
-                    List<WkNodeCandidate> dcandidate = null;
+                    List<WkNodeCandidate>? dcandidate = null;
                     bool beRolledBack = false;
 
                     if (executionPointer.PredecessorId != null)
@@ -185,10 +189,9 @@ namespace Hx.Workflow.Application.StepBodys
                         effectiveData);
                     return executionResult;
                 }
-                var eventData = context.ExecutionPointer.EventData as ActivityResult;
-                if (eventData != null)
+                if (context.ExecutionPointer.EventData is ActivityResult eventData)
                 {
-                    var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(eventData.Data));
+                    var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(eventData.Data)) ?? throw new InvalidOperationException("事件数据缺少DecideBranching和ExecutionType！");
                     var step = instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException($"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                     if (step.StepNodeType != StepNodeType.End)
                     {
@@ -205,7 +208,8 @@ namespace Hx.Workflow.Application.StepBodys
                     {
                         await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
                     }
-                    await Audit(eventData.Data, instance.Id, executionPointer, new Guid(Candidates), auditStatus);
+                    if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
+                    await Audit(eventData.Data, instance.Id, executionPointer, candidateId, auditStatus);
                     foreach (var item in executionPointer.WkCandidates.Where(d => d.CandidateId == new Guid(Candidates)))
                     {
                         if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
@@ -248,8 +252,7 @@ namespace Hx.Workflow.Application.StepBodys
         {
             if (eventData is IDictionary<string, object>)
             {
-                var dataDic = eventData as IDictionary<string, object>;
-                if (dataDic == null) return;
+                if (eventData is not IDictionary<string, object> dataDic) return;
                 foreach (var kv in dataDic)
                 {
                     switch (kv.Key)

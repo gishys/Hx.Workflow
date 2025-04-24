@@ -6,6 +6,6 @@ namespace Hx.Workflow.Application.Contracts
 {
     public interface ILimitTimeManager : ITransientDependency
     {
-        Task<DateTime> GetAsync(DateTime time, int? minutes);
+        Task<DateTime?> GetAsync(DateTime time, int? minutes);
     }
 }

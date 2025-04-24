@@ -9,11 +9,13 @@ namespace Hx.Workflow.Domain
     public class WkConditionNode : Entity<Guid>
     {
         public virtual Guid WkNodeId { get; protected set; }
-        public virtual string Label { get; protected set; }
+        public virtual string? Label { get; protected set; }
         public virtual string NextNodeName { get; protected set; }
         public virtual WkRoleNodeType NodeType { get; protected set; }
         public virtual ICollection<WkConNodeCondition> WkConNodeConditions { get; protected set; }
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkConditionNode()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         { }
         public WkConditionNode(
             string nextNodeName,
@@ -23,7 +25,7 @@ namespace Hx.Workflow.Domain
             Label = label;
             NodeType = nodeType;
             NextNodeName = nextNodeName;
-            WkConNodeConditions = new List<WkConNodeCondition>();
+            WkConNodeConditions = [];
         }
         public WkConditionNode(
             Guid id,
@@ -35,7 +37,7 @@ namespace Hx.Workflow.Domain
             Label = label;
             NodeType = nodeType;
             NextNodeName = nextNodeName;
-            WkConNodeConditions = new List<WkConNodeCondition>();
+            WkConNodeConditions = [];
         }
         public Task AddConNodeCondition(WkConNodeCondition condition)
         {

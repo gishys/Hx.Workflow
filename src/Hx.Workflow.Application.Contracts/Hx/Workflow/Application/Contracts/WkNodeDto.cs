@@ -10,19 +10,19 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 步骤体Id
         /// </summary>
-        public Guid? WkStepBodyId { get; set; }
+        public Guid WkStepBodyId { get; set; }
         /// <summary>
         /// 节点Id
         /// </summary>
-        public Guid? WkDefinitionId { get; set; }
+        public Guid WkDefinitionId { get; set; }
         /// <summary>
         /// 步骤名称
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
         /// <summary>
         /// 显示名称
         /// </summary>
-        public string DisplayName { get; set; }
+        public required string DisplayName { get; set; }
         /// <summary>
         /// 步骤节点类型
         /// </summary>
@@ -38,19 +38,19 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 扩展属性
         /// </summary>
-        public ExtraPropertyDictionary ExtraProperties { get; set; }
+        public required ExtraPropertyDictionary ExtraProperties { get; set; }
         /// <summary>
         /// 流程参数
         /// </summary>
-        public WkStepBodyDto StepBody { get; set; }
+        public required WkStepBodyDto StepBody { get; set; }
         /// <summary>
         /// 表单集合
         /// </summary>
-        public virtual ICollection<WkNode_ApplicationFormsDto> ApplicationForms { get; set; }
+        public required virtual ICollection<WkNode_ApplicationFormsDto> ApplicationForms { get; set; }
         /// <summary>
         /// 节点条件
         /// </summary>
-        public virtual ICollection<WkConditionNodeDto> NextNodes { get; set; }
+        public required virtual ICollection<WkConditionNodeDto> NextNodes { get; set; }
         /// <summary>
         /// 排序
         /// </summary>
@@ -58,9 +58,9 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 节点执行者集合
         /// </summary>
-        public virtual ICollection<WkCandidateDto> WkCandidates { get; set; }
-        public virtual ICollection<WkParamDto> Params { get; set; }
-        public ICollection<WkNodeParaDto> OutcomeSteps { get; set; }
-        public ICollection<WkNodeMaterialsDto> Materials { get; set; }
+        public required virtual ICollection<WkCandidateDto> WkCandidates { get; set; }
+        public virtual ICollection<WkParamDto>? Params { get; set; }
+        public ICollection<WkNodeParaDto>? OutcomeSteps { get; set; }
+        public required ICollection<WkNodeMaterialsDto> Materials { get; set; }
     }
 }

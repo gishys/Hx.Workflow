@@ -11,13 +11,10 @@ using Volo.Abp.EntityFrameworkCore;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public class WkAuditorRespository
-        : EfCoreRepository<WkDbContext, WkAuditor, Guid>,
+    public class WkAuditorRespository(IDbContextProvider<WkDbContext> options)
+                : EfCoreRepository<WkDbContext, WkAuditor, Guid>(options),
         IWkAuditorRespository
     {
-        public WkAuditorRespository(IDbContextProvider<WkDbContext> options)
-            : base(options)
-        { }
         public virtual async Task<bool> IsVerifyAsync(
             Guid executionPointerId,
             Guid userId,
@@ -29,12 +26,12 @@ namespace Hx.Workflow.EntityFrameworkCore
             && d.UserId == userId
             && d.Status == status);
         }
-        public virtual async Task<WkAuditor> GetAuditorAsync(Guid executionPointerId)
+        public virtual async Task<WkAuditor?> GetAuditorAsync(Guid executionPointerId)
         {
             var queryable = await GetDbSetAsync();
             return await queryable.FirstOrDefaultAsync(d => d.ExecutionPointerId == executionPointerId);
         }
-        public virtual async Task<WkAuditor> GetAuditorAsync(Guid executionPointerId, Guid userId)
+        public virtual async Task<WkAuditor?> GetAuditorAsync(Guid executionPointerId, Guid userId)
         {
             var queryable = await GetDbSetAsync();
             return await queryable.FirstOrDefaultAsync(d => d.ExecutionPointerId == executionPointerId && d.UserId == userId);

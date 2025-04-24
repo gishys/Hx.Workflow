@@ -49,7 +49,7 @@ namespace Hx.Workflow.Domain.LocalEvents
             if (eventData.Entity.Status == PointerStatus.Complete)
             {
                 var wkEvent = await _eventRepository.GetByEventKeyAsync($"{eventData.Entity.Id}");
-                if (wkEvent != null && wkEvent.CreatorId.HasValue)
+                if (wkEvent != null && wkEvent.CreatorId != null && wkEvent.CreatorId.HasValue)
                 {
                     var userRepository = _serviceProvider.GetService<IIdentityUserRepository>();
                     string? userName = null;

@@ -28,6 +28,6 @@ namespace Hx.Workflow.Domain.Repositories
         /// </summary>
         /// <param name="eventKey"></param>
         /// <returns></returns>
-        Task<WkEvent> GetByEventKeyAsync(string eventKey);
+        Task<WkEvent?> GetByEventKeyAsync(string eventKey);
     }
 }

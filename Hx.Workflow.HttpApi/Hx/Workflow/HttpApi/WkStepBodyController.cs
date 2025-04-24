@@ -24,7 +24,7 @@ namespace Hx.Workflow.HttpApi
             return WkStepBody.DeleteAsync(id);
         }
         [HttpGet]
-        public Task<WkStepBodyDto> GetStepBodyAsync(string name)
+        public Task<WkStepBodyDto?> GetStepBodyAsync(string name)
         {
             return WkStepBody.GetStepBodyAsync(name);
         }

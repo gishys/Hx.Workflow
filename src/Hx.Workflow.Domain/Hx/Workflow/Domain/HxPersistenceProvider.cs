@@ -25,8 +25,7 @@ namespace Hx.Workflow.Domain
         IWkErrorRepository wkErrorRepository,
         IGuidGenerator guidGenerator,
         ICurrentUser currentUser,
-        ReferenceManager referenceManager,
-        IClock clock) : IHxPersistenceProvider, ISingletonDependency
+        ReferenceManager referenceManager) : IHxPersistenceProvider, ISingletonDependency
     {
         private readonly IWkSubscriptionRepository _wkSubscriptionRepository = wkSubscriptionRepository;
         private readonly IUnitOfWorkManager _unitOfWorkManager = unitOfWorkManager;
@@ -37,7 +36,6 @@ namespace Hx.Workflow.Domain
         private readonly IGuidGenerator _guidGenerator = guidGenerator;
         private readonly ICurrentUser _currentUser = currentUser;
         private readonly ReferenceManager ReferenceManager = referenceManager;
-        private readonly IClock _clock = clock;
 
         public bool SupportsScheduledCommands { get; }
 
@@ -293,7 +291,7 @@ namespace Hx.Workflow.Domain
                 {
                     subscription.Id = _guidGenerator.Create().ToString();
                     var scription = subscription.ToPersistable();
-                    await _wkSubscriptionRepository.InsertAsync(scription);
+                    await _wkSubscriptionRepository.InsertAsync(scription, false, cancellationToken);
                 }
             }
             await uow.CompleteAsync(cancellationToken);

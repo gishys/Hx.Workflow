@@ -14,12 +14,6 @@ namespace Hx.Workflow.Application
     {
         public HxWorkflowAutoMapperProfile()
         {
-            CreateMap<WkInstance, WkInstancesDto>(MemberList.None)
-                .ForMember(t => t.WkDefinitionName, s => s.MapFrom(p => p.WkDefinition.Title))
-                .ForMember(t => t.CreateTime, s => s.MapFrom(p => p.CreateTime))
-                .ForMember(t => t.Status, s => s.MapFrom(p => p.Status))
-                .ForMember(t => t.CompleteTime, s => s.MapFrom(p => p.CompleteTime))
-                .ForMember(t => t.Description, s => s.MapFrom(p => p.Description));
             CreateMap<WkStepBody, WkStepBodyDto>(MemberList.Destination);
             CreateMap<WkStepBodyParam, WkStepBodyParamDto>(MemberList.Destination);
             CreateMap<WkDefinition, WkDefinitionDto>(MemberList.Destination);

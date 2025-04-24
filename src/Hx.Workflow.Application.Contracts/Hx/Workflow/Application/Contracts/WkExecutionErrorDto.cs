@@ -11,7 +11,7 @@ namespace Hx.Workflow.Application.Contracts
         public Guid WkInstanceId { get; set; }
         public Guid WkExecutionPointerId { get; set; }
         public DateTime ErrorTime { get; set; }
-        public string Message { get; set; }
+        public required string Message { get; set; }
         public Guid? TenantId { get; set; }
     }
 }

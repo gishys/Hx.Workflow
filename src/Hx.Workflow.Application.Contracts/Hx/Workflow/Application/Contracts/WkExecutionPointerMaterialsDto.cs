@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -11,7 +7,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 业务类型Id
         /// </summary>
-        public string Reference { get; set; }
+        public required string Reference { get; set; }
         /// <summary>
         /// 附件收取类型
         /// </summary>
@@ -23,7 +19,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 目录名称
         /// </summary>
-        public string CatalogueName { get; set; }
+        public required string CatalogueName { get; set; }
         /// <summary>
         /// 顺序号
         /// </summary>
@@ -47,6 +43,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 子文件夹
         /// </summary>
-        public ICollection<WkExecutionPointerMaterialsDto> Children { get; set; }
+        public required ICollection<WkExecutionPointerMaterialsDto> Children { get; set; }
     }
 }

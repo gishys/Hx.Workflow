@@ -18,7 +18,9 @@ namespace Hx.Workflow.Domain.Persistence
         public string? ExternalWorkerId { get; protected set; }
         public DateTime? ExternalTokenExpiry { get; protected set; }
         public Guid? TenantId { get; protected set; }
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkSubscription()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         { }
         public WkSubscription(
             Guid id,

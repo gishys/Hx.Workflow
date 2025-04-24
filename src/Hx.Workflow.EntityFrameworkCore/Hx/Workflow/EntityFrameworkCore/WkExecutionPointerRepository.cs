@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -44,7 +45,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public async Task UpdateDataAsync(Guid id, Dictionary<string, string> data)
         {
-            var entity = await FindAsync(id);
+            var entity = await FindAsync(id) ?? throw new UserFriendlyException($"Id为：[{id}]执行点为空");
             foreach (var item in data)
             {
                 entity.ExtensionAttributes.RemoveAll(d => d.AttributeKey == item.Key);
@@ -55,7 +56,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public async Task RetryAsync(Guid id)
         {
-            var entity = await FindAsync(id);
+            var entity = await FindAsync(id) ?? throw new UserFriendlyException($"Id为：[{id}]执行点为空");
             await entity.SetSleepUntil(null);
             await UpdateAsync(entity);
         }

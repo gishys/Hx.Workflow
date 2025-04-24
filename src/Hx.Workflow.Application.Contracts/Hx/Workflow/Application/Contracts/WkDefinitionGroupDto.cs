@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Hx.Workflow.Application.Contracts
 {
@@ -12,15 +9,15 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 分组标题
         /// </summary>
-        public string Title { get; set; }
+        public required string Title { get; set; }
         /// <summary>
         /// 路径枚举
         /// </summary>
-        public string Code { get; set; }
+        public required string Code { get; set; }
         /// <summary>
         /// 分组排序
         /// </summary>
-        public double Order { get; set; }
+        public required double Order { get; set; }
         /// <summary>
         /// 父Id
         /// </summary>
@@ -36,10 +33,10 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 子组
         /// </summary>
-        public List<WkDefinitionGroupDto> Children { get; set; }
+        public required List<WkDefinitionGroupDto> Children { get; set; }
         /// <summary>
         /// 一组模板
         /// </summary>
-        public List<WkDefinitionDto> Items { get; set; }
+        public required List<WkDefinitionDto> Items { get; set; }
     }
 }

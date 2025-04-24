@@ -16,15 +16,15 @@ namespace Hx.Workflow.Application.DynamicCode
     public class DynamicCodeExecutor
     {
         // Cache for resolved assemblies to avoid repeated loading
-        private static readonly Dictionary<string, Assembly> _assemblyCache = new Dictionary<string, Assembly>();
+        private static readonly Dictionary<string, Assembly> _assemblyCache = [];
 
         // Core assemblies that should always be included
-        private static readonly string[] _coreAssemblies = new[]
-        {
+        private static readonly string[] _coreAssemblies =
+        [
             "System.Private.CoreLib",
             "System.Runtime",
             "netstandard"
-        };
+        ];
 
         public Assembly CompileCode(string code)
         {
@@ -45,9 +45,9 @@ namespace Hx.Workflow.Application.DynamicCode
                 MetadataReference.CreateFromFile(typeof(ITransientDependency).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(ILocalEventBus).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(IWkInstanceRepository).Assembly.Location),
-                MetadataReference.CreateFromFile(Assembly.GetEntryAssembly().Location)
             };
-
+            var entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly != null) references.Add(MetadataReference.CreateFromFile(entryAssembly.Location));
             // Add dynamically resolved references from using directives
             foreach (var usingDirective in usingDirectives)
             {
@@ -77,7 +77,7 @@ namespace Hx.Workflow.Application.DynamicCode
             // Compile the code
             var compilation = CSharpCompilation.Create(
                 "StartStepBody",
-                new[] { syntaxTree },
+                [syntaxTree],
                 references,
                 compilationOptions);
 
@@ -96,7 +96,7 @@ namespace Hx.Workflow.Application.DynamicCode
             return AssemblyLoadContext.Default.LoadFromStream(ms);
         }
 
-        private Assembly ResolveAssemblyFromUsingDirective(string usingDirective)
+        private static Assembly ResolveAssemblyFromUsingDirective(string usingDirective)
         {
             // Check cache first
             if (_assemblyCache.TryGetValue(usingDirective, out var cachedAssembly))
@@ -143,15 +143,15 @@ namespace Hx.Workflow.Application.DynamicCode
             return null;
         }
 
-        private string ConvertUsingToTypeName(string usingDirective)
+        private static string ConvertUsingToTypeName(string usingDirective)
         {
             // Simple conversion - assumes the namespace has at least one public type
             // with the same name as the last part of the namespace
             var parts = usingDirective.Split('.');
-            return usingDirective + "." + parts[parts.Length - 1];
+            return usingDirective + "." + parts[^1];
         }
 
-        private string GetAssemblyNameFromUsing(string usingDirective)
+        private static string GetAssemblyNameFromUsing(string usingDirective)
         {
             // Heuristic to convert namespace to likely assembly name
             var parts = usingDirective.Split('.');
@@ -170,7 +170,7 @@ namespace Hx.Workflow.Application.DynamicCode
             return parts[0];
         }
 
-        private void AddIndirectReferences(List<MetadataReference> references)
+        private static void AddIndirectReferences(List<MetadataReference> references)
         {
             // Add core assemblies that might not be explicitly referenced
             foreach (var assemblyName in _coreAssemblies)

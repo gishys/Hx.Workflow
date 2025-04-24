@@ -9,10 +9,10 @@ namespace Hx.Workflow.Application.StepBodys
     {
         public class TypeMethodInfo
         {
-            public string TypeFullName { get; set; }
-            public string AssemblyFullName { get; set; }
-            public string Name { get; set; }
-            public string DisplayName { get; set; }
+            public required string TypeFullName { get; set; }
+            public required string AssemblyFullName { get; set; }
+            public required string Name { get; set; }
+            public required string DisplayName { get; set; }
         }
 
         public static List<TypeMethodInfo> GetStepBodyAsyncDerivatives()
@@ -33,14 +33,33 @@ namespace Hx.Workflow.Application.StepBodys
                                 !type.IsAbstract &&
                                 type.IsSubclassOf(typeof(StepBodyAsync)))
                             {
+                                // 预先获取所有必需的值
+                                var typeFullName = type.FullName;
+                                var assemblyFullName = assembly.FullName;
+                                var nameField = GetConstStringField(type, "Name");
+                                var displayNameField = GetConstStringField(type, "DisplayName");
+
+                                // 获取字段值（安全访问）
+                                var nameValue = nameField?.GetValue(null)?.ToString();
+                                var displayNameValue = displayNameField?.GetValue(null)?.ToString();
+
+                                // 统一验证所有必需字段
+                                if (string.IsNullOrEmpty(typeFullName) ||
+                                    string.IsNullOrEmpty(assemblyFullName) ||
+                                    string.IsNullOrEmpty(nameValue) ||
+                                    string.IsNullOrEmpty(displayNameValue))
+                                {
+                                    continue;
+                                }
+
+                                // 构建对象（已确保非空）
                                 var typeInfo = new TypeMethodInfo
                                 {
-                                    TypeFullName = type.FullName,
-                                    AssemblyFullName = assembly.FullName,
-                                    Name = GetConstStringField(type, "Name")?.GetValue(null)?.ToString(),
-                                    DisplayName = GetConstStringField(type, "DisplayName")?.GetValue(null)?.ToString(),
+                                    TypeFullName = typeFullName!,
+                                    AssemblyFullName = assemblyFullName!,
+                                    Name = nameValue!,
+                                    DisplayName = displayNameValue!
                                 };
-
                                 result.Add(typeInfo);
                             }
                         }
@@ -59,7 +78,7 @@ namespace Hx.Workflow.Application.StepBodys
             }
             return result;
         }
-        public static FieldInfo GetConstStringField(Type type, string fieldName)
+        public static FieldInfo? GetConstStringField(Type type, string fieldName)
         {
             return type.GetField(fieldName,
                 BindingFlags.Public |

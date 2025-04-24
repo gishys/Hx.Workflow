@@ -1,26 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Hx.Workflow.Domain.BusinessModule
+﻿namespace Hx.Workflow.Domain.BusinessModule
 {
-    public class ReferenceCache
+    public class ReferenceCache(string businessType, int count)
     {
-        public ReferenceCache(string businessType, int count)
-        {
-            BusinessType = businessType;
-            Count = count;
-        }
         /// <summary>
         /// 日期
         /// </summary>
-        public string BusinessType { get; set; }
+        public string BusinessType { get; set; } = businessType;
         /// <summary>
         /// 数量
         /// </summary>
-        public int Count { get; set; }
+        public int Count { get; set; } = count;
         public void Next()
         {
             Count++;

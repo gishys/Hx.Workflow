@@ -8,7 +8,9 @@ namespace Hx.Workflow.Domain
 {
     public class WkNodeMaterials
     {
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkNodeMaterials() { }
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkNodeMaterials(int attachReceiveType, int referenceType, string catalogueName, int sequenceNumber, bool isRequired, bool isStatic, bool isVerification, bool verificationPassed)
         {
             AttachReceiveType = attachReceiveType;
@@ -55,7 +57,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 子文件夹
         /// </summary>
-        public ICollection<WkNodeMaterials> Children { get; protected set; } = new List<WkNodeMaterials>();
+        public ICollection<WkNodeMaterials> Children { get; protected set; } = [];
         public void AddChild(WkNodeMaterials child) { Children.Add(child); }
     }
 }

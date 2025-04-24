@@ -10,8 +10,8 @@ namespace Hx.Workflow.Application.Contracts
     public class WkNextPointerDto
     {
         public bool Selectable {  get; set; }
-        public string Label { get; set; }
-        public string NextNodeName { get; set; }
+        public string? Label { get; set; }
+        public required string NextNodeName { get; set; }
         public WkRoleNodeType NodeType { get; set; }
         public bool PreviousStep {  get; set; }
     }

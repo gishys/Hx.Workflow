@@ -30,20 +30,18 @@ namespace Hx.Workflow.Application
         }
         public async override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-            using (var scope = context.ServiceProvider.CreateScope())
+            using var scope = context.ServiceProvider.CreateScope();
+            var stepbodyRespository = scope.ServiceProvider.GetService<IWkStepBodyRespository>() ?? throw new UserFriendlyException("IWkStepBodyRespository服务依赖注入失败！");
+            var stepbodys = ReflectionHelper.GetStepBodyAsyncDerivatives();
+            var sList = new List<WkStepBody>();
+            foreach (var stepbody in stepbodys)
             {
-                var stepbodyRespository = scope.ServiceProvider.GetService<IWkStepBodyRespository>();
-                if (stepbodyRespository == null) throw new UserFriendlyException("IWkStepBodyRespository服务依赖注入失败！");
-                var stepbodys = ReflectionHelper.GetStepBodyAsyncDerivatives();
-                var sList = new List<WkStepBody>();
-                foreach (var stepbody in stepbodys)
+                if (string.IsNullOrEmpty(stepbody.Name) || string.IsNullOrEmpty(stepbody.DisplayName))
+                    continue;
+                if (!await stepbodyRespository.AnyAsync(stepbody.TypeFullName))
                 {
-                    if (string.IsNullOrEmpty(stepbody.Name) || string.IsNullOrEmpty(stepbody.DisplayName))
-                        continue;
-                    if (!await stepbodyRespository.AnyAsync(stepbody.TypeFullName))
-                    {
-                        List<WkStepBodyParam> ps = [
-                            new WkStepBodyParam(
+                    List<WkStepBodyParam> ps = [
+                        new WkStepBodyParam(
                                 Guid.NewGuid(),
                                 "Candidates",
                                 "Candidates",
@@ -58,15 +56,14 @@ namespace Hx.Workflow.Application
                                 "step.DecideBranching",
                 StepBodyParaType.Outputs),
                 ];
-                        var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, null, ps, stepbody.TypeFullName, stepbody.AssemblyFullName);
-                        if (!sList.Any(d => d.Name == s.Name))
-                            sList.Add(s);
-                    }
+                    var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, null, ps, stepbody.TypeFullName, stepbody.AssemblyFullName);
+                    if (!sList.Any(d => d.Name == s.Name))
+                        sList.Add(s);
                 }
-                if (sList.Count > 0)
-                {
-                    await stepbodyRespository.InsertManyAsync(sList);
-                }
+            }
+            if (sList.Count > 0)
+            {
+                await stepbodyRespository.InsertManyAsync(sList);
             }
         }
     }

@@ -11,17 +11,15 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-    public class StartStepBody : StepBodyAsync, ITransientDependency
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    public class StartStepBody(ILocalEventBus localEventBus, IWkInstanceRepository wkInstance) : StepBodyAsync, ITransientDependency
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     {
-        private readonly ILocalEventBus _localEventBus;
-        private readonly IWkInstanceRepository _wkInstance;
+        private readonly ILocalEventBus _localEventBus = localEventBus;
+        private readonly IWkInstanceRepository _wkInstance = wkInstance;
         public const string Name = "StartStepBody";
         public const string DisplayName = "开始";
-        public StartStepBody(ILocalEventBus localEventBus, IWkInstanceRepository wkInstance)
-        {
-            _localEventBus = localEventBus;
-            _wkInstance = wkInstance;
-        }
+
         /// <summary>
         /// 审核人
         /// </summary>
@@ -29,16 +27,17 @@ namespace Hx.Workflow.Application.StepBodys
         /// <summary>
         /// 分支判断
         /// </summary>
-        public string DecideBranching { get; set; } = null;
+        public string DecideBranching { get; set; }
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id));
+            var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException($"Id为：{context.Workflow.Id}的实例不存在！");
+            var dataDict = context.Workflow.Data as IDictionary<string, object> ?? throw new InvalidOperationException("Workflow.Data 必须为字典类型");
             try
             {
                 await _localEventBus.PublishAsync(new StartStepBodyChangeEvent(
                     new Guid(context.Workflow.Id),
                     instance.Reference,
-                    context.Workflow.Data as IDictionary<string, object>));
+                    dataDict));
             }
             catch (Exception ex)
             {

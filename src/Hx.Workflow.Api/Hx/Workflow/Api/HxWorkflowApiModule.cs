@@ -53,7 +53,7 @@ namespace Hx.Workflow.Api
                 options.AddPolicy(DefaultCorsPolicyName,
                 builder =>
                 {
-                    builder.WithOrigins(configuration["CorsOrigins"]
+                    builder.WithOrigins((configuration["CorsOrigins"] ?? "")
                                 .Split(",", StringSplitOptions.RemoveEmptyEntries)
                                 .Select(o => o.RemovePostFix("/"))
                                 .ToArray())

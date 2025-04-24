@@ -54,7 +54,7 @@ namespace Hx.Workflow.Domain
             DisplayName = displayName;
             return Task.CompletedTask;
         }
-        public Task SetData(string data)
+        public Task SetData(string? data)
         {
             Data = data;
             return Task.CompletedTask;
