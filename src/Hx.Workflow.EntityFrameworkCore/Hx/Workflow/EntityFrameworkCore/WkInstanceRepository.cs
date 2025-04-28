@@ -285,7 +285,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 }
                 return await UpdateAsync(updateEntity);
             }
-            throw new UserFriendlyException($"Id为：[{wkinstanceId}]的实例为空！");
+            throw new UserFriendlyException(message: $"Id为：[{wkinstanceId}]的实例为空！");
         }
         /// <summary>
         /// 修改候选人办理状态
@@ -334,11 +334,11 @@ namespace Hx.Workflow.EntityFrameworkCore
         private static partial Regex IntRegex();
         public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId)
         {
-            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException($"Id为：[{workflowId}]的实例为空！");
+            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"Id为：[{workflowId}]的实例为空！");
             var exePointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             if (!exePointer.WkCandidates.Any(d => d.CandidateId == currentUserId))
             {
-                throw new UserFriendlyException("没有权限接收实例！");
+                throw new UserFriendlyException(message: "没有权限接收实例！");
             }
             exePointer.WkCandidates.RemoveAll(d => d.CandidateId != currentUserId);
             var candidate = exePointer.WkCandidates.First(d => d.CandidateId == currentUserId);
@@ -348,7 +348,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId, string recepient, Guid recepientId)
         {
-            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException($"Id为：[{workflowId}]的实例为空！");
+            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"Id为：[{workflowId}]的实例为空！");
             var exePointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             await exePointer.SetRecipientInfo(recepient, recepientId);
             return await UpdateAsync(instance);
@@ -361,7 +361,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <returns></returns>
         public async Task UpdateDataAsync(Guid workflowId, IDictionary<string, object> data)
         {
-            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException($"Id为：[{workflowId}]的实例为空！");
+            var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"Id为：[{workflowId}]的实例为空！");
             var instanceData = JsonSerializer.Deserialize<IDictionary<string, object>>(instance.Data);
             if (instanceData != null)
             {

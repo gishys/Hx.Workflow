@@ -29,7 +29,7 @@ namespace Hx.Workflow.Application
                 d.StepBodyParaType)).ToList();
             var entity = await _wkStepBody.GetStepBodyAsync(input.Name);
             if (entity != null)
-                throw new UserFriendlyException("已存在相同名称的StepBody!");
+                throw new UserFriendlyException(message: "已存在相同名称的StepBody!");
             entity = new WkStepBody(
                     input.Name,
                     input.DisplayName,
@@ -58,7 +58,7 @@ namespace Hx.Workflow.Application
         }
         public virtual async Task UpdateAsync(WkStepBodyUpdateDto input)
         {
-            var entity = await _wkStepBody.FindAsync(input.Id) ?? throw new UserFriendlyException($"Id为：[{input.Id}]的stepbody不存在!");
+            var entity = await _wkStepBody.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：[{input.Id}]的stepbody不存在!");
             await entity.SetName(input.Name);
             await entity.SetDisplayName(input.DisplayName);
             await entity.SetData(input.Data);

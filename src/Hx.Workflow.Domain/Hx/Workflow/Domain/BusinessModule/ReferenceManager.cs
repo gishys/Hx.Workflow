@@ -41,7 +41,7 @@ namespace Hx.Workflow.Domain.BusinessModule
                     await AppointmentStockCache.SetAsync(key, cache);
                     return nextNumber;
                 }
-                throw new UserFriendlyException($"获取Reference Cache：[{key}]失败！");
+                throw new UserFriendlyException(message: $"获取Reference Cache：[{key}]失败！");
             }
             finally
             {

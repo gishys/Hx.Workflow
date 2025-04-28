@@ -1,6 +1,7 @@
 {
   "culture": "zh-Hans",
   "texts": {
+    "Permission:Workflow": "流程管理",
     "Permission:Workflow.FormGroup": "表单组",
     "Permission:Workflow.FormGroup.List": "列表",
     "Permission:Workflow.FormGroup.Create": "创建",

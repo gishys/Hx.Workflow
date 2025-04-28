@@ -31,7 +31,7 @@ namespace Hx.Workflow.Application
         public async override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
             using var scope = context.ServiceProvider.CreateScope();
-            var stepbodyRespository = scope.ServiceProvider.GetService<IWkStepBodyRespository>() ?? throw new UserFriendlyException("IWkStepBodyRespository服务依赖注入失败！");
+            var stepbodyRespository = scope.ServiceProvider.GetService<IWkStepBodyRespository>() ?? throw new UserFriendlyException(message: "IWkStepBodyRespository服务依赖注入失败！");
             var stepbodys = ReflectionHelper.GetStepBodyAsyncDerivatives();
             var sList = new List<WkStepBody>();
             foreach (var stepbody in stepbodys)

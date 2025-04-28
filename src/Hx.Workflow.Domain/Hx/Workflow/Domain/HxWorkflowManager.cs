@@ -137,7 +137,7 @@ namespace Hx.Workflow.Domain
         {
             if (!_registry.IsRegistered(id, version))
             {
-                throw new UserFriendlyException("the workflow  has not been defined!");
+                throw new UserFriendlyException(message: "the workflow  has not been defined!");
             }
             return await _workflowHost.StartWorkflow(id, version, inputs?.Count > 0 ? inputs : null);
         }
@@ -153,7 +153,7 @@ namespace Hx.Workflow.Domain
             }
             else
             {
-                throw new UserFriendlyException($"{actName} was not found.");
+                throw new UserFriendlyException(message: $"{actName} was not found.");
             }
         }
         internal virtual WorkflowDefinition LoadDefinitionByJson(WkDefinition input)

@@ -21,11 +21,11 @@ namespace Hx.Workflow.Application
         {
             if (await WkApplicationFormRepository.ExistByNameAsync(input.Name))
             {
-                throw new UserFriendlyException("表单名称已存在！");
+                throw new UserFriendlyException(message: "表单名称已存在！");
             }
             if (await WkApplicationFormRepository.ExistByTitleAsync(input.Title, input.GroupId))
             {
-                throw new UserFriendlyException("组内表单标题已存在！");
+                throw new UserFriendlyException(message: "组内表单标题已存在！");
             }
             var form = new ApplicationForm(
                 input.Name,
@@ -60,14 +60,14 @@ namespace Hx.Workflow.Application
             {
                 if (await WkApplicationFormRepository.ExistByTitleAsync(input.Title, input.GroupId))
                 {
-                    throw new UserFriendlyException("组内表单标题已存在！");
+                    throw new UserFriendlyException(message: "组内表单标题已存在！");
                 }
             }
             if (!entity.Name.Equals(input.Name, StringComparison.CurrentCultureIgnoreCase))
             {
                 if (await WkApplicationFormRepository.ExistByNameAsync(input.Name))
                 {
-                    throw new UserFriendlyException("表单名称已存在！");
+                    throw new UserFriendlyException(message: "表单名称已存在！");
                 }
             }
             await entity.SetName(input.Name);
