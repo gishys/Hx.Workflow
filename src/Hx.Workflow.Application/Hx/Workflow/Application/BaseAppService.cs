@@ -1,11 +1,12 @@
-﻿using Localization;
+﻿using Hx.Workflow.Application.Contracts;
+using Localization;
 using Volo.Abp.Application.Services;
 
 namespace Hx.Workflow.Application
 {
-    public class BaseAppService : ApplicationService
+    public class BaseAppService : ApplicationService, IBaseAppService
     {
-        protected BaseAppService()
+        public BaseAppService()
         {
             LocalizationResource = typeof(WorkflowResource);
         }
