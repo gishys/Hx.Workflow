@@ -30,7 +30,7 @@ namespace Hx.Workflow.Application.StepBodys
         public string DecideBranching { get; set; }
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException($"Id为：{context.Workflow.Id}的实例不存在！");
+            var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException(message: $"Id为：{context.Workflow.Id}的实例不存在！");
             var dataDict = context.Workflow.Data as IDictionary<string, object> ?? throw new InvalidOperationException("Workflow.Data 必须为字典类型");
             try
             {
@@ -41,7 +41,7 @@ namespace Hx.Workflow.Application.StepBodys
             }
             catch (Exception ex)
             {
-                throw new UserFriendlyException($"StartStepBodyChangeEvent 改变事件异常：{ex.Message}");
+                throw new UserFriendlyException(message: $"StartStepBodyChangeEvent 改变事件异常：{ex.Message}");
             }
             return ExecutionResult.Next();
         }

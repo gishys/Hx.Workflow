@@ -56,6 +56,7 @@ namespace Hx.Workflow.Application.StepBodys
             }
             catch (Exception ex)
             {
+}
                 throw new UserFriendlyException($""StartStepBodyChangeEvent 改变事件异常：{ex.Message}"");
             }
             return ExecutionResult.Next();

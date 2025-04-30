@@ -109,7 +109,7 @@ namespace Hx.Workflow.Domain
         }
         private async Task<WkInstance> CreateExePointerMaterials(WkInstance wkInstance, Guid wkDefinitionId, int version, string reference)
         {
-            WkDefinition definition = await _wkDefinitionRespository.GetDefinitionAsync(wkDefinitionId, version) ?? throw new UserFriendlyException($"[{wkDefinitionId}]流程模板不存在！");
+            WkDefinition definition = await _wkDefinitionRespository.GetDefinitionAsync(wkDefinitionId, version) ?? throw new UserFriendlyException(message: $"[{wkDefinitionId}]流程模板不存在！");
             foreach (var exePointer in wkInstance.ExecutionPointers.Where(d => d.Status != PointerStatus.Complete))
             {
                 WkNode? node = definition.Nodes.FirstOrDefault(d => d.Name == exePointer.StepName);
@@ -138,7 +138,7 @@ namespace Hx.Workflow.Domain
         public async Task<Event> GetEvent(string id, CancellationToken cancellationToken = default)
         {
             Guid uid = new(id);
-            var raw = await _wkEventRepository.FindAsync(uid, true, cancellationToken) ?? throw new UserFriendlyException($"[{uid}]流程事件不存在！");
+            var raw = await _wkEventRepository.FindAsync(uid, true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{uid}]流程事件不存在！");
             return raw.ToEvent();
         }
         public async Task<IEnumerable<string>> GetEvents(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
@@ -154,7 +154,7 @@ namespace Hx.Workflow.Domain
         {
             var raw = await _wkSubscriptionRepository.GetSubscriptionAsync(eventName, eventKey, asOf);
             if (raw.Count <= 0)
-                throw new UserFriendlyException($"符合条件：[eventName:{eventName},eventKey:{eventKey},asOf:{asOf}]的流程描述不存在！");
+                throw new UserFriendlyException(message: $"符合条件：[eventName:{eventName},eventKey:{eventKey},asOf:{asOf}]的流程描述不存在！");
             return raw.First().ToEventSubscription();
         }
         //public async Task<WkExecutionPointer> GetPersistedExecutionPointer(string id)
@@ -185,7 +185,7 @@ namespace Hx.Workflow.Domain
         }
         public async Task<EventSubscription> GetSubscription(string eventSubscriptionId, CancellationToken cancellationToken = default)
         {
-            var raw = await _wkSubscriptionRepository.FindAsync(new Guid(eventSubscriptionId), true, cancellationToken) ?? throw new UserFriendlyException($"[{eventSubscriptionId}]流程描述不存在！");
+            var raw = await _wkSubscriptionRepository.FindAsync(new Guid(eventSubscriptionId), true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{eventSubscriptionId}]流程描述不存在！");
             return raw.ToEventSubscription();
         }
         public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
@@ -195,7 +195,7 @@ namespace Hx.Workflow.Domain
         }
         public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)
         {
-            var entity = await _wkInstanceRepository.FindAsync(new Guid(Id), true, cancellationToken) ?? throw new UserFriendlyException($"[{Id}]流程实例不存在！");
+            var entity = await _wkInstanceRepository.FindAsync(new Guid(Id), true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{Id}]流程实例不存在！");
             return entity.ToWorkflowInstance();
         }
         public async Task<IEnumerable<WorkflowInstance>> GetWorkflowInstances(WorkflowStatus? status, string type, DateTime? createdFrom, DateTime? createdTo, int skip, int take)
@@ -309,7 +309,7 @@ namespace Hx.Workflow.Domain
 
         public async Task<bool> SetSubscriptionToken(string eventSubscriptionId, string token, string workerId, DateTime expiry, CancellationToken cancellationToken = default)
         {
-            _ = await _wkInstanceRepository.FindAsync(new Guid(workerId), true, cancellationToken) ?? throw new UserFriendlyException($"[{workerId}]流程实例不存在！");
+            _ = await _wkInstanceRepository.FindAsync(new Guid(workerId), true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{workerId}]流程实例不存在！");
             var uid = new Guid(eventSubscriptionId);
             var existingEntity = await _wkSubscriptionRepository.GetAsync(uid, true, cancellationToken);
             await existingEntity.SetExternalToken(token);

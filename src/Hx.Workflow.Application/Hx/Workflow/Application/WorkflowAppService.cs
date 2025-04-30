@@ -45,7 +45,7 @@ namespace Hx.Workflow.Application
                 var entitys = await _wkDefinition.GetListHasPermissionAsync(CurrentUser.Id.Value);
                 return ObjectMapper.Map<List<WkDefinition>, List<WkDefinitionDto>>(entitys);
             }
-            throw new UserFriendlyException("未获取到当前登录用户！");
+            throw new UserFriendlyException(message: "未获取到当前登录用户！");
         }
         /// <summary>
         /// 通过流程模版Id创建流程
@@ -60,24 +60,24 @@ namespace Hx.Workflow.Application
                 var candidateKeyValue = input.Inputs.FirstOrDefault(kv => kv.Key == "Candidates");
                 if (candidateKeyValue.Equals(default(KeyValuePair<string, object>)))
                 {
-                    throw new UserFriendlyException("流程启动参数中缺少候选人信息");
+                    throw new UserFriendlyException(message: "流程启动参数中缺少候选人信息");
                 }
 
                 if (!Guid.TryParse(candidateKeyValue.Value?.ToString(), out Guid candidateId))
                 {
-                    throw new UserFriendlyException("候选人ID格式无效，请提供有效的GUID格式");
+                    throw new UserFriendlyException(message: "候选人ID格式无效，请提供有效的GUID格式");
                 }
 
-                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version) ?? throw new UserFriendlyException($"不存在Id为：[{input.Id},{input.Version}]流程模板！");
+                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version) ?? throw new UserFriendlyException(message: $"不存在Id为：[{input.Id},{input.Version}]流程模板！");
                 if (!entity.WkCandidates.Any(d => d.CandidateId == candidateId))
                 {
-                    throw new UserFriendlyException($"无权限，请在流程定义中配置Id为（{input.Inputs["Candidates"]}）的权限！");
+                    throw new UserFriendlyException(message: $"无权限，请在流程定义中配置Id为（{input.Inputs["Candidates"]}）的权限！");
                 }
                 return await _hxWorkflowManager.StartWorkflowAsync(input.Id, input.Version, input.Inputs);
             }
             catch (Exception ex)
             {
-                throw new UserFriendlyException(ex.Message);
+                throw new UserFriendlyException(message: ex.Message);
             }
         }
         /// <summary>
@@ -91,7 +91,7 @@ namespace Hx.Workflow.Application
         {
             var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(data));
             if (string.IsNullOrEmpty(eventPointerEventData?.DecideBranching))
-                throw new UserFriendlyException("提交必须携带分支节点名称！");
+                throw new UserFriendlyException(message: "提交必须携带分支节点名称！");
             await _hxWorkflowManager.StartActivityAsync(actName, workflowId, data);
         }
         /// <summary>
@@ -137,7 +137,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference)
         {
-            var instance = await _wkInstanceRepository.GetByReferenceAsync(reference) ?? throw new UserFriendlyException($"不存在reference为：[{reference}]流程实例！");
+            var instance = await _wkInstanceRepository.GetByReferenceAsync(reference) ?? throw new UserFriendlyException(message: $"不存在reference为：[{reference}]流程实例！");
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             WkExecutionPointer pointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             var errors = await _errorRepository.GetListByIdAsync(instance.Id, pointer.Id);
@@ -159,7 +159,7 @@ namespace Hx.Workflow.Application
             }
             else
             {
-                throw new UserFriendlyException("未获取到当前登录用户！");
+                throw new UserFriendlyException(message: "未获取到当前登录用户！");
             }
         }
         /// <summary>
@@ -170,7 +170,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
-            var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException($"不存在Id为：[{workflowId}]流程实例！");
+            var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"不存在Id为：[{workflowId}]流程实例！");
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             WkExecutionPointer pointer;
             if (pointerId.HasValue)
@@ -191,7 +191,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<List<WkNodeTreeDto>> GetInstanceNodesAsync(Guid workflowId)
         {
-            var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException($"不存在Id为：[{workflowId}]流程实例！");
+            var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"不存在Id为：[{workflowId}]流程实例！");
             var result = new List<WkNodeTreeDto>();
             string? preId = null;
             while (instance.ExecutionPointers.Any(d => d.PredecessorId == preId))
@@ -273,7 +273,7 @@ namespace Hx.Workflow.Application
         {
             if (CurrentUser.Id.HasValue)
             {
-                var pointer = await _wkExecutionPointerRepository.FindAsync(pointerId) ?? throw new UserFriendlyException($"不存在Id为：[{pointerId}]执行节点！");
+                var pointer = await _wkExecutionPointerRepository.FindAsync(pointerId) ?? throw new UserFriendlyException(message: $"不存在Id为：[{pointerId}]执行节点！");
                 var exeCandidate = pointer.WkCandidates.Where(d => d.CandidateId == CurrentUser.Id.Value).FirstOrDefault();
                 if (exeCandidate != null)
                 {
@@ -303,7 +303,7 @@ namespace Hx.Workflow.Application
             {
                 transactorId = CurrentUser.Id.Value;
             }
-            if (!transactorId.HasValue) throw new UserFriendlyException("计算我的工作状态数量，办理人为空！");
+            if (!transactorId.HasValue) throw new UserFriendlyException(message: "计算我的工作状态数量，办理人为空！");
             return ObjectMapper.Map<List<ProcessingStatusStat>, List<ProcessingStatusStatDto>>(
                 await _wkInstanceRepository.GetProcessingStatusStatListAsync(transactorId.Value));
         }
@@ -382,19 +382,19 @@ namespace Hx.Workflow.Application
             }
             else
             {
-                throw new UserFriendlyException("获取当前用户失败！");
+                throw new UserFriendlyException(message: "获取当前用户失败！");
             }
         }
         public virtual async Task<WkAuditorDto> GetAuditAsync(Guid executionPointerId)
         {
             if (CurrentUser.Id.HasValue)
             {
-                var entity = await _wkAuditor.GetAuditorAsync(executionPointerId, CurrentUser.Id.Value) ?? throw new UserFriendlyException($"Id为：[{executionPointerId}]的执行点不存在！");
+                var entity = await _wkAuditor.GetAuditorAsync(executionPointerId, CurrentUser.Id.Value) ?? throw new UserFriendlyException(message: $"Id为：[{executionPointerId}]的执行点不存在！");
                 return ObjectMapper.Map<WkAuditor, WkAuditorDto>(entity);
             }
             else
             {
-                throw new UserFriendlyException("获取当前用户失败！");
+                throw new UserFriendlyException(message: "获取当前用户失败！");
             }
         }
         /// <summary>

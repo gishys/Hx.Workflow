@@ -26,7 +26,7 @@ namespace Hx.Workflow.Application
         {
             if (await GroupRepository.ExistByTitleAsync(dto.Title))
             {
-                throw new UserFriendlyException("已存在相同标题的模板组！");
+                throw new UserFriendlyException(message: "已存在相同标题的模板组！");
             }
             var orderNumber = await GroupManager.GetNextOrderNumberAsync(dto.ParentId);
             var code = await GroupManager.GetNextCodeAsync(dto.ParentId);

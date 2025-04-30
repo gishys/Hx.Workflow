@@ -54,17 +54,17 @@ namespace Hx.Workflow.Application.StepBodys
 
                     if (!dataDict.TryGetValue(key, out object? candidatesValue))
                     {
-                        throw new UserFriendlyException("必须提供接收者参数 [Candidates]");
+                        throw new UserFriendlyException(message: "必须提供接收者参数 [Candidates]");
                     }
                     string? candidatesStr = candidatesValue?.ToString();
                     if (string.IsNullOrEmpty(candidatesStr))
                     {
-                        throw new UserFriendlyException($"接收者参数格式无效，应为非空字符串 [实际值类型: {candidatesValue?.GetType().Name}]");
+                        throw new UserFriendlyException(message: $"接收者参数格式无效，应为非空字符串 [实际值类型: {candidatesValue?.GetType().Name}]");
                     }
 
                     Candidates = candidatesStr;
                 }
-                var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException($"Id为：{context.Workflow.Id}的实例不存在！");
+                var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException(message: $"Id为：{context.Workflow.Id}的实例不存在！");
                 try
                 {
                     await _localEventBus.PublishAsync(new WkGeneralAuditStepBodyChangeEvent(
@@ -74,16 +74,16 @@ namespace Hx.Workflow.Application.StepBodys
                 }
                 catch (Exception ex)
                 {
-                    throw new UserFriendlyException($"WkGeneralAuditStepBodyChangeEvent 改变事件异常：{ex.Message}");
+                    throw new UserFriendlyException(message: $"WkGeneralAuditStepBodyChangeEvent 改变事件异常：{ex.Message}");
                 }
                 if (instance.WkDefinition.LimitTime is int limitTime)
                 {
                     DateTime? deadline = await _limitTimeManager.GetAsync(context.Workflow.CreateTime, limitTime);
                     dataDict["BusinessCommitmentDeadline"] = deadline;
                 }
-                var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id)) ?? throw new UserFriendlyException($"Id为：{context.ExecutionPointer.Id}的执行点不存在！");
-                var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId) ?? throw new UserFriendlyException($"Id为：{instance.WkDifinitionId}的流程模板不存在！");
-                var pointer = definition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException($"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
+                var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id)) ?? throw new UserFriendlyException(message: $"Id为：{context.ExecutionPointer.Id}的执行点不存在！");
+                var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId) ?? throw new UserFriendlyException(message: $"Id为：{instance.WkDifinitionId}的流程模板不存在！");
+                var pointer = definition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                 if (pointer.LimitTime != null)
                 {
                     context.ExecutionPointer.ExtensionAttributes.Remove("CommitmentDeadline");
@@ -92,19 +92,19 @@ namespace Hx.Workflow.Application.StepBodys
                 if (!executionPointer.EventPublished)
                 {
                     if (definition == null)
-                        throw new UserFriendlyException("获取实例流程模板失败！");
+                        throw new UserFriendlyException(message: "获取实例流程模板失败！");
                     if (pointer == null)
-                        throw new UserFriendlyException("获取流程节点失败！");
+                        throw new UserFriendlyException(message: "获取流程节点失败！");
                     List<WkNodeCandidate>? dcandidate = null;
                     bool beRolledBack = false;
 
                     if (executionPointer.PredecessorId != null)
                     {
                         //回退逻辑
-                        var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId) ?? throw new UserFriendlyException($"在流程({instance.Id})中未找到Id为({executionPointer.PredecessorId})的节点！");
+                        var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({executionPointer.PredecessorId})的节点！");
                         if (preNode.WkCandidates.Any(d => d.ParentState == ExeCandidateState.BeRolledBack))
                         {
-                            var beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == preNode.PredecessorId) ?? throw new UserFriendlyException($"在流程({instance.Id})中未找到Id为({preNode.PredecessorId})的节点！");
+                            var beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == preNode.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({preNode.PredecessorId})的节点！");
                             dcandidate = beRolledBackNode.WkCandidates.Select(d =>
                             new WkNodeCandidate(
                                 d.CandidateId,
@@ -128,21 +128,21 @@ namespace Hx.Workflow.Application.StepBodys
                                 }
                                 else
                                 {
-                                    throw new UserFriendlyException("未传入正确的接收者！");
+                                    throw new UserFriendlyException(message: "未传入正确的接收者！");
                                 }
                             }
                             else
                             {
-                                throw new UserFriendlyException("未传入正确的接收者！");
+                                throw new UserFriendlyException(message: "未传入正确的接收者！");
                             }
                         }
                         else if (pointer.StepNodeType == StepNodeType.Start)
                         {
-                            if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
+                            if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException(message: "未传入正确的接收者！");
                             var defCandidate = definition.WkCandidates.FirstOrDefault(d => d.CandidateId == candidateId);
                             if ((defCandidate == null))
                             {
-                                throw new UserFriendlyException($"无权限，请在流程定义中配置Id为（{candidateId}）的权限！");
+                                throw new UserFriendlyException(message: $"无权限，请在流程定义中配置Id为（{candidateId}）的权限！");
                             }
                             dcandidate = [new(
                         defCandidate.CandidateId,
@@ -153,7 +153,7 @@ namespace Hx.Workflow.Application.StepBodys
                         }
                     }
                     if (dcandidate == null)
-                        throw new UserFriendlyException("未传入正确的接收者!");
+                        throw new UserFriendlyException(message: "未传入正确的接收者!");
 
                     var candidates = dcandidate.ToCandidates();
                     var (instanceId, pointerId) = (instance.Id, executionPointer.Id);
@@ -170,7 +170,7 @@ namespace Hx.Workflow.Application.StepBodys
 
                         if (preStep?.StepNodeType == StepNodeType.Start)
                         {
-                            var firstCandidate = candidates.FirstOrDefault() ?? throw new UserFriendlyException("候选人列表不能为空");
+                            var firstCandidate = candidates.FirstOrDefault() ?? throw new UserFriendlyException(message: "候选人列表不能为空");
                             firstCandidate.SetParentState(ExeCandidateState.Pending);
                             await _wkInstance.UpdateCandidateAsync(
                                 instanceId, pointerId, candidates, ExePersonnelOperateType.Host);
@@ -192,11 +192,11 @@ namespace Hx.Workflow.Application.StepBodys
                 if (context.ExecutionPointer.EventData is ActivityResult eventData)
                 {
                     var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(eventData.Data)) ?? throw new InvalidOperationException("事件数据缺少DecideBranching和ExecutionType！");
-                    var step = instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException($"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
+                    var step = instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                     if (step.StepNodeType != StepNodeType.End)
                     {
                         if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
-                            throw new UserFriendlyException("参数DecideBranching的值不在下一步节点中！");
+                            throw new UserFriendlyException(message: "参数DecideBranching的值不在下一步节点中！");
                     }
                     EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;
                     if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
@@ -208,7 +208,7 @@ namespace Hx.Workflow.Application.StepBodys
                     {
                         await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
                     }
-                    if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException("未传入正确的接收者！");
+                    if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException(message: "未传入正确的接收者！");
                     await Audit(eventData.Data, instance.Id, executionPointer, candidateId, auditStatus);
                     foreach (var item in executionPointer.WkCandidates.Where(d => d.CandidateId == new Guid(Candidates)))
                     {
@@ -238,14 +238,14 @@ namespace Hx.Workflow.Application.StepBodys
                 }
                 else
                 {
-                    throw new UserFriendlyException("提交data不能为空！");
+                    throw new UserFriendlyException(message: "提交data不能为空！");
                 }
                 return ExecutionResult.Next();
             }
             catch (Exception ex)
             {
 
-                throw new UserFriendlyException($"{ex.Message}");
+                throw new UserFriendlyException(message: $"{ex.Message}");
             }
         }
         private void AnalysisEventData(ref string? Remark, object eventData)
@@ -277,7 +277,7 @@ namespace Hx.Workflow.Application.StepBodys
             var user = execution.WkCandidates.FirstOrDefault(d => d.CandidateId == candicateId);
             if ((user == null))
             {
-                throw new UserFriendlyException("无权限，请在流程定义中配置此人权限！");
+                throw new UserFriendlyException(message: "无权限，请在流程定义中配置此人权限！");
             }
             var entity = await _wkAuditor.GetAuditorAsync(execution.Id, user.CandidateId);
             if (entity == null)

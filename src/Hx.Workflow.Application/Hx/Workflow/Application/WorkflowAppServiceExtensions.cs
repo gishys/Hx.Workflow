@@ -183,7 +183,7 @@ namespace Hx.Workflow.Application
             foreach (var next in step.NextNodes)
             {
                 if (!instance.WkDefinition.Nodes.Any(d => d.Name == next.NextNodeName))
-                    throw new UserFriendlyException($"下一节点不存在【{next.NextNodeName}】!");
+                    throw new UserFriendlyException(message: $"下一节点不存在【{next.NextNodeName}】!");
                 currentPointerDto.NextPointers.Add(new WkNextPointerDto()
                 {
                     Selectable = true,

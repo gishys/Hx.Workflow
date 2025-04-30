@@ -65,11 +65,11 @@ namespace Hx.Workflow.Domain.LocalEvents
             //流程执行点创建后通知客户端
             var wkInstance = eventData.Entity.WkInstance;
             wkInstance ??= await _instanceRepository.FindAsync(eventData.Entity.WkInstanceId)
-                ?? throw new UserFriendlyException($"[{eventData.Entity.WkInstanceId}]流程实例不存在！");
+                ?? throw new UserFriendlyException(message: $"[{eventData.Entity.WkInstanceId}]流程实例不存在！");
             if (wkInstance.CreatorId != null && wkInstance.CreatorId.HasValue)
             {
                 var definition = await _wkDefinitionRespository.FindAsync(wkInstance.WkDifinitionId)
-                    ?? throw new UserFriendlyException($"[{wkInstance.WkDifinitionId}]流程模板不存在！");
+                    ?? throw new UserFriendlyException(message: $"[{wkInstance.WkDifinitionId}]流程模板不存在！");
                 var step = definition.Nodes.First(d => d.Name == eventData.Entity.StepName);
                 await _workflowInstanceHub.Clients.User(
                                 wkInstance.CreatorId.Value.ToString()).SendAsync("WorkflowInitCompleted",
