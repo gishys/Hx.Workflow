@@ -92,11 +92,11 @@ namespace Hx.Workflow.Domain
             Version = version;
             LimitTime = limitTime;
             SortNumber = sortNumber;
-            NextNodes = new List<WkConditionNode>();
-            OutcomeSteps = new List<WkNodePara>();
-            WkCandidates = new List<WkNodeCandidate>();
-            ApplicationForms = new List<WkNode_ApplicationForms>();
-            Materials = new List<WkNodeMaterials>();
+            NextNodes = [];
+            OutcomeSteps = [];
+            WkCandidates = [];
+            ApplicationForms = [];
+            Materials = [];
             ExtraProperties = [];
         }
         public Task SetStepName(string name)

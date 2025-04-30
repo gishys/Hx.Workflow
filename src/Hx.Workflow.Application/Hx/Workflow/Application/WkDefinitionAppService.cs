@@ -211,8 +211,9 @@ namespace Hx.Workflow.Application
             while (node != null)
             {
                 result.Nodes.Add(ObjectMapper.Map<WkNode, WkNodeDto>(node));
-                if (node.NextNodes.Any(n => n.NodeType == WkRoleNodeType.Forward))
-                    node = entity.Nodes.FirstOrDefault(d => d.Name == node.NextNodes.First().NextNodeName);
+                var condi = node.NextNodes.FirstOrDefault(n => n.NodeType == WkRoleNodeType.Forward);
+                if (condi != null)
+                    node = entity.Nodes.FirstOrDefault(d => d.Name == condi.NextNodeName);
                 else
                     break;
             }

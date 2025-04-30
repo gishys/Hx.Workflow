@@ -39,6 +39,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 子文件夹
         /// </summary>
-        public required ICollection<WkNodeMaterialsDto> Children { get; set; }
+        public ICollection<WkNodeMaterialsDto>? Children { get; set; }
     }
 }

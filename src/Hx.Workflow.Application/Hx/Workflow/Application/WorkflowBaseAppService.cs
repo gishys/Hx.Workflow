@@ -3,9 +3,9 @@ using Volo.Abp.Application.Services;
 
 namespace Hx.Workflow.Application
 {
-    public class BaseAppService : ApplicationService
+    public class WorkflowBaseAppService : ApplicationService
     {
-        protected BaseAppService()
+        protected WorkflowBaseAppService()
         {
             LocalizationResource = typeof(WorkflowResource);
         }
