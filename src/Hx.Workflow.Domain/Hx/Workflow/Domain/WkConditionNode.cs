@@ -1,7 +1,9 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Domain
@@ -43,6 +45,11 @@ namespace Hx.Workflow.Domain
         {
             WkConNodeConditions.Add(condition);
             return Task.CompletedTask;
+        }
+        public void Update(string nextNodeName, WkRoleNodeType nodeType)
+        {
+            NextNodeName = nextNodeName;
+            NodeType = nodeType;
         }
     }
 }

@@ -2,7 +2,9 @@
 using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Entities;
 
@@ -155,10 +157,33 @@ namespace Hx.Workflow.Domain
             WkCandidates = node.WkCandidates;
             ApplicationForms = node.ApplicationForms;
             StepBody = node.StepBody;
-            NextNodes = node.NextNodes;
             Params = node.Params;
             Materials = node.Materials;
+            UpdateNextNodes(node.NextNodes);
             return Task.CompletedTask;
+        }
+        public void UpdateNextNodes(IEnumerable<WkConditionNode> newNextNodes)
+        {
+            var existingDict = NextNodes.ToDictionary(n => n.NextNodeName);
+            foreach (var newNode in newNextNodes)
+            {
+                if (existingDict.TryGetValue(newNode.NextNodeName, out var existingNode))
+                {
+                    // 更新现有节点属性（根据业务需求实现）
+                    existingNode.Update(newNode.NextNodeName, newNode.NodeType);
+                    existingDict.Remove(newNode.NextNodeName);
+                }
+                else
+                {
+                    // 添加新节点（自动生成新ID）
+                    NextNodes.Add(newNode);
+                }
+            }
+            // 删除未被匹配的旧节点
+            foreach (var removedNode in existingDict.Values)
+            {
+                NextNodes.Remove(removedNode);
+            }
         }
     }
 }
