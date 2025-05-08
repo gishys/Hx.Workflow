@@ -159,9 +159,9 @@ namespace Hx.Workflow.HttpApi
         /// <returns></returns>
         [HttpPut]
         [Route("workflow/audit")]
-        public Task UpdateAuditAsync(Guid wkInstanceId, Guid executionPointerId, string remark)
+        public Task UpdateAuditAsync(AuditUpdateDto input)
         {
-            return _workflowAppService.AuditAsync(wkInstanceId, executionPointerId, remark);
+            return _workflowAppService.AuditAsync(input.WkInstanceId, input.ExecutionPointerId, input.Remark);
         }
         [HttpGet]
         [Route("workflow/audit")]
