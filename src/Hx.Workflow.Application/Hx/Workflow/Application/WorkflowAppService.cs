@@ -9,6 +9,7 @@ using Hx.Workflow.Domain.StepBodys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -172,15 +173,33 @@ namespace Hx.Workflow.Application
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"不存在Id为：[{workflowId}]流程实例！");
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
+
             WkExecutionPointer pointer;
-            if (pointerId.HasValue)
+            var executionPointers = instance.ExecutionPointers.ToList();
+            if (instance.Status == WorkflowStatus.Complete)
             {
-                pointer = instance.ExecutionPointers.First(d => d.Id == pointerId.Value);
+                var lastPointer = executionPointers.Aggregate((a, b) => a.StepId > b.StepId ? a : b);
+                var nodeMap = instance.WkDefinition.Nodes.ToDictionary(n => n.Name);
+                var lastStep = nodeMap[lastPointer.StepName];
+
+                if (lastStep.StepNodeType == StepNodeType.End)
+                {
+                    pointer = !string.IsNullOrEmpty(lastPointer.PredecessorId)
+                        ? executionPointers.First(p => p.Id == new Guid(lastPointer.PredecessorId))
+                        : executionPointers.First(p => p.StepId == lastPointer.StepId - 1);
+                }
+                else
+                {
+                    pointer = lastPointer;
+                }
             }
             else
             {
-                pointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
+                pointer = pointerId.HasValue
+                    ? executionPointers.First(p => p.Id == pointerId.Value)
+                    : executionPointers.First(p => p.Status != PointerStatus.Complete);
             }
+
             var errors = await _errorRepository.GetListByIdAsync(workflowId, pointer.Id);
             return instance.ToWkInstanceDetailsDto(ObjectMapper, businessData, pointer, CurrentUser.Id, errors);
         }

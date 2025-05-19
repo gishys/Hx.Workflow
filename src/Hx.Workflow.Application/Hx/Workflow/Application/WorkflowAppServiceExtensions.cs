@@ -175,23 +175,26 @@ namespace Hx.Workflow.Application
             currentPointerDto.Errors = ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
             currentPointerDto.Params = ObjectMapper.Map<List<WkParam>, List<WkParamDto>>([.. step.Params]);
             currentPointerDto.NextPointers = [];
-            WkExecutionPointer? prePointer = null;
-            if (!string.IsNullOrEmpty(pointer.PredecessorId))
+            if (instance.Status != WorkflowStatus.Complete)
             {
-                prePointer = instance.ExecutionPointers.First(d => d.Id.ToString() == pointer.PredecessorId);
-            }
-            foreach (var next in step.NextNodes)
-            {
-                if (!instance.WkDefinition.Nodes.Any(d => d.Name == next.NextNodeName))
-                    throw new UserFriendlyException(message: $"下一节点不存在【{next.NextNodeName}】!");
-                currentPointerDto.NextPointers.Add(new WkNextPointerDto()
+                WkExecutionPointer? prePointer = null;
+                if (!string.IsNullOrEmpty(pointer.PredecessorId))
                 {
-                    Selectable = true,
-                    PreviousStep = prePointer != null && prePointer.StepName == next.NextNodeName,
-                    Label = instance.WkDefinition.Nodes.First(d => d.Name == next.NextNodeName).DisplayName,
-                    NextNodeName = next.NextNodeName,
-                    NodeType = next.NodeType,
-                });
+                    prePointer = instance.ExecutionPointers.First(d => d.Id.ToString() == pointer.PredecessorId);
+                }
+                foreach (var next in step.NextNodes)
+                {
+                    if (!instance.WkDefinition.Nodes.Any(d => d.Name == next.NextNodeName))
+                        throw new UserFriendlyException(message: $"下一节点不在模板节点中【{next.NextNodeName}】!");
+                    currentPointerDto.NextPointers.Add(new WkNextPointerDto()
+                    {
+                        Selectable = true,
+                        PreviousStep = prePointer != null && prePointer.StepName == next.NextNodeName,
+                        Label = instance.WkDefinition.Nodes.First(d => d.Name == next.NextNodeName).DisplayName,
+                        NextNodeName = next.NextNodeName,
+                        NodeType = next.NodeType,
+                    });
+                }
             }
             if (currentUserId.HasValue)
             {
@@ -210,8 +213,9 @@ namespace Hx.Workflow.Application
                 BusinessType = instance.WkDefinition.BusinessType,
                 ProcessType = instance.WkDefinition.ProcessType,
                 WkAuditors = ObjectMapper.Map<ICollection<WkAuditor>, ICollection<WkAuditorDto>>(instance.WkAuditors),
-                CanHandle = instance.Status == WorkflowStatus.Runnable &&
-                pointer.Status != PointerStatus.Complete
+                CanHandle =
+                instance.Status == WorkflowStatus.Runnable
+                && pointer.Status != PointerStatus.Complete
                 && pointer.WkSubscriptions.Any(d => d.ExternalToken == null)
                 && currentUserId.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == currentUserId.Value),
                 Data = businessData,
