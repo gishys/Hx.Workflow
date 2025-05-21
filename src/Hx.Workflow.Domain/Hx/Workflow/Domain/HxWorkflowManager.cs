@@ -229,10 +229,10 @@ namespace Hx.Workflow.Domain
                     if (subStepNode != null)
                     {
                         stepSource.SelectNextStep[subStepNode.Id.ToString()] = "1==1";
-                        if (nextName.WkConNodeConditions?.Count > 0)
+                        if (nextName.Rules?.Count > 0)
                         {
                             List<string> exps = [];
-                            foreach (var cond in nextName.WkConNodeConditions)
+                            foreach (var cond in nextName.Rules)
                             {
                                 if ((!decimal.TryParse(cond.Value, out decimal tempValue)) && cond.Value is string)
                                 {

@@ -154,10 +154,10 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
 
-                t.HasMany(d => d.NextNodes).WithOne()
-                .HasForeignKey(d => d.WkNodeId)
-                .HasConstraintName("Pk_WkNode_Candition")
-                .OnDelete(DeleteBehavior.Cascade);
+                //t.HasMany(d => d.NextNodes).WithOne()
+                //.HasForeignKey(d => d.WkNodeId)
+                //.HasConstraintName("Pk_WkNode_Candition")
+                //.OnDelete(DeleteBehavior.Cascade);
 
                 t.HasOne(d => d.StepBody).WithMany()
                 .HasForeignKey(d => d.WkStepBodyId)
@@ -184,6 +184,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 {
                     param.ToJson("MATERIALS");
                     param.OwnsMany(d => d.Children, cparam =>
+                    {
+                        cparam.ToJson();
+                    });
+                });
+                t.OwnsMany(p => p.NextNodes, param =>
+                {
+                    param.ToJson("NEXT_NODES");
+                    param.OwnsMany(d => d.Rules, cparam =>
                     {
                         cparam.ToJson();
                     });
@@ -223,29 +231,29 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(d => d.Key).HasColumnName("KEY").HasMaxLength(WkNodeParaConsts.MaxKey);
                 d.Property(d => d.Value).HasColumnName("VALUE").HasMaxLength(WkNodeParaConsts.MaxValue);
             });
-            builder.Entity<WkConditionNode>(d =>
-            {
-                d.ToTable(model.TablePrefix + "WKCONDITIONNODES", model.Schema, tb => { tb.HasComment("节点条件"); });
-                d.Property(d => d.Id).HasColumnName("ID");
-                d.Property(d => d.Label).HasColumnName("LABEL").HasMaxLength(WkConditionNodeConsts.MaxLabel);
-                d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
-                d.Property(d => d.NextNodeName).HasColumnName("NEXTNODENAME").HasMaxLength(WkConditionNodeConsts.MaxNodeName);
-                d.Property(d => d.NodeType).HasColumnName("NODETYPE").HasMaxLength(WkConditionNodeConsts.MaxNodeType);
+            //builder.Entity<WkConditionNode>(d =>
+            //{
+            //    d.ToTable(model.TablePrefix + "WKCONDITIONNODES", model.Schema, tb => { tb.HasComment("节点条件"); });
+            //    d.Property(d => d.Id).HasColumnName("ID");
+            //    d.Property(d => d.Label).HasColumnName("LABEL").HasMaxLength(WkConditionNodeConsts.MaxLabel);
+            //    d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
+            //    d.Property(d => d.NextNodeName).HasColumnName("NEXTNODENAME").HasMaxLength(WkConditionNodeConsts.MaxNodeName);
+            //    d.Property(d => d.NodeType).HasColumnName("NODETYPE").HasMaxLength(WkConditionNodeConsts.MaxNodeType);
 
-                d.HasMany(d => d.WkConNodeConditions).WithOne()
-                .HasForeignKey(d => d.WkConditionNodeId)
-                .HasConstraintName("Pk_Candition_ConCondition")
-                .OnDelete(DeleteBehavior.Cascade);
-            });
-            builder.Entity<WkConNodeCondition>(d =>
-            {
-                d.ToTable(model.TablePrefix + "WKCONNODECONDITIONS", model.Schema, tb => { tb.HasComment("条件集合"); });
-                d.Property(d => d.Id).HasColumnName("ID");
-                d.Property(d => d.Field).HasColumnName("FIELD").HasMaxLength(WkConNodeConditionConsts.MaxField);
-                d.Property(d => d.Operator).HasColumnName("OPERATOR").HasMaxLength(WkConNodeConditionConsts.MaxOperator);
-                d.Property(d => d.Value).HasColumnName("VALUE").HasMaxLength(WkConNodeConditionConsts.MaxValue);
-                d.Property(d => d.WkConditionNodeId).HasColumnName("WKCONDITIONNODEID");
-            });
+            //    d.HasMany(d => d.WkConNodeConditions).WithOne()
+            //    .HasForeignKey(d => d.WkConditionNodeId)
+            //    .HasConstraintName("Pk_Candition_ConCondition")
+            //    .OnDelete(DeleteBehavior.Cascade);
+            //});
+            //builder.Entity<WkConNodeCondition>(d =>
+            //{
+            //    d.ToTable(model.TablePrefix + "WKCONNODECONDITIONS", model.Schema, tb => { tb.HasComment("条件集合"); });
+            //    d.Property(d => d.Id).HasColumnName("ID");
+            //    d.Property(d => d.Field).HasColumnName("FIELD").HasMaxLength(WkConNodeConditionConsts.MaxField);
+            //    d.Property(d => d.Operator).HasColumnName("OPERATOR").HasMaxLength(WkConNodeConditionConsts.MaxOperator);
+            //    d.Property(d => d.Value).HasColumnName("VALUE").HasMaxLength(WkConNodeConditionConsts.MaxValue);
+            //    d.Property(d => d.WkConditionNodeId).HasColumnName("WKCONDITIONNODEID");
+            //});
             builder.Entity<ApplicationFormGroup>(t =>
             {
                 t.ConfigureFullAuditedAggregateRoot();

@@ -22,8 +22,8 @@ namespace Hx.Workflow.Application
             CreateMap<WkNodeMaterials, WkNodeMaterialsDto>(MemberList.Destination);
             CreateMap<WkNode_ApplicationForms, WkNode_ApplicationFormsDto>(MemberList.Destination);
             CreateMap<ApplicationForm, ApplicationFormDto>(MemberList.Destination);
-            CreateMap<WkConditionNode, WkConditionNodeDto>(MemberList.Destination);
-            CreateMap<WkConNodeCondition, WkConNodeConditionDto>(MemberList.Destination);
+            CreateMap<WkNodeRelation, WkNodeRelationDto>(MemberList.Destination);
+            CreateMap<WkNodeRelationRule, WkNodeRelationRuleDto>(MemberList.Destination);
             CreateMap<ExePointerCandidate, WkCandidateDto>(MemberList.Destination);
             CreateMap<ExePointerCandidate, WkPointerCandidateDto>(MemberList.Destination);
             CreateMap<WkNodeCandidate, WkPointerCandidateDto>(MemberList.None);

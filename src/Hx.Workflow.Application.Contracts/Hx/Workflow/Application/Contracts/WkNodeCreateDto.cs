@@ -1,4 +1,5 @@
 ﻿using Hx.Workflow.Domain.Shared;
+using System;
 using System.Collections.Generic;
 using Volo.Abp.ObjectExtending;
 
@@ -6,6 +7,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkNodeCreateDto : ExtensibleObject
     {
+        public Guid? Id { get; set; }
         /// <summary>
         /// 步骤名称
         /// </summary>

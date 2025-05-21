@@ -54,7 +54,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Where(d => d.IsEnabled && d.WkCandidates.Any(c => c.CandidateId == userId))
                 .Include(d => d.Nodes)
                 .ThenInclude(d => d.NextNodes)
-                .ThenInclude(d => d.WkConNodeConditions)
+                .ThenInclude(d => d.Rules)
                 .ToListAsync(GetCancellationToken(cancellationToken));
         }
         public virtual async Task<WkDefinition?> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)

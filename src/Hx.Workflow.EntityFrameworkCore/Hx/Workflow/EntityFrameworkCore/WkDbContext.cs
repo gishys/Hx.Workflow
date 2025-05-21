@@ -30,5 +30,13 @@ namespace Hx.Workflow.EntityFrameworkCore
             base.OnModelCreating(modelBuilder);
             modelBuilder.HxWorkflowConfigration();
         }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.EnableSensitiveDataLogging(true); // 启用敏感数据日志
+            }
+            optionsBuilder.EnableSensitiveDataLogging(true); // 启用敏感数据日志
+        }
     }
 }

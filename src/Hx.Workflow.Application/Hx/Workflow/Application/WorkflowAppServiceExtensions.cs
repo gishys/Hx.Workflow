@@ -7,13 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Volo.Abp;
+using Volo.Abp.Guids;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
     public static class WorkflowAppServiceExtensions
     {
-        public static List<WkNode> ToWkNodes(this ICollection<WkNodeCreateDto> nodes)
+        public static List<WkNode> ToWkNodes(this ICollection<WkNodeCreateDto> nodes, IGuidGenerator GuidGenerator)
         {
             var nodeEntitys = new List<WkNode>();
             int count = 0;
@@ -25,18 +26,19 @@ namespace Hx.Workflow.Application
                         node.StepNodeType,
                         node.Version,
                         count++,
-                        node.LimitTime);
+                        node.LimitTime,
+                        node.Id == null ? GuidGenerator.Create() : node.Id);
                 if (node.NextNodes?.Count > 0)
                 {
                     foreach (var condition in node.NextNodes)
                     {
-                        var conditionEntity = new WkConditionNode(condition.NextNodeName, condition.NodeType);
-                        if (condition.WkConNodeConditions?.Count > 0)
+                        var conditionEntity = new WkNodeRelation(condition.NextNodeName, condition.NodeType);
+                        if (condition.Rules?.Count > 0)
                         {
-                            foreach (var conCondition in condition.WkConNodeConditions)
+                            foreach (var conCondition in condition.Rules)
                             {
                                 conditionEntity.AddConNodeCondition(
-                                    new WkConNodeCondition(
+                                    new WkNodeRelationRule(
                                         conCondition.Field,
                                         conCondition.Operator,
                                         conCondition.Value

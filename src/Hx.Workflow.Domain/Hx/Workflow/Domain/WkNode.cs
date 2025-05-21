@@ -67,7 +67,7 @@ namespace Hx.Workflow.Domain
         /// <summary>
         /// 节点条件
         /// </summary>
-        public virtual ICollection<WkConditionNode> NextNodes { get; protected set; }
+        public virtual ICollection<WkNodeRelation> NextNodes { get; protected set; }
         /// <summary>
         /// 排序
         /// </summary>
@@ -86,7 +86,8 @@ namespace Hx.Workflow.Domain
             StepNodeType stepNodeType,
             int version,
             int sortNumber,
-            int? limitTime = null)
+            int? limitTime = null,
+            Guid? id = null)
         {
             Name = name;
             DisplayName = displayName;
@@ -100,6 +101,10 @@ namespace Hx.Workflow.Domain
             ApplicationForms = [];
             Materials = [];
             ExtraProperties = [];
+            if (id.HasValue)
+            {
+                Id = id.Value;
+            }
         }
         public Task SetStepName(string name)
         {
@@ -131,7 +136,7 @@ namespace Hx.Workflow.Domain
             StepBody = stepBody;
             return Task.CompletedTask;
         }
-        public Task AddNextNode(WkConditionNode node)
+        public Task AddNextNode(WkNodeRelation node)
         {
             NextNodes.Add(node);
             return Task.CompletedTask;
@@ -159,10 +164,11 @@ namespace Hx.Workflow.Domain
             StepBody = node.StepBody;
             Params = node.Params;
             Materials = node.Materials;
-            UpdateNextNodes(node.NextNodes);
+            NextNodes = node.NextNodes;
+            //UpdateNextNodes(node.NextNodes);
             return Task.CompletedTask;
         }
-        public void UpdateNextNodes(IEnumerable<WkConditionNode> newNextNodes)
+        public void UpdateNextNodes(IEnumerable<WkNodeRelation> newNextNodes)
         {
             var existingDict = NextNodes.ToDictionary(n => n.NextNodeName);
             foreach (var newNode in newNextNodes)

@@ -60,7 +60,7 @@ namespace Hx.Workflow.Application
                         candidate.DefaultSelection));
                 }
             }
-            var nodeEntitys = input.Nodes?.ToWkNodes();
+            var nodeEntitys = input.Nodes?.ToWkNodes(GuidGenerator);
             if (nodeEntitys != null)
             {
                 foreach (var node in nodeEntitys)
@@ -148,7 +148,7 @@ namespace Hx.Workflow.Application
         public virtual async Task<List<WkNodeDto>> UpdateAsync(DefinitionNodeUpdateDto input)
         {
             var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
-            var nodeEntitys = input.Nodes.ToWkNodes();
+            var nodeEntitys = input.Nodes.ToWkNodes(GuidGenerator);
             if (nodeEntitys != null && nodeEntitys.Count > 0)
             {
                 foreach (var node in nodeEntitys)
@@ -163,7 +163,13 @@ namespace Hx.Workflow.Application
                 }
             }
             if (nodeEntitys != null && nodeEntitys.Count > 0)
+            {
+                if (input.RecreateNodes)
+                {
+                    entity.Nodes.Clear();
+                }
                 await entity.UpdateNodes(nodeEntitys);
+            }
             if (entity.LimitTime < entity.Nodes.Sum(d => d.LimitTime))
             {
                 throw new UserFriendlyException(message: "节点限制时间合计值不能大于流程限制时间！");

@@ -195,7 +195,7 @@ namespace Hx.Workflow.Application.StepBodys
                     var step = instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                     if (step.StepNodeType != StepNodeType.End)
                     {
-                        if (!step.NextNodes.Any(d => d.WkConNodeConditions.Any(d => d.Value == eventPointerEventData.DecideBranching)))
+                        if (!step.NextNodes.Any(d => d.Rules.Any(d => d.Value == eventPointerEventData.DecideBranching)))
                             throw new UserFriendlyException(message: "参数DecideBranching的值不在下一步节点中！");
                     }
                     EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;

@@ -50,7 +50,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 节点条件
         /// </summary>
-        public required virtual ICollection<WkConditionNodeDto> NextNodes { get; set; }
+        public required virtual ICollection<WkNodeRelationDto> NextNodes { get; set; }
         /// <summary>
         /// 排序
         /// </summary>
