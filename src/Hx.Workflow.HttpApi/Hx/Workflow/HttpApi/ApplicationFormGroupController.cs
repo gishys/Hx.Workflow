@@ -5,7 +5,7 @@ using Volo.Abp.AspNetCore.Mvc;
 namespace Hx.Workflow.HttpApi
 {
     [ApiController]
-    [Route("applicationformgroup")]
+    [Route("/hxworkflow/applicationformgroup")]
     public class ApplicationFormGroupController : AbpController
     {
         private IApplicationFormGroupAppService _appService;

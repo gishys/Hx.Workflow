@@ -6,7 +6,7 @@ using Volo.Abp.AspNetCore.Mvc;
 namespace Hx.Workflow.HttpApi
 {
     [ApiController]
-    [Route("stepbody")]
+    [Route("/hxworkflow/stepbody")]
     public class WkStepBodyController(
         IWkStepBodyAppService wkStepBody
             ) : AbpController

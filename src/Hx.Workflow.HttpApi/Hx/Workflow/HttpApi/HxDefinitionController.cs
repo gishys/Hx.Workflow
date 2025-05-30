@@ -5,7 +5,7 @@ using Volo.Abp.AspNetCore.Mvc;
 namespace Hx.Workflow.HttpApi
 {
     [ApiController]
-    [Route("hxdefinition")]
+    [Route("/hxworkflow/hxdefinition")]
     public class HxDefinitionController : AbpController
     {
         private IWkDefinitionAppService _appService;
