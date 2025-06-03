@@ -23,5 +23,6 @@ namespace Hx.Workflow.Domain.Repositories
             ICollection<DefinitionCandidate> wkCandidates);
         Task<int> GetMaxSortNumberAsync();
         Task<List<WkDefinition>> GetListHasPermissionAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<List<WkNodeCandidate>> GetCandidatesAsync(Guid id, string stepName, CancellationToken cancellationToken = default);
     }
 }

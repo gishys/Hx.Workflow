@@ -269,8 +269,12 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId)
         {
-            var entitys = await _wkInstanceRepository.GetCandidatesAsync(wkInstanceId);
-            return ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkCandidateDto>>(entitys);
+            var instance = await _wkInstanceRepository.FindAsync(wkInstanceId) ?? throw new UserFriendlyException(message: $"不存在Id为：[{wkInstanceId}]流程实例！");
+            var currentPointer = instance.ExecutionPointers.First(p => p.Status != PointerStatus.Complete);
+            var currentNode = instance.WkDefinition.Nodes.First(n => n.Name == currentPointer.StepName);
+            var nextNode = currentNode.NextNodes.First(n => n.NodeType == WkRoleNodeType.Forward);
+            var candidates = await _wkDefinition.GetCandidatesAsync(instance.WkDifinitionId, nextNode.NextNodeName);
+            return ObjectMapper.Map<ICollection<WkNodeCandidate>, ICollection<WkCandidateDto>>(candidates);
         }
         /// <summary>
         /// 流程实例添加业务数据

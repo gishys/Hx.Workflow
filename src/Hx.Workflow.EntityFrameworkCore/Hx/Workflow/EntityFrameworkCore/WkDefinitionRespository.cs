@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -63,6 +64,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .IncludeDetails(includeDetails)
                 .FirstOrDefaultAsync(d => d.Title == name,
                 GetCancellationToken(cancellationToken));
+        }
+        public virtual async Task<List<WkNodeCandidate>> GetCandidatesAsync(Guid id, string stepName, CancellationToken cancellationToken = default)
+        {
+            var definition = await (await GetDbSetAsync()).IncludeDetails(true)
+                .FirstOrDefaultAsync(d => d.Id == id, GetCancellationToken(cancellationToken))
+                ?? throw new UserFriendlyException(message: $"Id为[{id}]的流程模板不存在！");
+            var node = definition.Nodes.FirstOrDefault(n => n.Name == stepName) ?? throw new UserFriendlyException(message: $"Name为[{stepName}]的流程步骤不存在！");
+            return [.. node.WkCandidates];
         }
         public async Task<int> GetMaxSortNumberAsync()
         {
