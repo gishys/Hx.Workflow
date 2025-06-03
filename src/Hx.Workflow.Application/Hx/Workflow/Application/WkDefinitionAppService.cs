@@ -82,7 +82,7 @@ namespace Hx.Workflow.Application
         public virtual async Task<WkDefinitionDto> UpdateAsync(WkDefinitionUpdateDto input)
         {
             var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
-            await entity.SetVersion(input.Version);
+            await entity.SetVersion(input.Version <= 0 ? 1 : input.Version);
             await entity.SetTitle(input.Title);
             await entity.SetLimitTime(input.LimitTime);
             await entity.SetDescription(input.Description);
