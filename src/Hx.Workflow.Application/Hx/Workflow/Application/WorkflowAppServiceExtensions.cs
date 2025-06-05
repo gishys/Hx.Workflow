@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
 using System;
 using System.Collections.Generic;
@@ -141,8 +142,12 @@ namespace Hx.Workflow.Application
                 ReceivingTime = instance.CreateTime,
                 State = instance.Status.ToString(),
                 ProcessType = instance.WkDefinition.ProcessType,
-                IsSign = instance.Status != WorkflowStatus.Runnable || (pointer == null || userIds.Any(id => id == pointer.RecipientId)),
-                IsProcessed = pointer != null && pointer.WkSubscriptions.Any(d => d.ExternalToken != null),
+                IsSign =
+                !(instance.Status == WorkflowStatus.Runnable
+                && pointer != null
+                && pointer.RecipientId != null
+                && pointer.WkCandidates.Any(c => userIds.Any(u => u == c.CandidateId && c.ParentState == ExeCandidateState.WaitingReceipt))),
+                IsProcessed = !(pointer != null && (pointer.Status == PointerStatus.WaitingForEvent || pointer.Status == PointerStatus.Failed)),
                 Data = businessData
             };
             if (pointer == null)

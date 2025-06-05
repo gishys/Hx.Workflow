@@ -39,7 +39,7 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public required string ProcessType { get; set; }
         /// <summary>
-        /// 是否已签收
+        /// 是否已签收（true已接收）
         /// </summary>
         public bool IsSign {  get; set; }
         /// <summary>
