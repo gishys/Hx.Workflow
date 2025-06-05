@@ -18,7 +18,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WorkflowAppService(
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
@@ -114,7 +114,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = [CurrentUser.Id.Value];
             }
-            //userIds = [new Guid("3a140076-3f3e-0ae6-56ad-2c3f1c06508f")];
+            userIds = [new Guid("3a1a2bff-b3cd-d1f8-97e4-3ee9d66a1f59")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 userIds ?? [],

@@ -145,7 +145,7 @@ namespace Hx.Workflow.Application
                 IsSign =
                 !(instance.Status == WorkflowStatus.Runnable
                 && pointer != null
-                && pointer.RecipientId != null
+                && pointer.RecipientId == null
                 && pointer.WkCandidates.Any(c => userIds.Any(u => u == c.CandidateId && c.ParentState == ExeCandidateState.WaitingReceipt))),
                 IsProcessed = !(pointer != null && (pointer.Status == PointerStatus.WaitingForEvent || pointer.Status == PointerStatus.Failed)),
                 Data = businessData
