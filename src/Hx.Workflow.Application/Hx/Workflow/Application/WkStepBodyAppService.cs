@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using Volo.Abp.Application.Dtos;
 
 namespace Hx.Workflow.Application
 {
-    //[Authorize]
+    [Authorize]
     public class WkStepBodyAppService(
         IWkStepBodyRespository wkStepBody) : WorkflowAppServiceBase, IWkStepBodyAppService
     {

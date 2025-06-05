@@ -43,6 +43,10 @@ namespace Hx.Workflow.Application.StepBodys
         /// 分支判断
         /// </summary>
         public string DecideBranching { get; set; }
+        /// <summary>
+        /// 下一步接收人
+        /// </summary>
+        public string NextCandidates {  get; set; }
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             try
@@ -193,6 +197,8 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(eventData.Data)) ?? throw new InvalidOperationException("事件数据缺少DecideBranching和ExecutionType！");
                     var step = instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
+                    if (!string.IsNullOrEmpty(eventPointerEventData.Candidates))
+                        NextCandidates = eventPointerEventData.Candidates;
                     if (step.StepNodeType != StepNodeType.End)
                     {
                         if (!step.NextNodes.Any(d => d.Rules.Any(d => d.Value == eventPointerEventData.DecideBranching)))
