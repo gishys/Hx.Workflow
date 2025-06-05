@@ -136,6 +136,7 @@ namespace Hx.Workflow.Application
         /// <param name="reference"></param>
         /// <param name="userIds"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         public virtual async Task<WkCurrentInstanceDetailsDto> GetWkInstanceAsync(string reference)
         {
             var instance = await _wkInstanceRepository.GetByReferenceAsync(reference) ?? throw new UserFriendlyException(message: $"不存在reference为：[{reference}]流程实例！");
