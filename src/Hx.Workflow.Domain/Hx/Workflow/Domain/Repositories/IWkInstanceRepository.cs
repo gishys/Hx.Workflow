@@ -17,12 +17,18 @@ namespace Hx.Workflow.Domain.Repositories
         Task<List<WkInstance>> GetDetails(List<Guid> ids);
         Task<WkExecutionPointer?> GetPointerAsync(Guid pointerId);
         Task<List<WkInstance>> GetMyInstancesAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            IDictionary<string, object>? instanceData,
             ICollection<Guid> id,
             string? reference,
             MyWorkState? state,
             int skipCount,
             int maxResultCount);
         Task<int> GetMyInstancesCountAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            IDictionary<string, object>? instanceData,
             ICollection<Guid> ids,
             string? reference,
             MyWorkState? state);

@@ -158,6 +158,9 @@ namespace Hx.Workflow.EntityFrameworkCore
             return result;
         }
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            IDictionary<string, object>? instanceData,
             ICollection<Guid> ids,
             string? reference,
             MyWorkState? state,
@@ -196,11 +199,17 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(!string.IsNullOrEmpty(reference), d => d.Reference.Contains(reference))
+                .WhereIf(creatorIds != null, a => creatorIds.Any(c => c == a.CreatorId))
+                .WhereIf(definitionIds != null, a => definitionIds.Any(d => d == a.WkDefinition.Id))
+                .WhereIf(instanceData != null && instanceData.Count > 0, a => instanceData.Any(d => d.Value != null && !string.IsNullOrEmpty(d.Value.ToString()) && d.Value.ToString().Contains(a.Data)))
                 .OrderByDescending(d => d.CreateTime);
 #pragma warning restore CS8604 // 引用类型参数可能为 null。
             return await queryable.OrderByDescending(d => d.CreationTime).PageBy(skipCount, maxResultCount).ToListAsync();
         }
         public virtual async Task<int> GetMyInstancesCountAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            IDictionary<string, object>? instanceData,
             ICollection<Guid> ids,
             string? reference,
             MyWorkState? state)
@@ -229,7 +238,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.CarbonCopy)))
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
-                .WhereIf(reference != null, d => d.Reference.Contains(reference));
+                .WhereIf(reference != null, d => d.Reference.Contains(reference))
+                .WhereIf(creatorIds != null, a => creatorIds.Any(c => c == a.CreatorId))
+                .WhereIf(definitionIds != null, a => definitionIds.Any(d => d == a.WkDefinition.Id))
+                .WhereIf(instanceData != null && instanceData.Count > 0, a => instanceData.Any(d => d.Value != null && !string.IsNullOrEmpty(d.Value.ToString()) && d.Value.ToString().Contains(a.Data)));
 #pragma warning restore CS8604 // 引用类型参数可能为 null。
             return await queryable.CountAsync();
         }

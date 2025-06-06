@@ -103,7 +103,11 @@ namespace Hx.Workflow.Application
         /// <param name="skipCount"></param>
         /// <param name="maxResultCount"></param>
         /// <returns></returns>
+        //[AllowAnonymous]
         public virtual async Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
+            ICollection<Guid>? creatorIds = null,
+            ICollection<Guid>? definitionIds = null,
+            IDictionary<string, object>? instanceData = null,
             MyWorkState? status = null,
             string? reference = null,
             ICollection<Guid>? userIds = null,
@@ -117,12 +121,20 @@ namespace Hx.Workflow.Application
             //userIds = [new Guid("3a1a2bff-b3cd-d1f8-97e4-3ee9d66a1f59")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
+                creatorIds,
+                definitionIds,
+                instanceData,
                 userIds ?? [],
                 reference,
                 status,
                 skipCount,
                 maxResultCount);
-            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(userIds ?? [], reference, status);
+            var count = await _wkInstanceRepository.GetMyInstancesCountAsync(
+                creatorIds,
+                definitionIds,
+                instanceData,
+                userIds ?? [],
+                reference, status);
             foreach (var instance in instances)
             {
                 var processInstance = instance.ToProcessInstanceDto(userIds ?? []);

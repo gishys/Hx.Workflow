@@ -147,7 +147,7 @@ namespace Hx.Workflow.Application
                 && pointer != null
                 && pointer.RecipientId == null
                 && pointer.WkCandidates.Any(c => userIds.Any(u => u == c.CandidateId && c.ParentState == ExeCandidateState.WaitingReceipt))),
-                IsProcessed = !(pointer != null && (pointer.Status == PointerStatus.WaitingForEvent || pointer.Status == PointerStatus.Failed)),
+                IsProcessed = instance.Status == WorkflowStatus.Runnable && pointer != null && (pointer.WkSubscriptions.Count == 0 || pointer.Active),
                 Data = businessData
             };
             if (pointer == null)

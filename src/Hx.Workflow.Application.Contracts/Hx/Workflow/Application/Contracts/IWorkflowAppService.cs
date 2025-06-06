@@ -11,6 +11,9 @@ namespace Hx.Workflow.Application.Contracts
         Task<string> StartAsync(StartWorkflowInput input);
         Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
+            ICollection<Guid>? creatorIds = null,
+            ICollection<Guid>? definitionIds = null,
+            IDictionary<string, object>? instanceData = null,
             MyWorkState? status = null,
             string? reference = null,
             ICollection<Guid>? userIds = null,

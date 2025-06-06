@@ -46,13 +46,20 @@ namespace Hx.Workflow.HttpApi
         [HttpGet]
         [Route("workflow/mywkinstances")]
         public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
+            WkGetMyInstancesInput? input = null,
             MyWorkState? status = null,
             string? reference = null,
-            ICollection<Guid>? userIds = null,
             int skipCount = 0,
             int maxResultCount = 20)
         {
-            return _workflowAppService.GetMyWkInstanceAsync(status, reference, userIds, skipCount, maxResultCount);
+            return _workflowAppService.GetMyWkInstanceAsync(
+                input?.CreatorIds,
+                input?.DefinitionIds,
+                input?.InstanceData,
+                status, reference,
+                input?.userIds,
+                skipCount,
+                maxResultCount);
         }
         [HttpGet]
         [Route("workflow/candidate/{wkInstanceId}")]
