@@ -236,7 +236,7 @@ namespace Hx.Workflow.Application
                 string? name = null;
                 if (!string.IsNullOrEmpty(node.Recipient))
                 {
-                    var user = await UserRepository.FindByNormalizedUserNameAsync(node.Recipient.ToLower());
+                    var user = await UserRepository.FindByNormalizedUserNameAsync(node.Recipient.ToUpper());
                     name = user.Name;
                 }
                 if (defNode.StepNodeType == StepNodeType.Activity)
