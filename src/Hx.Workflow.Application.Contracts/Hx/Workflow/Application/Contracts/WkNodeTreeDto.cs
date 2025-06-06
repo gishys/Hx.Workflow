@@ -26,6 +26,7 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public DateTime? CommitmentDeadline { get; set; }
         public int Status { get; set; }
+        public string? ReceiverName {  get; set; }
         /// <summary>
         /// 办理人信息
         /// </summary>

@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Identity;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -25,7 +26,8 @@ namespace Hx.Workflow.Application
         IWkInstanceRepository wkInstanceRepository,
         IWkErrorRepository errorRepository,
         IWkExecutionPointerRepository wkExecutionPointerRepository,
-        IWkAuditorRespository wkAuditor) : HxWorkflowAppServiceBase, IWorkflowAppService
+        IWkAuditorRespository wkAuditor,
+        IIdentityUserRepository userRepository) : HxWorkflowAppServiceBase, IWorkflowAppService
     {
         private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
         private readonly IWkDefinitionRespository _wkDefinition = wkDefinition;
@@ -33,6 +35,7 @@ namespace Hx.Workflow.Application
         private readonly IWkErrorRepository _errorRepository = errorRepository;
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
         private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
+        private readonly IIdentityUserRepository UserRepository = userRepository;
 
         /// <summary>
         /// 获取可创建的模板（赋予权限）
@@ -230,6 +233,12 @@ namespace Hx.Workflow.Application
             {
                 var node = instance.ExecutionPointers.First(d => d.PredecessorId == preId);
                 var defNode = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName);
+                string? name = null;
+                if (!string.IsNullOrEmpty(node.Recipient))
+                {
+                    var user = await UserRepository.FindByNormalizedUserNameAsync(node.Recipient.ToLower());
+                    name = user.Name;
+                }
                 if (defNode.StepNodeType == StepNodeType.Activity)
                 {
                     result.Add(new WkNodeTreeDto()
@@ -241,6 +250,7 @@ namespace Hx.Workflow.Application
                         Receiver = node.Recipient,
                         CommitmentDeadline = node.CommitmentDeadline,
                         Status = (int)node.Status,
+                        ReceiverName = name,
                         WkCandidates = ObjectMapper.Map<ICollection<ExePointerCandidate>, ICollection<WkPointerCandidateDto>>(node.WkCandidates)
                     });
                 }
