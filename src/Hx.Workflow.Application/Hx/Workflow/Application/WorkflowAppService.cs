@@ -7,6 +7,7 @@ using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Hx.Workflow.Application
 {
     [Authorize]
     public class WorkflowAppService(
+        ILogger<WorkflowAppService> logger,
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
         IWkInstanceRepository wkInstanceRepository,
@@ -36,6 +38,7 @@ namespace Hx.Workflow.Application
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
         private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
         private readonly IIdentityUserRepository UserRepository = userRepository;
+        private readonly ILogger<WorkflowAppService> Logger = logger;
 
         /// <summary>
         /// 获取可创建的模板（赋予权限）
@@ -236,8 +239,16 @@ namespace Hx.Workflow.Application
                 string? name = null;
                 if (!string.IsNullOrEmpty(node.Recipient))
                 {
-                    var user = await UserRepository.FindByNormalizedUserNameAsync(node.Recipient.ToUpper());
-                    name = user.Name;
+                    try
+                    {
+                        IdentityUser user = await UserRepository.FindByNormalizedUserNameAsync(node.Recipient.ToUpper());
+                        name = user.Name;
+                    }
+                    catch
+                    {
+                        Logger.LogError(message: $"用户名为：[{node.Recipient}]的用户不存在！");
+                        name = node.Recipient;
+                    }
                 }
                 if (defNode.StepNodeType == StepNodeType.Activity)
                 {
