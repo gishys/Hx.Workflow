@@ -7,6 +7,7 @@ using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.Stats;
 using Hx.Workflow.Domain.StepBodys;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,20 +17,20 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Identity;
+using Volo.Abp.PermissionManagement;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
     [Authorize]
     public class WorkflowAppService(
-        ILogger<WorkflowAppService> logger,
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
         IWkInstanceRepository wkInstanceRepository,
         IWkErrorRepository errorRepository,
         IWkExecutionPointerRepository wkExecutionPointerRepository,
         IWkAuditorRespository wkAuditor,
-        IIdentityUserRepository userRepository) : HxWorkflowAppServiceBase, IWorkflowAppService
+        IServiceProvider serviceProvider) : HxWorkflowAppServiceBase, IWorkflowAppService
     {
         private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
         private readonly IWkDefinitionRespository _wkDefinition = wkDefinition;
@@ -37,8 +38,7 @@ namespace Hx.Workflow.Application
         private readonly IWkErrorRepository _errorRepository = errorRepository;
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
         private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
-        private readonly IIdentityUserRepository UserRepository = userRepository;
-        private readonly ILogger<WorkflowAppService> Logger = logger;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         /// <summary>
         /// 获取可创建的模板（赋予权限）
@@ -94,6 +94,7 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null)
         {
             var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(data));
@@ -237,19 +238,11 @@ namespace Hx.Workflow.Application
                 var node = instance.ExecutionPointers.First(d => d.PredecessorId == preId);
                 var defNode = instance.WkDefinition.Nodes.First(d => d.Name == node.StepName);
                 string? name = null;
-                if (!string.IsNullOrEmpty(node.Recipient))
+                if (node.WkCandidates.Count > 0)
                 {
-                    try
-                    {
-                        IdentityUser user = await UserRepository.FindByNormalizedUserNameAsync(node.Recipient.ToUpper());
-                        name = user.Name;
-                    }
-                    catch
-                    {
-                        Logger.LogError(message: $"用户名为：[{node.Recipient}]的用户不存在！");
-                        name = node.Recipient;
-                    }
+                    name = node.WkCandidates.FirstOrDefault(c => c.UserName == node.Recipient)?.DisplayUserName;
                 }
+                name ??= node.Recipient;
                 if (defNode.StepNodeType == StepNodeType.Activity)
                 {
                     result.Add(new WkNodeTreeDto()

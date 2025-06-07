@@ -18,9 +18,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     public class GeneralAuditingStepBody(
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         IWkAuditorRespository wkAuditor,
         IWkInstanceRepository wkInstance,
         IWkDefinitionRespository wkDefinition,
@@ -100,62 +98,62 @@ namespace Hx.Workflow.Application.StepBodys
                     if (pointer == null)
                         throw new UserFriendlyException(message: "获取流程节点失败！");
                     List<WkNodeCandidate>? dcandidate = null;
-                    bool beRolledBack = false;
+                    //bool beRolledBack = false;
 
-                    if (executionPointer.PredecessorId != null)
+                    //if (executionPointer.PredecessorId != null)
+                    //{
+                    //    //回退逻辑
+                    //    var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({executionPointer.PredecessorId})的节点！");
+                    //    if (preNode.WkCandidates.Any(d => d.ParentState == ExeCandidateState.BeRolledBack))
+                    //    {
+                    //        var beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == preNode.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({preNode.PredecessorId})的节点！");
+                    //        dcandidate = beRolledBackNode.WkCandidates.Select(d =>
+                    //        new WkNodeCandidate(
+                    //            d.CandidateId,
+                    //            d.UserName,
+                    //            d.DisplayUserName,
+                    //            d.ExecutorType,
+                    //            d.DefaultSelection)).ToList();
+                    //        beRolledBack = true;
+                    //    }
+                    //}
+                    //if (!beRolledBack)
+                    //{
+                    if (pointer.StepNodeType == StepNodeType.Activity || pointer.StepNodeType == StepNodeType.End)
                     {
-                        //回退逻辑
-                        var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({executionPointer.PredecessorId})的节点！");
-                        if (preNode.WkCandidates.Any(d => d.ParentState == ExeCandidateState.BeRolledBack))
+                        if (!string.IsNullOrEmpty(Candidates))
                         {
-                            var beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == preNode.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({preNode.PredecessorId})的节点！");
-                            dcandidate = beRolledBackNode.WkCandidates.Select(d =>
-                            new WkNodeCandidate(
-                                d.CandidateId,
-                                d.UserName,
-                                d.DisplayUserName,
-                                d.ExecutorType,
-                                d.DefaultSelection)).ToList();
-                            beRolledBack = true;
-                        }
-                    }
-                    if (!beRolledBack)
-                    {
-                        if (pointer.StepNodeType == StepNodeType.Activity || pointer.StepNodeType == StepNodeType.End)
-                        {
-                            if (!string.IsNullOrEmpty(Candidates))
+                            var tempCandidates = Candidates.Split(',');
+                            if (tempCandidates?.Length > 0)
                             {
-                                var tempCandidates = Candidates.Split(',');
-                                if (tempCandidates?.Length > 0)
-                                {
-                                    dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
-                                }
-                                else
-                                {
-                                    throw new UserFriendlyException(message: "未传入正确的接收者！");
-                                }
+                                dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
                             }
                             else
                             {
                                 throw new UserFriendlyException(message: "未传入正确的接收者！");
                             }
                         }
-                        else if (pointer.StepNodeType == StepNodeType.Start)
+                        else
                         {
-                            if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException(message: "未传入正确的接收者！");
-                            var defCandidate = definition.WkCandidates.FirstOrDefault(d => d.CandidateId == candidateId);
-                            if ((defCandidate == null))
-                            {
-                                throw new UserFriendlyException(message: $"无权限，请在流程定义中配置Id为（{candidateId}）的权限！");
-                            }
-                            dcandidate = [new(
+                            throw new UserFriendlyException(message: "未传入正确的接收者！");
+                        }
+                    }
+                    else if (pointer.StepNodeType == StepNodeType.Start)
+                    {
+                        if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException(message: "未传入正确的接收者！");
+                        var defCandidate = definition.WkCandidates.FirstOrDefault(d => d.CandidateId == candidateId);
+                        if ((defCandidate == null))
+                        {
+                            throw new UserFriendlyException(message: $"无权限，请在流程定义中配置Id为（{candidateId}）的权限！");
+                        }
+                        dcandidate = [new(
                         defCandidate.CandidateId,
                         defCandidate.UserName,
                         defCandidate.DisplayUserName,
                         defCandidate.ExecutorType,
                         defCandidate.DefaultSelection)];
-                        }
                     }
+                    //}
                     if (dcandidate == null)
                         throw new UserFriendlyException(message: "未传入正确的接收者!");
 
@@ -212,6 +210,16 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     else
                     {
+                        if (executionPointer.PredecessorId != null)
+                        {
+                            ////回退逻辑
+                            //var preNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({executionPointer.PredecessorId})的节点！");
+                            //if (preNode.WkCandidates.Any(d => d.ParentState == ExeCandidateState.BeRolledBack))
+                            //{
+                            WkExecutionPointer beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.Id.ToString() == executionPointer.PredecessorId) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({executionPointer.PredecessorId})的节点！");
+                            NextCandidates = string.Join(",", beRolledBackNode.WkCandidates.Select(d => d.CandidateId).ToList());
+                            //}
+                        }
                         await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
                     }
                     if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException(message: "未传入正确的接收者！");
