@@ -18,6 +18,7 @@ using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Identity;
 using Volo.Abp.PermissionManagement;
+using Volo.Abp.Users;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -221,7 +222,17 @@ namespace Hx.Workflow.Application
             }
 
             var errors = await _errorRepository.GetListByIdAsync(workflowId, pointer.Id);
-            return instance.ToWkInstanceDetailsDto(ObjectMapper, businessData, pointer, CurrentUser.Id, errors);
+            var result = instance.ToWkInstanceDetailsDto(ObjectMapper, businessData, pointer, CurrentUser.Id, errors);
+            if (pointerId.HasValue && instance.Status != WorkflowStatus.Complete && CurrentUser.Id.HasValue)
+            {
+                var activePointer = executionPointers.First(p => p.Status != PointerStatus.Complete);
+                var currentCandidateInfo = pointer.WkCandidates.FirstOrDefault(d => d.CandidateId == CurrentUser.Id.Value);
+                if (currentCandidateInfo != null && result.CurrentExecutionPointer != null)
+                {
+                    result.CurrentExecutionPointer.CurrentCandidateInfo = ObjectMapper.Map<ExePointerCandidate, WkPointerCandidateDto>(currentCandidateInfo);
+                }
+            }
+            return result;
         }
         /// <summary>
         /// 获得实例节点（包含已完成及正在办理的节点）
