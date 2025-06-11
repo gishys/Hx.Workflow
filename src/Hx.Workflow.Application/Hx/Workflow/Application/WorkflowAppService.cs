@@ -190,6 +190,7 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <param name="pointerId"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"不存在Id为：[{workflowId}]流程实例！");

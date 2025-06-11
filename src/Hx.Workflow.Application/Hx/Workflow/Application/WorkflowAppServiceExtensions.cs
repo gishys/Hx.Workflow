@@ -184,19 +184,16 @@ namespace Hx.Workflow.Application
             currentPointerDto.NextPointers = [];
             if (instance.Status != WorkflowStatus.Complete)
             {
-                WkExecutionPointer? prePointer = null;
-                if (!string.IsNullOrEmpty(pointer.PredecessorId))
-                {
-                    prePointer = instance.ExecutionPointers.First(d => d.Id.ToString() == pointer.PredecessorId);
-                }
                 foreach (var next in step.NextNodes)
                 {
                     if (!instance.WkDefinition.Nodes.Any(d => d.Name == next.NextNodeName))
                         throw new UserFriendlyException(message: $"下一节点不在模板节点中【{next.NextNodeName}】!");
+                    var nextNode = instance.WkDefinition.Nodes.First(d => d.Name == next.NextNodeName);
+                    var isPreviousStep = nextNode.NextNodes.Any(n => n.NextNodeName == step.Name && n.NodeType == WkRoleNodeType.Forward);
                     currentPointerDto.NextPointers.Add(new WkNextPointerDto()
                     {
                         Selectable = true,
-                        PreviousStep = prePointer != null && prePointer.StepName == next.NextNodeName,
+                        PreviousStep = isPreviousStep,
                         Label = instance.WkDefinition.Nodes.First(d => d.Name == next.NextNodeName).DisplayName,
                         NextNodeName = next.NextNodeName,
                         NodeType = next.NodeType,

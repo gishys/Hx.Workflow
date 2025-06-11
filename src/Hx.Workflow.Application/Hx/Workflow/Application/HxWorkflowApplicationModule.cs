@@ -54,7 +54,14 @@ namespace Hx.Workflow.Application
                                 "DecideBranching",
                                 "步骤分支",
                                 "step.DecideBranching",
-                StepBodyParaType.Outputs),
+                                StepBodyParaType.Outputs),
+                                new WkStepBodyParam(
+                                Guid.NewGuid(),
+                                "Candidates",
+                                "Candidates",
+                                "下一步骤审核人",
+                                "step.NextCandidates",
+                                StepBodyParaType.Outputs),
                 ];
                     var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, null, ps, stepbody.TypeFullName, stepbody.AssemblyFullName);
                     if (!sList.Any(d => d.Name == s.Name))
