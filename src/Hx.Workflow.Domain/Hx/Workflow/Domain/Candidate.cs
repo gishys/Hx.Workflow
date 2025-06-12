@@ -47,6 +47,16 @@ namespace Hx.Workflow.Domain
             CandidateId = candidateId;
             return Task.CompletedTask;
         }
+        public Task SetUserName(string userName)
+        {
+            UserName = userName;
+            return Task.CompletedTask;
+        }
+        public Task SetDisplayUserName(string displayUserName)
+        {
+            DisplayUserName = displayUserName;
+            return Task.CompletedTask;
+        }
         public Task SetSelection(bool selection)
         {
             DefaultSelection = selection;

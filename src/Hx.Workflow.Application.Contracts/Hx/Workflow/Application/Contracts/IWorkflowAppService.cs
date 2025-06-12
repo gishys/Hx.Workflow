@@ -17,11 +17,9 @@ namespace Hx.Workflow.Application.Contracts
             MyWorkState? status = null,
             string? reference = null,
             ICollection<Guid>? userIds = null,
+            string? queryType = null,
             int skipCount = 0,
             int maxResultCount = 20);
-        Task<bool> ResumeWorkflowAsync(string workflowId);
-        Task<bool> SuspendWorkflowAsync(string workflowId);
-        Task<bool> TerminateWorkflowAsync(string workflowId);
         Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId);
         /// <summary>
         /// 获取可创建的模板（赋予权限）

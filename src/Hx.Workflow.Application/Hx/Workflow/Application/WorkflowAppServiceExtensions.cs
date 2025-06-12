@@ -200,13 +200,12 @@ namespace Hx.Workflow.Application
                     });
                 }
             }
-            if (currentUserId.HasValue)
+            var currentCandidateInfo = currentUserId.HasValue
+                ? pointer.WkCandidates.FirstOrDefault(d => d.CandidateId == currentUserId.Value)
+                : pointer.WkCandidates.FirstOrDefault();
+            if (currentCandidateInfo != null)
             {
-                var currentCandidateInfo = pointer.WkCandidates.FirstOrDefault(d => d.CandidateId == currentUserId.Value);
-                if (currentCandidateInfo != null)
-                {
-                    currentPointerDto.CurrentCandidateInfo = ObjectMapper.Map<ExePointerCandidate, WkPointerCandidateDto>(currentCandidateInfo);
-                }
+                currentPointerDto.CurrentCandidateInfo = ObjectMapper.Map<ExePointerCandidate, WkPointerCandidateDto>(currentCandidateInfo);
             }
             return new WkCurrentInstanceDetailsDto()
             {

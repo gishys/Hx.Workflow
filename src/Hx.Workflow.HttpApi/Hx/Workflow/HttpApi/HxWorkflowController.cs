@@ -25,30 +25,13 @@ namespace Hx.Workflow.HttpApi
         {
             return _workflowAppService.StartActivityAsync(input.ActivityName, input.WorkflowId, input.Data);
         }
-        [HttpPut]
-        [Route("workflow/terminate")]
-        public Task<bool> TerminateWorkflowAsync(string workflowId)
-        {
-            return _workflowAppService.TerminateWorkflowAsync(workflowId);
-        }
-        [HttpPut]
-        [Route("workflow/suspend")]
-        public Task<bool> SuspendWorkflowAsync(string workflowId)
-        {
-            return _workflowAppService.SuspendWorkflowAsync(workflowId);
-        }
-        [HttpPut]
-        [Route("workflow/resume")]
-        public Task<bool> ResumeWorkflowAsync(string workflowId)
-        {
-            return _workflowAppService.ResumeWorkflowAsync(workflowId);
-        }
         [HttpGet]
         [Route("workflow/mywkinstances")]
         public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             WkGetMyInstancesInput? input = null,
             MyWorkState? status = null,
             string? reference = null,
+            string? queryType = null,
             int skipCount = 0,
             int maxResultCount = 20)
         {
@@ -58,6 +41,7 @@ namespace Hx.Workflow.HttpApi
                 input?.InstanceData,
                 status, reference,
                 input?.userIds,
+                queryType,
                 skipCount,
                 maxResultCount);
         }

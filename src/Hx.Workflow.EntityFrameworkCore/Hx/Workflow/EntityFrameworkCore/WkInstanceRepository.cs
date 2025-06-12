@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Users;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.EntityFrameworkCore
@@ -344,13 +345,24 @@ namespace Hx.Workflow.EntityFrameworkCore
 
         [GeneratedRegex(@"\d+")]
         private static partial Regex IntRegex();
-        public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId)
+        public async Task<WkInstance> RecipientExePointerAsync(Guid workflowId, ICurrentUser currentUser, bool isManager)
         {
+            var currentUserId = currentUser.Id ?? throw new UserFriendlyException(message: $"未获取到当前登录用户信息！");
             var instance = await FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"Id为：[{workflowId}]的实例为空！");
             var exePointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             if (!exePointer.WkCandidates.Any(d => d.CandidateId == currentUserId))
             {
-                throw new UserFriendlyException(message: "没有权限接收实例！");
+                if (isManager && currentUser.UserName != null && currentUser.Name != null)
+                {
+                    var cand = exePointer.WkCandidates.First();
+                    await cand.SetCandidateId(currentUserId);
+                    await cand.SetUserName(currentUser.UserName);
+                    await cand.SetDisplayUserName(currentUser.Name);
+                }
+                else
+                {
+                    throw new UserFriendlyException(message: "没有权限接收实例！");
+                }
             }
             exePointer.WkCandidates.RemoveAll(d => d.CandidateId != currentUserId);
             var candidate = exePointer.WkCandidates.First(d => d.CandidateId == currentUserId);

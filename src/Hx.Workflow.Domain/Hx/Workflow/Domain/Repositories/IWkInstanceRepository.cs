@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Users;
 
 namespace Hx.Workflow.Domain.Repositories
 {
@@ -48,7 +49,7 @@ namespace Hx.Workflow.Domain.Repositories
         /// </summary>
         /// <returns></returns>
         Task<int> GetMaxNumberAsync();
-        Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId);
+        Task<WkInstance> RecipientExePointerAsync(Guid workflowId, ICurrentUser currentUser, bool isManager);
         Task<WkInstance> RecipientExePointerAsync(Guid workflowId, Guid currentUserId, string recepient, Guid recepientId);
         /// <summary>
         /// 流程实例添加业务数据

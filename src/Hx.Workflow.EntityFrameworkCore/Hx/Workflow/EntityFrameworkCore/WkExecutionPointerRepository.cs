@@ -3,6 +3,8 @@ using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -42,6 +44,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Include(d => d.WkCandidates)
                 .Include(d => d.ExtensionAttributes)
                 .FirstAsync(d => d.Id == id, cancellationToken: cancellationToken);
+        }
+        public virtual async Task<List<WkExecutionPointer>> GetListAsync(Guid wkInstanceId, CancellationToken cancellationToken = default)
+        {
+            var dbSet = await GetDbSetAsync();
+            return await dbSet
+                .Include(d => d.WkCandidates)
+                .Include(d => d.ExtensionAttributes)
+                .Where(d => d.WkInstanceId == wkInstanceId).ToListAsync();
         }
         public async Task UpdateDataAsync(Guid id, Dictionary<string, string> data)
         {

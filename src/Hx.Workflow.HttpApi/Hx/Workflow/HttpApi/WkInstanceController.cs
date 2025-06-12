@@ -14,5 +14,29 @@ namespace Hx.Workflow.HttpApi
         {
             return _instance.DeleteAsync(executionPointerId);
         }
+        [HttpDelete]
+        [Route("deletes")]
+        public Task DeletesAsync(Guid[] ids)
+        {
+            return _instance.DeletesAsync(ids);
+        }
+        [HttpPut]
+        [Route("terminate")]
+        public Task<bool> TerminateWorkflowAsync(string workflowId)
+        {
+            return _instance.TerminateWorkflowAsync(workflowId);
+        }
+        [HttpPut]
+        [Route("suspend")]
+        public Task<bool> SuspendWorkflowAsync(string workflowId)
+        {
+            return _instance.SuspendWorkflowAsync(workflowId);
+        }
+        [HttpPut]
+        [Route("resume")]
+        public Task<bool> ResumeWorkflowAsync(string workflowId)
+        {
+            return _instance.ResumeWorkflowAsync(workflowId);
+        }
     }
 }

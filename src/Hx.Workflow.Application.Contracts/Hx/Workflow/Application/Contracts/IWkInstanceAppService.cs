@@ -14,5 +14,9 @@ namespace Hx.Workflow.Application.Contracts
         /// <param name="workflowId"></param>
         /// <returns></returns>
         Task DeleteAsync(Guid workflowId);
+        Task<bool> ResumeWorkflowAsync(string workflowId);
+        Task<bool> SuspendWorkflowAsync(string workflowId);
+        Task<bool> TerminateWorkflowAsync(string workflowId);
+        Task DeletesAsync(Guid[] ids);
     }
 }

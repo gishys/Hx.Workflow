@@ -9,25 +9,86 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using System.Linq;
 using WorkflowCore.Models;
+using Hx.Workflow.Domain;
+using Volo.Abp.Domain.Repositories;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WkInstanceAppService(
         IWkInstanceRepository wkInstanceRepository,
-        IWkErrorRepository errorRepository
+        IWkErrorRepository errorRepository,
+        HxWorkflowManager hxWorkflowManager,
+        IWkExecutionPointerRepository wkExecutionPointerRepository
         ) : WorkflowAppServiceBase, IWkInstanceAppService
     {
         private readonly IWkErrorRepository _errorRepository = errorRepository;
         private readonly IWkInstanceRepository _wkInstanceRepository = wkInstanceRepository;
+        private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
+        private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
         /// <summary>
         /// delete workflow instance
         /// </summary>
         /// <param name="workflowId"></param>
         /// <returns></returns>
-        public virtual Task DeleteAsync(Guid workflowId)
+        public virtual async Task DeleteAsync(Guid workflowId)
         {
-            return _wkInstanceRepository.DeleteAsync(workflowId);
+            var entity = await _wkInstanceRepository.FindAsync(workflowId);
+            var pointers = await _wkExecutionPointerRepository.GetListAsync(workflowId);
+            await _wkExecutionPointerRepository.HardDeleteAsync(pointers);
+            if (CurrentUnitOfWork != null)
+                await CurrentUnitOfWork.SaveChangesAsync();
+            if (entity != null)
+            {
+                await _wkInstanceRepository.HardDeleteAsync([entity], true);
+            }
+        }
+        /// <summary>
+        /// delete workflow instances
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public virtual async Task DeletesAsync(Guid[] ids)
+        {
+            foreach (var id in ids)
+            {
+                var entity = await _wkInstanceRepository.FindAsync(id);
+                var pointers = await _wkExecutionPointerRepository.GetListAsync(id);
+                await _wkExecutionPointerRepository.HardDeleteAsync(pointers);
+                if (CurrentUnitOfWork != null)
+                    await CurrentUnitOfWork.SaveChangesAsync();
+                if (entity != null)
+                {
+                    await _wkInstanceRepository.HardDeleteAsync([entity], true);
+                }
+            }
+        }
+        /// <summary>
+        /// 终止工作流
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        public virtual async Task<bool> TerminateWorkflowAsync(string workflowId)
+        {
+            return await _hxWorkflowManager.TerminateWorkflowAsync(workflowId);
+        }
+        /// <summary>
+        /// 挂起工作流
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        public virtual async Task<bool> SuspendWorkflowAsync(string workflowId)
+        {
+            return await _hxWorkflowManager.SuspendWorkflowAsync(workflowId);
+        }
+        /// <summary>
+        /// 恢复工作流
+        /// </summary>
+        /// <param name="workflowId"></param>
+        /// <returns></returns>
+        public virtual async Task<bool> ResumeWorkflowAsync(string workflowId)
+        {
+            return await _hxWorkflowManager.ResumeWorkflowAsync(workflowId);
         }
         /// <summary>
         /// 通过业务编号获得实例详细信息

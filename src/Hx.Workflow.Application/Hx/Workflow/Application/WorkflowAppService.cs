@@ -40,6 +40,7 @@ namespace Hx.Workflow.Application
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
         private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly IAuthorizationService? _authorizationService= serviceProvider.GetService<IAuthorizationService>();
 
         /// <summary>
         /// 获取可创建的模板（赋予权限）
@@ -119,13 +120,20 @@ namespace Hx.Workflow.Application
             MyWorkState? status = null,
             string? reference = null,
             ICollection<Guid>? userIds = null,
+            string? queryType = null,
             int skipCount = 0,
             int maxResultCount = 20)
         {
+            var canGetAll = _authorizationService != null ? await _authorizationService.AuthorizeAsync("Workflow.Instance.List") : null;
             if ((userIds == null || userIds.Count == 0) && CurrentUser.Id.HasValue)
             {
                 userIds = [CurrentUser.Id.Value];
             }
+            if (canGetAll != null && canGetAll.Succeeded && queryType == "all")
+            {
+                userIds = null;
+            }
+            Logger.LogInformation($"Name:{CurrentUser.Name}");
             //userIds = [new Guid("3a1a2bff-b3cd-d1f8-97e4-3ee9d66a1f59")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
@@ -177,7 +185,7 @@ namespace Hx.Workflow.Application
             //Guid? userId = new Guid("3a140076-3f3e-0ae6-56ad-2c3f1c06508f");
             if (userId.HasValue)
             {
-                await _wkInstanceRepository.RecipientExePointerAsync(workflowId, userId.Value);
+                await _wkInstanceRepository.RecipientExePointerAsync(workflowId, CurrentUser, true);
             }
             else
             {
@@ -273,33 +281,6 @@ namespace Hx.Workflow.Application
                 preId = node.Id.ToString();
             }
             return result;
-        }
-        /// <summary>
-        /// 终止工作流
-        /// </summary>
-        /// <param name="workflowId"></param>
-        /// <returns></returns>
-        public virtual async Task<bool> TerminateWorkflowAsync(string workflowId)
-        {
-            return await _hxWorkflowManager.TerminateWorkflowAsync(workflowId);
-        }
-        /// <summary>
-        /// 挂起工作流
-        /// </summary>
-        /// <param name="workflowId"></param>
-        /// <returns></returns>
-        public virtual async Task<bool> SuspendWorkflowAsync(string workflowId)
-        {
-            return await _hxWorkflowManager.SuspendWorkflowAsync(workflowId);
-        }
-        /// <summary>
-        /// 恢复工作流
-        /// </summary>
-        /// <param name="workflowId"></param>
-        /// <returns></returns>
-        public virtual async Task<bool> ResumeWorkflowAsync(string workflowId)
-        {
-            return await _hxWorkflowManager.ResumeWorkflowAsync(workflowId);
         }
         /// <summary>
         /// 通过实例Id获取可选择的人员
