@@ -200,9 +200,7 @@ namespace Hx.Workflow.Application
                     });
                 }
             }
-            var currentCandidateInfo = currentUserId.HasValue
-                ? pointer.WkCandidates.FirstOrDefault(d => d.CandidateId == currentUserId.Value)
-                : pointer.WkCandidates.FirstOrDefault();
+            var currentCandidateInfo = pointer.WkCandidates.FirstOrDefault();
             if (currentCandidateInfo != null)
             {
                 currentPointerDto.CurrentCandidateInfo = ObjectMapper.Map<ExePointerCandidate, WkPointerCandidateDto>(currentCandidateInfo);

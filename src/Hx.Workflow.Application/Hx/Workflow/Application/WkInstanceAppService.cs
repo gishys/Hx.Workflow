@@ -14,7 +14,7 @@ using Volo.Abp.Domain.Repositories;
 
 namespace Hx.Workflow.Application
 {
-    //[Authorize]
+    [Authorize]
     public class WkInstanceAppService(
         IWkInstanceRepository wkInstanceRepository,
         IWkErrorRepository errorRepository,

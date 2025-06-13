@@ -198,7 +198,7 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <param name="pointerId"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public virtual async Task<WkCurrentInstanceDetailsDto> GetInstanceAsync(Guid workflowId, Guid? pointerId)
         {
             var instance = await _wkInstanceRepository.FindAsync(workflowId) ?? throw new UserFriendlyException(message: $"不存在Id为：[{workflowId}]流程实例！");
@@ -232,15 +232,6 @@ namespace Hx.Workflow.Application
 
             var errors = await _errorRepository.GetListByIdAsync(workflowId, pointer.Id);
             var result = instance.ToWkInstanceDetailsDto(ObjectMapper, businessData, pointer, CurrentUser.Id, errors);
-            if (pointerId.HasValue && instance.Status != WorkflowStatus.Complete && CurrentUser.Id.HasValue)
-            {
-                var activePointer = executionPointers.First(p => p.Status != PointerStatus.Complete);
-                var currentCandidateInfo = pointer.WkCandidates.FirstOrDefault(d => d.CandidateId == CurrentUser.Id.Value);
-                if (currentCandidateInfo != null && result.CurrentExecutionPointer != null)
-                {
-                    result.CurrentExecutionPointer.CurrentCandidateInfo = ObjectMapper.Map<ExePointerCandidate, WkPointerCandidateDto>(currentCandidateInfo);
-                }
-            }
             return result;
         }
         /// <summary>
