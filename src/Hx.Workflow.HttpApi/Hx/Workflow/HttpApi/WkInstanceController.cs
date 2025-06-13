@@ -10,9 +10,9 @@ namespace Hx.Workflow.HttpApi
     {
         private readonly IWkInstanceAppService _instance = instance;
         [HttpDelete]
-        public Task DeleteAsync(Guid executionPointerId)
+        public Task DeleteAsync(Guid workflowId)
         {
-            return _instance.DeleteAsync(executionPointerId);
+            return _instance.DeleteAsync(workflowId);
         }
         [HttpDelete]
         [Route("deletes")]
