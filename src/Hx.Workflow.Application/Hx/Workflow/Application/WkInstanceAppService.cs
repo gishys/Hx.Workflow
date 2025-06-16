@@ -11,6 +11,7 @@ using System.Linq;
 using WorkflowCore.Models;
 using Hx.Workflow.Domain;
 using Volo.Abp.Domain.Repositories;
+using System.Reflection;
 
 namespace Hx.Workflow.Application
 {
@@ -104,6 +105,11 @@ namespace Hx.Workflow.Application
             WkExecutionPointer pointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
             var errors = await _errorRepository.GetListByIdAsync(instance.Id, pointer.Id);
             return instance.ToWkInstanceDetailsDto(ObjectMapper, businessData, pointer, CurrentUser.Id, errors);
+        }
+        public virtual async Task<ICollection<WkExecutionErrorDto>> GetErrorListAsync(Guid wkInstanceId, Guid executionPointerId)
+        {
+            var errors = await _errorRepository.GetListByIdAsync(wkInstanceId, executionPointerId);
+            return ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
         }
     }
 }

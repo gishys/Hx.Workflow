@@ -41,14 +41,18 @@ namespace Hx.Workflow.Application.Contracts
         /// <summary>
         /// 是否已签收（true已接收）
         /// </summary>
-        public bool IsSign {  get; set; }
+        public bool IsSign { get; set; }
         /// <summary>
         /// 正在运行
         /// </summary>
-        public bool IsProcessed {  get; set; }
+        public bool IsProcessed { get; set; }
         /// <summary>
         /// 业务数据
         /// </summary>
         public IDictionary<string, object>? Data { get; set; }
+        /// <summary>
+        /// 当前节点
+        /// </summary>
+        public WkCurrentExecutionPointerDto? CurrentPointer { get; set; }
     }
 }

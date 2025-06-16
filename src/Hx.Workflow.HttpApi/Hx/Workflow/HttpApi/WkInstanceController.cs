@@ -38,5 +38,11 @@ namespace Hx.Workflow.HttpApi
         {
             return _instance.ResumeWorkflowAsync(workflowId);
         }
+        [HttpPut]
+        [Route("error")]
+        public Task<ICollection<WkExecutionErrorDto>> GetErrorListAsync(Guid wkInstanceId, Guid executionPointerId)
+        {
+            return _instance.GetErrorListAsync(wkInstanceId, executionPointerId);
+        }
     }
 }

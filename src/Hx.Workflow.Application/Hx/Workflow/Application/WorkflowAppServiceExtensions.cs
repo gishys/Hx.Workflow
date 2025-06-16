@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Application.Contracts;
+﻿using AutoMapper.Internal.Mappers;
+using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
@@ -10,6 +11,7 @@ using System.Text.Json;
 using Volo.Abp;
 using Volo.Abp.Guids;
 using WorkflowCore.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Hx.Workflow.Application
 {
@@ -126,12 +128,22 @@ namespace Hx.Workflow.Application
             }
             return resultEntity;
         }
-        public static WkProcessInstanceDto ToProcessInstanceDto(this WkInstance instance, ICollection<Guid> userIds)
+        public static WkProcessInstanceDto ToProcessInstanceDto(
+            this WkInstance instance,
+            ICollection<Guid> userIds)
         {
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             //如果节点不是已完成状态则获取当前节点（后续需要确定其他状态的含义）
             WkExecutionPointer? pointer = instance.ExecutionPointers.FirstOrDefault(d => d.Status != PointerStatus.Complete);
             var step = pointer != null ? instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == pointer.StepName) : null;
+            bool isSign = instance.Status == WorkflowStatus.Runnable
+                    && pointer != null
+                    && pointer.RecipientId == null
+                    && pointer.WkCandidates.Any(c => c.ParentState == ExeCandidateState.WaitingReceipt);
+            var currentPointer = pointer != null ? new WkCurrentExecutionPointerDto()
+            {
+                Status = (int)pointer.Status,
+            } : null;
             var processInstance = new WkProcessInstanceDto
             {
                 Id = instance.Id,
@@ -142,13 +154,10 @@ namespace Hx.Workflow.Application
                 ReceivingTime = instance.CreateTime,
                 State = instance.Status.ToString(),
                 ProcessType = instance.WkDefinition.ProcessType,
-                IsSign =
-                !(instance.Status == WorkflowStatus.Runnable
-                && pointer != null
-                && pointer.RecipientId == null
-                && pointer.WkCandidates.Any(c => userIds.Any(u => u == c.CandidateId && c.ParentState == ExeCandidateState.WaitingReceipt))),
+                IsSign = !isSign,
                 IsProcessed = instance.Status == WorkflowStatus.Runnable && pointer != null && (pointer.WkSubscriptions.Count == 0 || pointer.Active),
-                Data = businessData
+                Data = businessData,
+                CurrentPointer = currentPointer,
             };
             if (pointer == null)
             {
@@ -219,9 +228,8 @@ namespace Hx.Workflow.Application
                 WkAuditors = ObjectMapper.Map<ICollection<WkAuditor>, ICollection<WkAuditorDto>>(instance.WkAuditors),
                 CanHandle =
                 instance.Status == WorkflowStatus.Runnable
-                && pointer.Status != PointerStatus.Complete
-                && pointer.WkSubscriptions.Any(d => d.ExternalToken == null)
-                && currentUserId.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == currentUserId.Value),
+                && pointer.Status == PointerStatus.WaitingForEvent
+                && currentUserId.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == currentUserId.Value && d.ParentState == ExeCandidateState.Pending),
                 Data = businessData,
             };
         }

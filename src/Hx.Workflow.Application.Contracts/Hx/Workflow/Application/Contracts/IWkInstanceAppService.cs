@@ -18,5 +18,6 @@ namespace Hx.Workflow.Application.Contracts
         Task<bool> SuspendWorkflowAsync(string workflowId);
         Task<bool> TerminateWorkflowAsync(string workflowId);
         Task DeletesAsync(Guid[] ids);
+        Task<ICollection<WkExecutionErrorDto>> GetErrorListAsync(Guid wkInstanceId, Guid executionPointerId);
     }
 }

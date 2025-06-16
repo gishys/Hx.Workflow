@@ -16,9 +16,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
-using Volo.Abp.Identity;
-using Volo.Abp.PermissionManagement;
-using Volo.Abp.Users;
 using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
@@ -40,7 +37,7 @@ namespace Hx.Workflow.Application
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
         private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
-        private readonly IAuthorizationService? _authorizationService= serviceProvider.GetService<IAuthorizationService>();
+        private readonly IAuthorizationService? _authorizationService = serviceProvider.GetService<IAuthorizationService>();
 
         /// <summary>
         /// 获取可创建的模板（赋予权限）
