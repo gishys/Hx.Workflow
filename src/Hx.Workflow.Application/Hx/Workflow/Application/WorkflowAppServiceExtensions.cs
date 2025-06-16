@@ -142,6 +142,7 @@ namespace Hx.Workflow.Application
                     && pointer.WkCandidates.Any(c => c.ParentState == ExeCandidateState.WaitingReceipt);
             var currentPointer = pointer != null ? new WkCurrentExecutionPointerDto()
             {
+                Id = pointer.Id,
                 Status = (int)pointer.Status,
             } : null;
             var processInstance = new WkProcessInstanceDto

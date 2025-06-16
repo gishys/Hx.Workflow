@@ -8,6 +8,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkCurrentExecutionPointerDto
     {
+        public Guid Id { get; set; }
         public int Status { get; set; }
     }
 }
