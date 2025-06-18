@@ -156,7 +156,9 @@ namespace Hx.Workflow.Application
                 State = instance.Status.ToString(),
                 ProcessType = instance.WkDefinition.ProcessType,
                 IsSign = !isSign,
-                IsProcessed = instance.Status == WorkflowStatus.Runnable && pointer != null && (pointer.WkSubscriptions.Count == 0 || pointer.Active),
+                IsProcessed = instance.Status == WorkflowStatus.Runnable
+                && pointer != null
+                && (pointer.Status == PointerStatus.Pending || pointer.Status == PointerStatus.Running),
                 Data = businessData,
                 CurrentPointer = currentPointer,
             };
