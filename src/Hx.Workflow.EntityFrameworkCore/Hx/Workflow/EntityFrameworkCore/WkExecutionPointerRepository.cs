@@ -51,7 +51,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             return await dbSet
                 .Include(d => d.WkCandidates)
                 .Include(d => d.ExtensionAttributes)
-                .Where(d => d.WkInstanceId == wkInstanceId).ToListAsync();
+                .Where(d => d.WkInstanceId == wkInstanceId).ToListAsync(cancellationToken);
         }
         public async Task UpdateDataAsync(Guid id, Dictionary<string, string> data)
         {

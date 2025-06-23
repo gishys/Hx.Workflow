@@ -1,17 +1,18 @@
 ﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.LocalEvents;
+using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using System;
-using System.Text.Json;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Volo.Abp;
-using System.Linq;
-using WorkflowCore.Models;
-using Hx.Workflow.Domain;
 using Volo.Abp.Domain.Repositories;
-using System.Reflection;
+using Volo.Abp.EventBus.Local;
+using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
@@ -20,13 +21,15 @@ namespace Hx.Workflow.Application
         IWkInstanceRepository wkInstanceRepository,
         IWkErrorRepository errorRepository,
         HxWorkflowManager hxWorkflowManager,
-        IWkExecutionPointerRepository wkExecutionPointerRepository
+        IWkExecutionPointerRepository wkExecutionPointerRepository,
+        ILocalEventBus localEventBus
         ) : WorkflowAppServiceBase, IWkInstanceAppService
     {
         private readonly IWkErrorRepository _errorRepository = errorRepository;
         private readonly IWkInstanceRepository _wkInstanceRepository = wkInstanceRepository;
         private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
+        private readonly ILocalEventBus _localEventBus = localEventBus;
         /// <summary>
         /// delete workflow instance
         /// </summary>
@@ -34,13 +37,10 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task DeleteAsync(Guid workflowId)
         {
-            var entity = await _wkInstanceRepository.FindAsync(workflowId);
-            var pointers = await _wkExecutionPointerRepository.GetListAsync(workflowId);
-            await _wkExecutionPointerRepository.HardDeleteAsync(pointers);
-            if (CurrentUnitOfWork != null)
-                await CurrentUnitOfWork.SaveChangesAsync();
+            var entity = await _wkInstanceRepository.FindAsync(workflowId, false);
             if (entity != null)
             {
+                await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(entity.Id, entity.Reference));
                 await _wkInstanceRepository.HardDeleteAsync([entity], true);
             }
         }
@@ -53,13 +53,10 @@ namespace Hx.Workflow.Application
         {
             foreach (var id in ids)
             {
-                var entity = await _wkInstanceRepository.FindAsync(id);
-                var pointers = await _wkExecutionPointerRepository.GetListAsync(id);
-                await _wkExecutionPointerRepository.HardDeleteAsync(pointers);
-                if (CurrentUnitOfWork != null)
-                    await CurrentUnitOfWork.SaveChangesAsync();
+                var entity = await _wkInstanceRepository.FindAsync(id, false);
                 if (entity != null)
                 {
+                    await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(entity.Id, entity.Reference));
                     await _wkInstanceRepository.HardDeleteAsync([entity], true);
                 }
             }
