@@ -169,6 +169,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             int maxResultCount)
         {
 #pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8602 // 解引用可能出现空引用。
             var queryable = (await GetDbSetAsync())
                 .Include(x => x.ExecutionPointers)
                 .ThenInclude(x => x.WkCandidates)
@@ -204,6 +205,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(definitionIds != null, a => definitionIds.Any(d => d == a.WkDefinition.Id))
                 .WhereIf(instanceData != null && instanceData.Count > 0, a => instanceData.Any(d => d.Value != null && !string.IsNullOrEmpty(d.Value.ToString()) && d.Value.ToString().Contains(a.Data)))
                 .OrderByDescending(d => d.CreateTime);
+#pragma warning restore CS8602 // 解引用可能出现空引用。
 #pragma warning restore CS8604 // 引用类型参数可能为 null。
             return await queryable.OrderByDescending(d => d.CreationTime).PageBy(skipCount, maxResultCount).ToListAsync();
         }

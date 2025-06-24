@@ -23,11 +23,13 @@ namespace Hx.Workflow.Application.StepBodys
         /// <summary>
         /// 审核人
         /// </summary>
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public string Candidates { get; set; }
         /// <summary>
         /// 分支判断
         /// </summary>
         public string DecideBranching { get; set; }
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public async override Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException(message: $"Id为：{context.Workflow.Id}的实例不存在！");

@@ -10,18 +10,27 @@ using System.Linq;
 using Volo.Abp;
 using Volo.Abp.Application;
 using Volo.Abp.AutoMapper;
+using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Modularity;
 
 namespace Hx.Workflow.Application
 {
+    
     [DependsOn(typeof(AbpAutoMapperModule))]
     [DependsOn(typeof(HxWorkflowDomainModule))]
     [DependsOn(typeof(AbpDddApplicationModule))]
+    [DependsOn(typeof(AbpBackgroundJobsAbstractionsModule))]
     [DependsOn(typeof(HxWorkflowApplicationContractsModule))]
     public class HxWorkflowApplicationModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            // 配置后台作业选项
+            Configure<AbpBackgroundJobOptions>(options =>
+            {
+
+            });
+
             context.Services.AddAutoMapperObjectMapper<HxWorkflowApplicationModule>();
             Configure<AbpAutoMapperOptions>(options =>
             {
