@@ -158,7 +158,7 @@ namespace Hx.Workflow.Application
                 IsSign = !isSign,
                 IsProcessed = instance.Status == WorkflowStatus.Runnable
                 && pointer != null
-                && (pointer.Status == PointerStatus.Pending || pointer.Status == PointerStatus.Running),
+                && (pointer.Active || pointer.WkSubscriptions.Count == 0 || pointer.Status == PointerStatus.Pending || pointer.Status == PointerStatus.Running),
                 Data = businessData,
                 CurrentPointer = currentPointer,
             };
