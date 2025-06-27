@@ -61,7 +61,7 @@ namespace Hx.Workflow.Application
                                 Guid.NewGuid(),
                                 "DecideBranching",
                                 "DecideBranching",
-                                "审核人",
+                                "步骤分支",
                                 "data.DecideBranching",
                                 StepBodyParaType.Inputs),
                                 new WkStepBodyParam(

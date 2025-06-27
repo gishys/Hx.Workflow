@@ -36,7 +36,6 @@ namespace Hx.Workflow.Domain
             Inputs = inputs;
             TypeFullName = typeFullName;
             AssemblyFullName = assemblyFullName;
-            Inputs = [];
             ExtraProperties = [];
         }
         public Task UpdateInputs(ICollection<WkStepBodyParam>? wkParams)

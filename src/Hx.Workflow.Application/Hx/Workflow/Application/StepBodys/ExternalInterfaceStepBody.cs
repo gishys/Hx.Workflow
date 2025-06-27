@@ -40,15 +40,19 @@ namespace Hx.Workflow.Application.StepBodys
             var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException(message: $"Id为：{context.Workflow.Id}的实例不存在！");
             var dataDict = context.Workflow.Data as IDictionary<string, object> ?? throw new InvalidOperationException("Workflow.Data 必须为字典类型");
 
-            var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id)) ?? throw new UserFriendlyException(message: "未找到");
-            var step = (instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！")) ?? throw new UserFriendlyException(message: "未找到当前节点！");
+            var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id)) ?? throw new UserFriendlyException(message: $"获取Id为：{context.ExecutionPointer.Id}的节点失败！");
+            var step = (instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的模板节点！"));
             var nextStepC = step.NextNodes.FirstOrDefault(n => n.NodeType == WkRoleNodeType.Forward) ?? throw new UserFriendlyException(message: "未找到下一节点！");
             var nextStepName = nextStepC.NextNodeName;
-            var stepNext = (instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == nextStepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！")) ?? throw new UserFriendlyException(message: "未找到当前节点！");
-            if (stepNext.StepNodeType != StepNodeType.End)
+            var stepNext = (instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == nextStepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({nextStepName})的模板节点！"));
+            if (stepNext.StepNodeType != StepNodeType.End && stepNext.WkCandidates.Count > 0)
             {
                 var candidate = stepNext.WkCandidates.First();
                 NextCandidates = candidate.CandidateId.ToString();
+            }
+            else
+            {
+                NextCandidates = dataDict.TryGetValue("", out var candidateId) ? (candidateId?.ToString() ?? "") : "";
             }
             DecideBranching = nextStepName;
             if (step.StepNodeType != StepNodeType.End)
