@@ -16,7 +16,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    //[Authorize]
+    [Authorize]
     public class WkInstanceAppService(
         IWkInstanceRepository wkInstanceRepository,
         IWkErrorRepository errorRepository,
