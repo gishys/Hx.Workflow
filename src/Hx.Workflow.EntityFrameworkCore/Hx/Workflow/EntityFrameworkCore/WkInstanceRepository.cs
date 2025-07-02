@@ -50,6 +50,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             return await (await GetDbSetAsync())
                     .IncludeDetails(includeDetails)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(d => d.Id == id, cancellation);
         }
         public virtual async Task<WkExecutionPointer?> GetPointerAsync(Guid pointerId)

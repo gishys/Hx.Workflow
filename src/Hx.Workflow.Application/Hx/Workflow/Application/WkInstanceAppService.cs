@@ -16,7 +16,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WkInstanceAppService(
         IWkInstanceRepository wkInstanceRepository,
         IWkErrorRepository errorRepository,
@@ -40,8 +40,20 @@ namespace Hx.Workflow.Application
             var entity = await _wkInstanceRepository.FindAsync(workflowId, false);
             if (entity != null)
             {
-                await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(entity.Id, entity.Reference));
-                await _wkInstanceRepository.HardDeleteAsync([entity], true);
+                if (entity.Status == WorkflowStatus.Complete)
+                {
+                    throw new UserFriendlyException("已完成的实例无法删除");
+                }
+                var entityDetails = await _wkInstanceRepository.FindAsync(workflowId);
+                if (entityDetails != null)
+                    await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(
+                        entityDetails.Id,
+                        entityDetails.Reference,
+                        entityDetails.WkDefinition.Title,
+                        entityDetails.WkDefinition.BusinessType,
+                        entityDetails.WkDefinition.ProcessType
+                        ));
+                await _wkInstanceRepository.HardDeleteAsync(entity, true);
             }
         }
         /// <summary>
@@ -56,7 +68,19 @@ namespace Hx.Workflow.Application
                 var entity = await _wkInstanceRepository.FindAsync(id, false);
                 if (entity != null)
                 {
-                    await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(entity.Id, entity.Reference));
+                    if (entity.Status == WorkflowStatus.Complete)
+                    {
+                        throw new UserFriendlyException("已完成的实例无法删除");
+                    }
+                    var entityDetails = await _wkInstanceRepository.FindAsync(id);
+                    if (entityDetails != null)
+                        await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(
+                            entityDetails.Id,
+                            entityDetails.Reference,
+                            entityDetails.WkDefinition.Title,
+                            entityDetails.WkDefinition.BusinessType,
+                            entityDetails.WkDefinition.ProcessType
+                            ));
                     await _wkInstanceRepository.HardDeleteAsync([entity], true);
                 }
             }
