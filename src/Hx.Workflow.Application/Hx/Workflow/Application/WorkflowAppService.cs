@@ -20,7 +20,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WorkflowAppService(
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
