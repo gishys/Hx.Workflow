@@ -4,6 +4,7 @@ using Hx.Workflow.Domain.Stats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
@@ -62,5 +63,7 @@ namespace Hx.Workflow.Domain.Repositories
         Task<List<ProcessingStatusStat>> GetProcessingStatusStatListAsync(Guid transactorId);
         Task<List<ProcessTypeStat>> GetBusinessTypeListAsync();
         Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();
+        Task<WkInstance?> FindNoTrackAsync(
+    Guid id, bool includeDetails = true, CancellationToken cancellation = default);
     }
 }

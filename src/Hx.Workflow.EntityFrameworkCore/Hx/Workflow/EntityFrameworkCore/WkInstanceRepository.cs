@@ -50,6 +50,13 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             return await (await GetDbSetAsync())
                     .IncludeDetails(includeDetails)
+                    .FirstOrDefaultAsync(d => d.Id == id, cancellation);
+        }
+        public async Task<WkInstance?> FindNoTrackAsync(
+    Guid id, bool includeDetails = true, CancellationToken cancellation = default)
+        {
+            return await (await GetDbSetAsync())
+                    .IncludeDetails(includeDetails)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(d => d.Id == id, cancellation);
         }
