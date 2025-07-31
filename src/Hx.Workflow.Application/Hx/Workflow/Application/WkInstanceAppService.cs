@@ -44,7 +44,7 @@ namespace Hx.Workflow.Application
                 {
                     throw new UserFriendlyException("已完成的实例无法删除");
                 }
-                var entityDetails = await _wkInstanceRepository.FindAsync(workflowId);
+                var entityDetails = await _wkInstanceRepository.FindNoTrackAsync(workflowId, true);
                 if (entityDetails != null)
                     await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(
                         entityDetails.Id,
