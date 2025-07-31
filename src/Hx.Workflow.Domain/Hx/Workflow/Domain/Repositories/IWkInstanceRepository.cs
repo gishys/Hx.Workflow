@@ -26,6 +26,66 @@ namespace Hx.Workflow.Domain.Repositories
             MyWorkState? state,
             int skipCount,
             int maxResultCount);
+            
+        /// <summary>
+        /// 获取我的实例（支持版本控制）
+        /// </summary>
+        /// <param name="creatorIds">创建者ID列表</param>
+        /// <param name="definitionIds">模板ID列表</param>
+        /// <param name="definitionVersions">模板版本列表（可选，null表示所有版本）</param>
+        /// <param name="instanceData">实例数据</param>
+        /// <param name="ids">用户ID列表</param>
+        /// <param name="reference">引用</param>
+        /// <param name="state">状态</param>
+        /// <param name="skipCount">跳过数量</param>
+        /// <param name="maxResultCount">最大结果数量</param>
+        /// <returns></returns>
+        Task<List<WkInstance>> GetMyInstancesWithVersionAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            ICollection<int>? definitionVersions,
+            IDictionary<string, object>? instanceData,
+            ICollection<Guid> ids,
+            string? reference,
+            MyWorkState? state,
+            int skipCount,
+            int maxResultCount);
+            
+        /// <summary>
+        /// 获取我的实例数量（支持版本控制）
+        /// </summary>
+        /// <param name="creatorIds">创建者ID列表</param>
+        /// <param name="definitionIds">模板ID列表</param>
+        /// <param name="definitionVersions">模板版本列表（可选，null表示所有版本）</param>
+        /// <param name="instanceData">实例数据</param>
+        /// <param name="ids">用户ID列表</param>
+        /// <param name="reference">引用</param>
+        /// <param name="state">状态</param>
+        /// <returns></returns>
+        Task<int> GetMyInstancesCountWithVersionAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            ICollection<int>? definitionVersions,
+            IDictionary<string, object>? instanceData,
+            ICollection<Guid> ids,
+            string? reference,
+            MyWorkState? state);
+            
+        /// <summary>
+        /// 获取指定模板版本的实例
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        Task<List<WkInstance>> GetInstancesByDefinitionVersionAsync(Guid definitionId, int version);
+        
+        /// <summary>
+        /// 获取运行中的实例（按模板版本）
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        Task<List<WkInstance>> GetRunningInstancesByVersionAsync(Guid definitionId, int version);
         Task<int> GetMyInstancesCountAsync(
             ICollection<Guid>? creatorIds,
             ICollection<Guid>? definitionIds,

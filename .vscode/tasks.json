@@ -1,0 +1,102 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Hx.Workflow.Api.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "publish",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "publish",
+        "${workspaceFolder}/Hx.Workflow.Api.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "watch",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/src/Hx.Workflow.Api"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "${workspaceFolder}/Hx.Workflow.Api.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "clean",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "clean",
+        "${workspaceFolder}/Hx.Workflow.Api.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "restore",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "restore",
+        "${workspaceFolder}/Hx.Workflow.Api.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "ef-migrations-add",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "ef",
+        "migrations",
+        "add",
+        "MigrationName",
+        "--project",
+        "${workspaceFolder}/src/Hx.Workflow.EntityFrameworkCore"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "ef-database-update",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "ef",
+        "database",
+        "update",
+        "--project",
+        "${workspaceFolder}/src/Hx.Workflow.EntityFrameworkCore"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+} 

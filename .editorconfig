@@ -1,0 +1,42 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,csx,vb,vbx}]
+indent_style = space
+indent_size = 4
+
+[*.{json,js,jsx,ts,tsx,yml,yaml,xml,html,css,scss,less}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{cs,csx}]
+# 代码风格
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+# 命名约定
+dotnet_naming_rule.interface_should_be_prefixed_with_i.severity = warning
+dotnet_naming_rule.interface_should_be_prefixed_with_i.symbols = interface
+dotnet_naming_rule.interface_should_be_prefixed_with_i.style = prefix_interface_with_i
+
+dotnet_naming_symbols.interface.applicable_kinds = interface
+dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.interface.required_modifiers = 
+
+dotnet_naming_style.prefix_interface_with_i.required_prefix = I
+dotnet_naming_style.prefix_interface_with_i.required_suffix = 
+dotnet_naming_style.prefix_interface_with_i.word_separator = 
+dotnet_naming_style.prefix_interface_with_i.capitalization = pascal_case 

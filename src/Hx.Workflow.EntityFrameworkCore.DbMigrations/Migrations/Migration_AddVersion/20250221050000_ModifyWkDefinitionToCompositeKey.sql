@@ -1,0 +1,79 @@
+-- 修改HXWKDEFINITIONS表从单主键到复合主键的PostgreSQL迁移脚本
+-- 迁移时间：2025-02-21 05:00:00
+
+-- 注意：此脚本只负责修改主键，外键约束的重建请使用专门的脚本
+
+-- 1. 使用CASCADE删除主键约束（这会同时删除所有依赖的外键约束）
+ALTER TABLE "HXWKDEFINITIONS" DROP CONSTRAINT IF EXISTS "PK_WKDEFINITION" CASCADE;
+
+-- 2. 确保VERSION列存在，如果不存在则添加
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'HXWKDEFINITIONS' 
+        AND column_name = 'VERSION'
+    ) THEN
+        ALTER TABLE "HXWKDEFINITIONS" ADD COLUMN "VERSION" INTEGER NOT NULL DEFAULT 1;
+    END IF;
+END $$;
+
+-- 3. 为现有记录设置默认版本号（如果VERSION列为空或为0）
+UPDATE "HXWKDEFINITIONS" SET "VERSION" = 1 WHERE "VERSION" IS NULL OR "VERSION" = 0;
+
+-- 4. 添加非空约束
+ALTER TABLE "HXWKDEFINITIONS" ALTER COLUMN "VERSION" SET NOT NULL;
+
+-- 5. 创建复合主键
+ALTER TABLE "HXWKDEFINITIONS" ADD CONSTRAINT "PK_WKDEFINITION" PRIMARY KEY ("ID", "VERSION");
+
+-- 6. 创建唯一索引（确保ID和VERSION的组合唯一）
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_HXWKDEFINITIONS_ID_VERSION" ON "HXWKDEFINITIONS" ("ID", "VERSION");
+
+-- 7. 创建普通索引（用于按ID查询）
+CREATE INDEX IF NOT EXISTS "IX_HXWKDEFINITIONS_ID" ON "HXWKDEFINITIONS" ("ID");
+
+-- 8. 创建版本索引（用于按版本查询）
+CREATE INDEX IF NOT EXISTS "IX_HXWKDEFINITIONS_VERSION" ON "HXWKDEFINITIONS" ("VERSION");
+
+-- 9. 添加检查约束（确保版本号大于0）
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_name = 'HXWKDEFINITIONS' 
+        AND constraint_name = 'CK_HXWKDEFINITIONS_VERSION_POSITIVE'
+        AND constraint_type = 'CHECK'
+    ) THEN
+        ALTER TABLE "HXWKDEFINITIONS" ADD CONSTRAINT "CK_HXWKDEFINITIONS_VERSION_POSITIVE" CHECK ("VERSION" > 0);
+    END IF;
+END $$;
+
+-- 10. 添加注释
+COMMENT ON COLUMN "HXWKDEFINITIONS"."ID" IS '模板ID（所有版本共享）';
+COMMENT ON COLUMN "HXWKDEFINITIONS"."VERSION" IS '版本号';
+COMMENT ON CONSTRAINT "PK_WKDEFINITION" ON "HXWKDEFINITIONS" IS '复合主键：模板ID + 版本号';
+
+-- 11. 验证迁移结果
+DO $$
+BEGIN
+    -- 检查主键是否存在
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE table_name = 'HXWKDEFINITIONS' 
+        AND constraint_name = 'PK_WKDEFINITION'
+        AND constraint_type = 'PRIMARY KEY'
+    ) THEN
+        RAISE EXCEPTION '复合主键创建失败';
+    END IF;
+    
+    -- 检查VERSION列是否存在且不为空
+    IF EXISTS (
+        SELECT 1 FROM "HXWKDEFINITIONS" WHERE "VERSION" IS NULL OR "VERSION" <= 0
+    ) THEN
+        RAISE EXCEPTION '存在VERSION为空或小于等于0的记录';
+    END IF;
+    
+    RAISE NOTICE 'HXWKDEFINITIONS表复合主键迁移完成';
+    RAISE NOTICE '注意：请执行20250221050000_ManageForeignKeysForVersionControl.sql脚本来重建外键约束';
+END $$; 

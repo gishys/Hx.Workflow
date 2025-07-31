@@ -156,6 +156,104 @@ namespace Hx.Workflow.Application
             return new PagedResultDto<WkProcessInstanceDto>(count, result);
         }
         /// <summary>
+        /// 查询我的办理件（支持版本控制）
+        /// </summary>
+        /// <param name="creatorIds">创建者ID列表</param>
+        /// <param name="definitionIds">模板ID列表</param>
+        /// <param name="definitionVersions">模板版本列表（可选，null表示所有版本）</param>
+        /// <param name="instanceData">实例数据</param>
+        /// <param name="status">状态</param>
+        /// <param name="reference">引用</param>
+        /// <param name="userIds">用户ID列表</param>
+        /// <param name="queryType">查询类型</param>
+        /// <param name="skipCount">跳过数量</param>
+        /// <param name="maxResultCount">最大结果数量</param>
+        /// <returns></returns>
+        public virtual async Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceWithVersionAsync(
+            ICollection<Guid>? creatorIds = null,
+            ICollection<Guid>? definitionIds = null,
+            ICollection<int>? definitionVersions = null,
+            IDictionary<string, object>? instanceData = null,
+            MyWorkState? status = null,
+            string? reference = null,
+            ICollection<Guid>? userIds = null,
+            string? queryType = null,
+            int skipCount = 0,
+            int maxResultCount = 20)
+        {
+            var canGetAll = _authorizationService != null ? await _authorizationService.AuthorizeAsync("Workflow.Instance.List") : null;
+            if ((userIds == null || userIds.Count == 0) && CurrentUser.Id.HasValue)
+            {
+                userIds = [CurrentUser.Id.Value];
+            }
+            if (canGetAll != null && canGetAll.Succeeded && queryType == "all")
+            {
+                userIds = null;
+            }
+            Logger.LogInformation($"Name:{CurrentUser.Name}");
+            
+            List<WkProcessInstanceDto> result = [];
+            var instances = await _wkInstanceRepository.GetMyInstancesWithVersionAsync(
+                creatorIds,
+                definitionIds,
+                definitionVersions,
+                instanceData,
+                userIds ?? [],
+                reference,
+                status,
+                skipCount,
+                maxResultCount);
+            var count = await _wkInstanceRepository.GetMyInstancesCountWithVersionAsync(
+                creatorIds,
+                definitionIds,
+                definitionVersions,
+                instanceData,
+                userIds ?? [],
+                reference, status);
+            foreach (var instance in instances)
+            {
+                var processInstance = instance.ToProcessInstanceDto(userIds ?? []);
+                result.Add(processInstance);
+            }
+            return new PagedResultDto<WkProcessInstanceDto>(count, result);
+        }
+        
+        /// <summary>
+        /// 获取指定模板版本的实例
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        public virtual async Task<List<WkProcessInstanceDto>> GetInstancesByDefinitionVersionAsync(Guid definitionId, int version)
+        {
+            var instances = await _wkInstanceRepository.GetInstancesByDefinitionVersionAsync(definitionId, version);
+            var result = new List<WkProcessInstanceDto>();
+            foreach (var instance in instances)
+            {
+                var processInstance = instance.ToProcessInstanceDto([]);
+                result.Add(processInstance);
+            }
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取运行中的实例（按模板版本）
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        public virtual async Task<List<WkProcessInstanceDto>> GetRunningInstancesByVersionAsync(Guid definitionId, int version)
+        {
+            var instances = await _wkInstanceRepository.GetRunningInstancesByVersionAsync(definitionId, version);
+            var result = new List<WkProcessInstanceDto>();
+            foreach (var instance in instances)
+            {
+                var processInstance = instance.ToProcessInstanceDto([]);
+                result.Add(processInstance);
+            }
+            return result;
+        }
+        /// <summary>
         /// 通过业务编号获得实例详细信息
         /// </summary>
         /// <param name="reference"></param>

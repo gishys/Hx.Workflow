@@ -5,7 +5,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkStepBodyParamDto
     {
-        public required Guid WkNodeId { get; set; }
+        public required Guid WkStepBodyId { get; set; }
         public required string Key { get; set; }
         public required StepBodyParaType StepBodyParaType { get; set; }
         public required string Name { get; set; }

@@ -1,0 +1,38 @@
+{
+  "dotnet.defaultSolution": "Hx.Workflow.Api.sln",
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vs": true,
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/node_modules": true
+  },
+  "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.enableEditorConfigSupport": true,
+  "csharp.format.enable": true,
+  "csharp.semanticHighlighting.enabled": true,
+  "csharp.suppressDotnetRestoreNotification": true,
+  "csharp.suppressProjectJsonNotification": true,
+  "csharp.suppressBuildAssetsNotification": true,
+  "csharp.suppressFolderNotification": true,
+  "files.associations": {
+    "*.csproj": "xml",
+    "*.csproj.user": "xml",
+    "*.sln": "xml"
+  },
+  "emmet.includeLanguages": {
+    "razor": "html",
+    "aspnetcorerazor": "html"
+  },
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  }
+} 

@@ -45,6 +45,64 @@ namespace Hx.Workflow.HttpApi
                 skipCount,
                 maxResultCount);
         }
+        
+        /// <summary>
+        /// 查询我的办理件（支持版本控制）
+        /// </summary>
+        /// <param name="input">查询输入</param>
+        /// <param name="status">状态</param>
+        /// <param name="reference">引用</param>
+        /// <param name="queryType">查询类型</param>
+        /// <param name="skipCount">跳过数量</param>
+        /// <param name="maxResultCount">最大结果数量</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/mywkinstances/version")]
+        public Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceWithVersionAsync(
+            WkGetMyInstancesInput? input = null,
+            MyWorkState? status = null,
+            string? reference = null,
+            string? queryType = null,
+            int skipCount = 0,
+            int maxResultCount = 20)
+        {
+            return _workflowAppService.GetMyWkInstanceWithVersionAsync(
+                input?.CreatorIds,
+                input?.DefinitionIds,
+                input?.DefinitionVersions,
+                input?.InstanceData,
+                status, reference,
+                input?.userIds,
+                queryType,
+                skipCount,
+                maxResultCount);
+        }
+        
+        /// <summary>
+        /// 获取指定模板版本的实例
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/instances/by-version")]
+        public Task<List<WkProcessInstanceDto>> GetInstancesByDefinitionVersionAsync(Guid definitionId, int version)
+        {
+            return _workflowAppService.GetInstancesByDefinitionVersionAsync(definitionId, version);
+        }
+        
+        /// <summary>
+        /// 获取运行中的实例（按模板版本）
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("workflow/instances/running-by-version")]
+        public Task<List<WkProcessInstanceDto>> GetRunningInstancesByVersionAsync(Guid definitionId, int version)
+        {
+            return _workflowAppService.GetRunningInstancesByVersionAsync(definitionId, version);
+        }
         [HttpGet]
         [Route("workflow/candidate/{wkInstanceId}")]
         public Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId)

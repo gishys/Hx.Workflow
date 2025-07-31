@@ -66,8 +66,7 @@ namespace Hx.Workflow.Domain.Persistence
             PointerStatus status,
             string? scope,
             DateTime? commitmentDeadline,
-            Guid? tenantId = null
-            )
+            Guid? tenantId = null)
         {
             StepId = stepId;
             Active = active;
@@ -92,7 +91,6 @@ namespace Hx.Workflow.Domain.Persistence
             ExtensionAttributes = [];
             WkCandidates = [];
             WkSubscriptions = [];
-
         }
         public Task SetStepId(int stepId)
         {

@@ -20,6 +20,48 @@ namespace Hx.Workflow.Application.Contracts
             string? queryType = null,
             int skipCount = 0,
             int maxResultCount = 20);
+            
+        /// <summary>
+        /// 查询我的办理件（支持版本控制）
+        /// </summary>
+        /// <param name="creatorIds">创建者ID列表</param>
+        /// <param name="definitionIds">模板ID列表</param>
+        /// <param name="definitionVersions">模板版本列表（可选，null表示所有版本）</param>
+        /// <param name="instanceData">实例数据</param>
+        /// <param name="status">状态</param>
+        /// <param name="reference">引用</param>
+        /// <param name="userIds">用户ID列表</param>
+        /// <param name="queryType">查询类型</param>
+        /// <param name="skipCount">跳过数量</param>
+        /// <param name="maxResultCount">最大结果数量</param>
+        /// <returns></returns>
+        Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceWithVersionAsync(
+            ICollection<Guid>? creatorIds = null,
+            ICollection<Guid>? definitionIds = null,
+            ICollection<int>? definitionVersions = null,
+            IDictionary<string, object>? instanceData = null,
+            MyWorkState? status = null,
+            string? reference = null,
+            ICollection<Guid>? userIds = null,
+            string? queryType = null,
+            int skipCount = 0,
+            int maxResultCount = 20);
+            
+        /// <summary>
+        /// 获取指定模板版本的实例
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        Task<List<WkProcessInstanceDto>> GetInstancesByDefinitionVersionAsync(Guid definitionId, int version);
+        
+        /// <summary>
+        /// 获取运行中的实例（按模板版本）
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns></returns>
+        Task<List<WkProcessInstanceDto>> GetRunningInstancesByVersionAsync(Guid definitionId, int version);
         Task<ICollection<WkCandidateDto>> GetCandidatesAsync(Guid wkInstanceId);
         /// <summary>
         /// 获取可创建的模板（赋予权限）

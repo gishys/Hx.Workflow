@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain;
+using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
@@ -59,7 +59,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             {
                 t.ConfigureFullAuditedAggregateRoot();
                 t.ToTable(model.TablePrefix + "WKDEFINITIONS", model.Schema, tb => { tb.HasComment("工作流定义"); });
-                t.HasKey(p => p.Id).HasName("PK_WKDEFINITION");
+                // 使用复合主键支持版本控制
+                t.HasKey("Id", "Version").HasName("PK_WKDEFINITION");
                 t.Property(p => p.Id).HasColumnName("ID").HasComment("主键");
                 t.Property(p => p.Version).HasColumnName("VERSION").HasComment("版本号").HasPrecision(9);
                 t.Property(p => p.Title).HasColumnName("TITLE").HasMaxLength(WkDefinitionConsts.MaxTitle).HasComment("标题");
@@ -85,22 +86,23 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.HasMany(d => d.Nodes)
                 .WithOne(d => d.WkDefinition)
-                .HasForeignKey(d => d.WkDefinitionId)
-                .HasConstraintName("Pk_WkDef_WkNode")
+                .HasForeignKey(d => new { d.WkDefinitionId, d.Version })
+                .HasConstraintName("FK_WKNODES_WKDEFINITION_COMPOSITE")
                 .OnDelete(DeleteBehavior.Cascade);
 
                 t.HasMany(d => d.WkCandidates)
                 .WithOne()
-                .HasForeignKey(d => d.NodeId)
-                .HasConstraintName("Pk_WkDef_Candidate")
+                .HasForeignKey(d => new { d.NodeId, d.Version })
+                .HasConstraintName("FK_DEFINITION_CANDIDATES_WKDEFINITION_COMPOSITE")
                 .OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<DefinitionCandidate>(d =>
             {
                 d.ToTable(model.TablePrefix + "DEFINITION_CANDIDATES", model.Schema, tb => { tb.HasComment("流程模板候选人"); });
-                d.HasKey(d => new { d.NodeId, d.CandidateId });
+                d.HasKey("NodeId", "CandidateId", "Version");
                 d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
                 d.Property(d => d.NodeId).HasColumnName("NODEID");
+                d.Property(d => d.Version).HasColumnName("VERSION");
                 d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
                 d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
                 d.Property(d => d.ExecutorType).HasColumnName("EXECUTORTYPE");
@@ -141,6 +143,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             {
                 t.ConfigureExtraProperties();
                 t.ToTable(model.TablePrefix + "WKNODES", model.Schema, tb => { tb.HasComment("执行节点"); });
+                // 使用复合主键支持版本控制
+                t.HasKey(p => new { p.Id, p.Version }).HasName("PK_WKNODES");
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkStepBodyId).HasColumnName("WKSTEPBODYID");
                 t.Property(d => d.WkDefinitionId).HasColumnName("WKDIFINITIONID");
@@ -161,14 +165,14 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.HasMany(d => d.WkCandidates)
                 .WithOne()
-                .HasForeignKey(d => d.NodeId)
-                .HasConstraintName("Pk_WkNode_Candidate")
+                .HasForeignKey(d => new { d.NodeId, d.Version })
+                .HasConstraintName("FK_NODE_CANDIDATES_WKNODE_COMPOSITE")
                 .OnDelete(DeleteBehavior.Cascade);
 
                 t.HasMany(d => d.OutcomeSteps)
                 .WithOne()
-                .HasForeignKey(d => d.WkNodeId)
-                .HasConstraintName("Pk_WkNode_OutcomeSteps")
+                .HasForeignKey(d => new { d.WkNodeId, d.Version })
+                .HasConstraintName("FK_WKNODEPARAS_WKNODE_COMPOSITE")
                 .OnDelete(DeleteBehavior.Cascade);
 
                 t.OwnsMany(p => p.Params, param =>
@@ -195,11 +199,12 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkNode_ApplicationForms>(d =>
             {
                 d.ToTable(model.TablePrefix + "_NODES_APPLICATION_FORMS", model.Schema, tb => { tb.HasComment("节点表单关联表"); });
-                d.HasKey(d => new { d.NodeId, d.ApplicationId });
+                d.HasKey(d => new { d.NodeId, d.ApplicationId, d.Version });
                 d.Property(d => d.ApplicationId).HasColumnName("APPLICATION_ID");
                 d.Property(d => d.NodeId).HasColumnName("NODE_ID");
                 d.Property(d => d.SequenceNumber).HasColumnName("SEQUENCENUMBER");
-                d.HasOne<WkNode>().WithMany(d => d.ApplicationForms).HasForeignKey(d => d.NodeId).HasConstraintName("NODE_FKEY");
+                d.Property(d => d.Version).HasColumnName("VERSION");
+                d.HasOne<WkNode>().WithMany(d => d.ApplicationForms).HasForeignKey(d => new { d.NodeId, d.Version }).HasConstraintName("FK_NODES_APPLICATION_FORMS_WKNODE_COMPOSITE");
                 d.HasOne(d => d.ApplicationForm).WithMany().HasForeignKey(d => d.ApplicationId).HasConstraintName("APLLICATION_FKEY");
 
                 d.OwnsMany(p => p.Params, param =>
@@ -210,9 +215,10 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkNodeCandidate>(d =>
             {
                 d.ToTable(model.TablePrefix + "NODE_CANDIDATES", model.Schema, tb => { tb.HasComment("流程模板候选人"); });
-                d.HasKey(d => new { d.NodeId, d.CandidateId });
+                d.HasKey(d => new { d.NodeId, d.CandidateId, d.Version });
                 d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
                 d.Property(d => d.NodeId).HasColumnName("NODEID");
+                d.Property(d => d.Version).HasColumnName("VERSION");
                 d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
                 d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
                 d.Property(d => d.ExecutorType).HasColumnName("EXECUTORTYPE");
@@ -221,8 +227,10 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkNodePara>(d =>
             {
                 d.ToTable(model.TablePrefix + "WKNODEPARAS", model.Schema, tb => { tb.HasComment("步骤参数"); });
+                d.HasKey(p => p.Id).HasName("PK_WKNODEPARAS");
                 d.Property(d => d.Id).HasColumnName("ID");
                 d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
+                d.Property(d => d.Version).HasColumnName("VERSION");
                 d.Property(d => d.Key).HasColumnName("KEY").HasMaxLength(WkNodeParaConsts.MaxKey);
                 d.Property(d => d.Value).HasColumnName("VALUE").HasMaxLength(WkNodeParaConsts.MaxValue);
             });
@@ -305,14 +313,17 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.HasMany(d => d.Inputs)
                 .WithOne()
-                .HasForeignKey(d => d.WkNodeId)
-                .HasConstraintName("Pk_WkStepBody_WkParam")
+                .HasForeignKey(d => d.WkStepBodyId)
+                .HasConstraintName("FK_WKSTEPBODYPARAMS_WKSTEPBODY")
                 .OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<WkStepBodyParam>(t =>
             {
                 t.ToTable(model.TablePrefix + "WKSTEPBODYPARAMS", model.Schema, tb => { tb.HasComment("节点参数"); });
+                t.HasKey(p => p.Id).HasName("PK_WKSTEPBODYPARAMS");
                 t.Property(d => d.Id).HasColumnName("ID");
+                t.Property(d => d.WkStepBodyId).HasColumnName("WKSTEPBODYID");
+                t.Property(d => d.StepBodyParaType).HasColumnName("STEPBODYPARATYPE");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(WkParamConsts.MaxName);
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkParamConsts.MaxDisplay);
                 t.Property(d => d.Key).HasColumnName("KEY").HasMaxLength(WkParamConsts.MaxKey);
@@ -355,6 +366,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             {
                 t.ConfigureByConvention();
                 t.ToTable(model.TablePrefix + "WKEXECUTIONPOINTER", model.Schema, tb => { tb.HasComment("执行节点实例"); });
+                // 恢复为单一主键，不需要版本控制
+                t.HasKey(p => p.Id).HasName("PK_WKEXECUTIONPOINTER");
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkInstanceId).HasColumnName("WKINSTANCEID");
                 t.Property(d => d.StepId).HasColumnName("STEPID");
@@ -397,7 +410,7 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.OwnsMany(p => p.Materials, param =>
                 {
-                    param.ToJson();
+                    param.ToJson("MATERIALS");
                     param.OwnsMany(d => d.Children, cparam =>
                     {
                         cparam.ToJson();
@@ -413,7 +426,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.HasMany(d => d.WkCandidates)
                 .WithOne()
                 .HasForeignKey(d => d.NodeId)
-                .HasConstraintName("Pk_Pointer_Candidate")
+                .HasConstraintName("FK_POINTER_CANDIDATES_EXECUTIONPOINTER")
                 .OnDelete(DeleteBehavior.Cascade);
 
                 t.HasMany(d => d.WkSubscriptions)
@@ -465,8 +478,8 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.HasOne(d => d.WkDefinition)
                 .WithMany()
-                .HasForeignKey(d => d.WkDifinitionId)
-                .HasConstraintName("FK_INSTANCE_DEFINITION");
+                .HasForeignKey(d => new { d.WkDifinitionId, d.Version })
+                .HasConstraintName("FK_WKINSTANCES_WKDEFINITION_COMPOSITE");
 
                 t.HasMany(d => d.ExecutionPointers)
                 .WithOne(d => d.WkInstance)

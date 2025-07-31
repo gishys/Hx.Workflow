@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Hx.Workflow.Domain
 {
-    public class ExePointerCandidate : Candidate
+    public class ExePointerCandidate : CandidateWithoutVersion
     {
         public ExePointerCandidate()
         { }

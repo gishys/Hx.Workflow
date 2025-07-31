@@ -6,7 +6,7 @@ namespace Hx.Workflow.Domain
 {
     public class WkStepBodyParam : Entity<Guid>, IHxKeyValueConvert
     {
-        public Guid WkNodeId { get; protected set; }
+        public Guid WkStepBodyId { get; protected set; }
         public string Key { get; protected set; }
         public StepBodyParaType StepBodyParaType { get; protected set; }
         public string Name { get; protected set; }
@@ -14,6 +14,7 @@ namespace Hx.Workflow.Domain
         public string Value { get; protected set; }
         public WkStepBodyParam(
             Guid id,
+            Guid wkStepBodyId,
             string key,
             string name,
             string displayName,
@@ -21,6 +22,7 @@ namespace Hx.Workflow.Domain
             StepBodyParaType stepBodyParaType)
         {
             Id = id;
+            WkStepBodyId = wkStepBodyId;
             Key = key;
             Name = name;
             DisplayName = displayName;

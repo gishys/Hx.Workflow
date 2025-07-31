@@ -20,27 +20,38 @@ namespace Hx.Workflow.Application
 
         public virtual async Task CreateAsync(WkSepBodyCreateDto input)
         {
-            var bodyParams = input.Inputs?.Select(d =>
-            new WkStepBodyParam(
-                GuidGenerator.Create(),
-                d.Key,
-                d.Name,
-                d.DisplayName,
-                d.Value,
-                d.StepBodyParaType)).ToList();
             var entity = await _wkStepBody.GetStepBodyAsync(input.Name);
             if (entity != null)
                 throw new UserFriendlyException(message: "已存在相同名称的StepBody!");
+            
             entity = new WkStepBody(
                     input.Name,
                     input.DisplayName,
                     input.Data,
-                    bodyParams ?? [],
+                    [], // 先创建空的Inputs集合
                     input.TypeFullName,
                     input.AssemblyFullName);
+            
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _wkStepBody.InsertAsync(entity);
+            
+            // 保存后，为Inputs设置正确的WkStepBodyId
+            if (input.Inputs != null)
+            {
+                var bodyParams = input.Inputs.Select(d =>
+                new WkStepBodyParam(
+                    GuidGenerator.Create(),
+                    entity.Id, // 使用已保存的entity的Id
+                    d.Key,
+                    d.Name,
+                    d.DisplayName,
+                    d.Value,
+                    d.StepBodyParaType)).ToList();
+                
+                await entity.UpdateInputs(bodyParams);
+                await _wkStepBody.UpdateAsync(entity);
+            }
         }
         public virtual async Task DeleteAsync(Guid id)
         {
@@ -65,15 +76,21 @@ namespace Hx.Workflow.Application
             await entity.SetData(input.Data);
             await entity.SetTypeFullName(input.TypeFullName);
             await entity.SetAssemblyFullName(input.AssemblyFullName);
-            var bodyParams = input.Inputs?.Select(d =>
-            new WkStepBodyParam(
-                GuidGenerator.Create(),
-                d.Key,
-                d.Name,
-                d.DisplayName,
-                d.Value,
-                d.StepBodyParaType)).ToList();
-            await entity.UpdateInputs(bodyParams);
+            
+            if (input.Inputs != null)
+            {
+                var bodyParams = input.Inputs.Select(d =>
+                new WkStepBodyParam(
+                    GuidGenerator.Create(),
+                    entity.Id, // 使用entity的Id作为WkStepBodyId
+                    d.Key,
+                    d.Name,
+                    d.DisplayName,
+                    d.Value,
+                    d.StepBodyParaType)).ToList();
+                await entity.UpdateInputs(bodyParams);
+            }
+            
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
             await _wkStepBody.UpdateAsync(entity);

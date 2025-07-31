@@ -14,8 +14,9 @@ namespace Hx.Workflow.Domain
             string userName,
             string displayUserName,
             WkParticipantType executorType,
-            bool defaultSelection = false)
-            : base(candidateId, userName, displayUserName, executorType, defaultSelection)
+            bool defaultSelection = false,
+            int version = 1)
+            : base(candidateId, userName, displayUserName, executorType, defaultSelection, version)
         {
         }
     }

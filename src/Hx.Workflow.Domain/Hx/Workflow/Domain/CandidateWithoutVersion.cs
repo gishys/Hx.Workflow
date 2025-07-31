@@ -1,30 +1,28 @@
-﻿using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Shared;
 using System;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Domain
 {
-    public class Candidate : Entity
+    public class CandidateWithoutVersion : Entity
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
-        public Candidate()
+        public CandidateWithoutVersion()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         { }
-        public Candidate(
+        public CandidateWithoutVersion(
             Guid candidateId,
             string userName,
             string displayUserName,
             WkParticipantType executorType,
-            bool defaultSelection = false,
-            int version = 1)
+            bool defaultSelection = false)
         {
             CandidateId = candidateId;
             UserName = userName;
             DisplayUserName = displayUserName;
             ExecutorType = executorType;
             DefaultSelection = defaultSelection;
-            Version = version;
         }
         public virtual Guid NodeId { get; protected set; }
         public virtual Guid CandidateId { get; protected set; }
@@ -35,13 +33,10 @@ namespace Hx.Workflow.Domain
         /// 执行者类型
         /// </summary>
         public virtual WkParticipantType ExecutorType { get; protected set; }
-        /// <summary>
-        /// 版本号
-        /// </summary>
-        public virtual int Version { get; protected set; }
+        
         public override object[] GetKeys()
         {
-            return [NodeId, CandidateId, Version];
+            return [NodeId, CandidateId];
         }
         public Task SetNodeId(Guid nodeId)
         {
@@ -68,10 +63,5 @@ namespace Hx.Workflow.Domain
             DefaultSelection = selection;
             return Task.CompletedTask;
         }
-        public Task SetVersion(int version)
-        {
-            Version = version;
-            return Task.CompletedTask;
-        }
     }
-}
+} 

@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
@@ -10,8 +10,9 @@ using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Domain
 {
-    public class WkNode : Entity<Guid>, IHasExtraProperties
+    public class WkNode : Entity, IHasExtraProperties
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 步骤体Id
         /// </summary>
@@ -136,6 +137,11 @@ namespace Hx.Workflow.Domain
             StepBody = stepBody;
             return Task.CompletedTask;
         }
+        public Task SetDefinitionId(Guid definitionId)
+        {
+            WkDefinitionId = definitionId;
+            return Task.CompletedTask;
+        }
         public Task AddNextNode(WkNodeRelation node)
         {
             NextNodes.Add(node);
@@ -190,6 +196,10 @@ namespace Hx.Workflow.Domain
             {
                 NextNodes.Remove(removedNode);
             }
+        }
+        public override object[] GetKeys()
+        {
+            return [Id, Version];
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.JsonDefinition;
+using Hx.Workflow.Domain.JsonDefinition;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
@@ -119,7 +119,23 @@ namespace Hx.Workflow.Domain
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public virtual async Task UpdateAsync(WkDefinition entity)
+        public virtual Task UpdateAsync(WkDefinition entity)
+        {
+            // 对于新版本，直接注册到工作流引擎
+            if (_registry.IsRegistered(entity.Id.ToString(), entity.Version))
+            {
+                _registry.DeregisterWorkflow(entity.Id.ToString(), entity.Version);
+            }
+            LoadDefinitionByJson(entity);
+            return Task.CompletedTask;
+        }
+        
+        /// <summary>
+        /// 更新现有版本
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public virtual async Task UpdateExistingVersionAsync(WkDefinition entity)
         {
             var wkDefinitionSource = await _wkDefinitionRespository.UpdateAsync(entity);
             if (_registry.IsRegistered(entity.Id.ToString(), entity.Version))
@@ -234,7 +250,7 @@ namespace Hx.Workflow.Domain
                             List<string> exps = [];
                             foreach (var cond in nextName.Rules)
                             {
-                                if ((!decimal.TryParse(cond.Value, out decimal tempValue)) && cond.Value is string)
+                                if ((!decimal.TryParse(cond.Value, out decimal tempValue)) && cond.Value is not null)
                                 {
                                     if (cond.Operator != "==" && cond.Operator != "!=")
                                     {

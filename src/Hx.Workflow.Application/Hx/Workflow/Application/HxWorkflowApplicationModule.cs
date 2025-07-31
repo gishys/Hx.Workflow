@@ -49,9 +49,15 @@ namespace Hx.Workflow.Application
                     continue;
                 if (!await stepbodyRespository.AnyAsync(stepbody.TypeFullName))
                 {
+                    var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, null, [], stepbody.TypeFullName, stepbody.AssemblyFullName);
+                    
+                    // 先保存WkStepBody，然后创建参数
+                    await stepbodyRespository.InsertAsync(s);
+                    
                     List<WkStepBodyParam> ps = [
                         new WkStepBodyParam(
                                 Guid.NewGuid(),
+                                s.Id, // 使用已保存的WkStepBody的Id
                                 "Candidates",
                                 "Candidates",
                                 "审核人",
@@ -59,6 +65,7 @@ namespace Hx.Workflow.Application
                                 StepBodyParaType.Inputs),
                                new WkStepBodyParam(
                                 Guid.NewGuid(),
+                                s.Id, // 使用已保存的WkStepBody的Id
                                 "DecideBranching",
                                 "DecideBranching",
                                 "步骤分支",
@@ -66,6 +73,7 @@ namespace Hx.Workflow.Application
                                 StepBodyParaType.Inputs),
                                 new WkStepBodyParam(
                                 Guid.NewGuid(),
+                                s.Id, // 使用已保存的WkStepBody的Id
                                 "DecideBranching",
                                 "DecideBranching",
                                 "步骤分支",
@@ -73,21 +81,23 @@ namespace Hx.Workflow.Application
                                 StepBodyParaType.Outputs),
                                 new WkStepBodyParam(
                                 Guid.NewGuid(),
+                                s.Id, // 使用已保存的WkStepBody的Id
                                 "Candidates",
                                 "Candidates",
                                 "下一步骤审核人",
                                 "step.NextCandidates",
                                 StepBodyParaType.Outputs),
                 ];
-                    var s = new WkStepBody(stepbody.Name, stepbody.DisplayName, null, ps, stepbody.TypeFullName, stepbody.AssemblyFullName);
+                    
+                    await s.UpdateInputs(ps);
+                    await stepbodyRespository.UpdateAsync(s);
+                    
                     if (!sList.Any(d => d.Name == s.Name))
                         sList.Add(s);
                 }
             }
-            if (sList.Count > 0)
-            {
-                await stepbodyRespository.InsertManyAsync(sList);
-            }
+            // 注意：我们已经在上面的循环中单独插入了每个WkStepBody
+            // 所以这里不需要批量插入
         }
     }
 }

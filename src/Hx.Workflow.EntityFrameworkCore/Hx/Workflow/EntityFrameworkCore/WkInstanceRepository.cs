@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain;
+using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
@@ -21,15 +21,11 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public partial class WkInstanceRepository
-        : EfCoreRepository<WkDbContext, WkInstance, Guid>,
+    public partial class WkInstanceRepository(
+        IDbContextProvider<WkDbContext> options)
+                : EfCoreRepository<WkDbContext, WkInstance, Guid>(options),
         IWkInstanceRepository
     {
-        public WkInstanceRepository(
-            IDbContextProvider<WkDbContext> options)
-            : base(options)
-        {
-        }
         public virtual async Task<List<WkInstance>> GetInstancesAsync(string difinitionId, int version)
         {
             return await (await GetDbSetAsync())
@@ -219,6 +215,7 @@ namespace Hx.Workflow.EntityFrameworkCore
             MyWorkState? state)
         {
 #pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8602 // 解引用可能出现空引用。
             var queryable = (await GetDbSetAsync())
                 .WhereIf(state == MyWorkState.BeingProcessed, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
@@ -246,6 +243,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(creatorIds != null, a => creatorIds.Any(c => c == a.CreatorId))
                 .WhereIf(definitionIds != null, a => definitionIds.Any(d => d == a.WkDefinition.Id))
                 .WhereIf(instanceData != null && instanceData.Count > 0, a => instanceData.Any(d => d.Value != null && !string.IsNullOrEmpty(d.Value.ToString()) && d.Value.ToString().Contains(a.Data)));
+#pragma warning restore CS8602 // 解引用可能出现空引用。
 #pragma warning restore CS8604 // 引用类型参数可能为 null。
             return await queryable.CountAsync();
         }
@@ -273,7 +271,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 var currentPointer = instance.ExecutionPointers.First(d => d.Status != PointerStatus.Complete);
                 return currentPointer.WkCandidates;
             }
-            return new Collection<ExePointerCandidate>();
+            return [];
         }
         public virtual async Task<WkInstance> UpdateCandidateAsync(
             Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExePersonnelOperateType type)
@@ -395,6 +393,150 @@ namespace Hx.Workflow.EntityFrameworkCore
                 await instance.SetData(JsonSerializer.Serialize(instanceData.ConcatenateAndReplace(data)));
                 await UpdateAsync(instance);
             }
+        }
+
+        public virtual async Task<List<WkInstance>> GetMyInstancesWithVersionAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            ICollection<int>? definitionVersions,
+            IDictionary<string, object>? instanceData,
+            ICollection<Guid> ids,
+            string? reference,
+            MyWorkState? state,
+            int skipCount,
+            int maxResultCount)
+        {
+            var queryable = (await GetDbSetAsync())
+                .Include(x => x.ExecutionPointers)
+                .ThenInclude(x => x.WkCandidates)
+                .Include(x => x.ExecutionPointers)
+                .ThenInclude(x => x.WkSubscriptions)
+                .Include(x => x.WkDefinition)
+                .ThenInclude(x => x.Nodes)
+                .ThenInclude(x => x.WkCandidates)
+                .Include(x => x.WkDefinition)
+                .ThenInclude(x => x.WkCandidates)
+                .AsQueryable();
+
+            // 添加版本过滤条件
+            if (definitionIds != null && definitionIds.Count != 0)
+            {
+                if (definitionVersions != null && definitionVersions.Count != 0)
+                {
+                    // 同时过滤模板ID和版本号
+                    queryable = queryable.Where(x => 
+                        definitionIds.Contains(x.WkDifinitionId) && 
+                        definitionVersions.Contains(x.Version));
+                }
+                else
+                {
+                    // 只过滤模板ID，不限制版本
+                    queryable = queryable.Where(x => definitionIds.Contains(x.WkDifinitionId));
+                }
+            }
+
+            // 其他过滤条件保持不变
+            if (creatorIds != null && creatorIds.Count != 0)
+            {
+#pragma warning disable CS8629 // 可为 null 的值类型可为 null。
+                queryable = queryable.Where(x => creatorIds.Contains(x.CreatorId.Value));
+#pragma warning restore CS8629 // 可为 null 的值类型可为 null。
+            }
+
+            if (!string.IsNullOrEmpty(reference))
+            {
+                queryable = queryable.Where(x => x.Reference == reference);
+            }
+
+            if (state.HasValue)
+            {
+                queryable = queryable.Where(x => x.Status == (WorkflowStatus)state.Value);
+            }
+
+            if (ids != null && ids.Count != 0)
+            {
+                queryable = queryable.Where(x => x.ExecutionPointers.Any(a =>
+                    a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Contains(c.CandidateId))));
+            }
+
+            return await queryable
+                .OrderByDescending(x => x.CreationTime)
+                .Skip(skipCount)
+                .Take(maxResultCount)
+                .ToListAsync();
+        }
+
+        public virtual async Task<int> GetMyInstancesCountWithVersionAsync(
+            ICollection<Guid>? creatorIds,
+            ICollection<Guid>? definitionIds,
+            ICollection<int>? definitionVersions,
+            IDictionary<string, object>? instanceData,
+            ICollection<Guid> ids,
+            string? reference,
+            MyWorkState? state)
+        {
+            var queryable = (await GetDbSetAsync()).AsQueryable();
+
+            // 添加版本过滤条件
+            if (definitionIds != null && definitionIds.Count != 0)
+            {
+                if (definitionVersions != null && definitionVersions.Count != 0)
+                {
+                    // 同时过滤模板ID和版本号
+                    queryable = queryable.Where(x => 
+                        definitionIds.Contains(x.WkDifinitionId) && 
+                        definitionVersions.Contains(x.Version));
+                }
+                else
+                {
+                    // 只过滤模板ID，不限制版本
+                    queryable = queryable.Where(x => definitionIds.Contains(x.WkDifinitionId));
+                }
+            }
+
+            // 其他过滤条件保持不变
+            if (creatorIds != null && creatorIds.Count != 0)
+            {
+#pragma warning disable CS8629 // 可为 null 的值类型可为 null。
+                queryable = queryable.Where(x => creatorIds.Contains(x.CreatorId.Value));
+#pragma warning restore CS8629 // 可为 null 的值类型可为 null。
+            }
+
+            if (!string.IsNullOrEmpty(reference))
+            {
+                queryable = queryable.Where(x => x.Reference == reference);
+            }
+
+            if (state.HasValue)
+            {
+                queryable = queryable.Where(x => x.Status == (WorkflowStatus)state.Value);
+            }
+
+            if (ids != null && ids.Count != 0)
+            {
+                queryable = queryable.Where(x => x.ExecutionPointers.Any(a =>
+                    a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Contains(c.CandidateId))));
+            }
+
+            return await queryable.CountAsync();
+        }
+
+        public virtual async Task<List<WkInstance>> GetInstancesByDefinitionVersionAsync(Guid definitionId, int version)
+        {
+            return await (await GetDbSetAsync())
+                .IncludeDetails(true)
+                .Where(x => x.WkDifinitionId == definitionId && x.Version == version)
+                .ToListAsync();
+        }
+
+        public virtual async Task<List<WkInstance>> GetRunningInstancesByVersionAsync(Guid definitionId, int version)
+        {
+            return await (await GetDbSetAsync())
+                .IncludeDetails(true)
+                .Where(x => x.WkDifinitionId == definitionId && 
+                           x.Version == version && 
+                           x.Status == WorkflowStatus.Runnable)
+                .ToListAsync();
         }
     }
 }

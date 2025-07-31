@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15
+    container_name: workflow-postgres
+    environment:
+      POSTGRES_DB: workflow
+      POSTGRES_USER: workflow_user
+      POSTGRES_PASSWORD: workflow_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/Hx.Workflow.EntityFrameworkCore.DbMigrations/Migrations/Migration_AddVersion:/docker-entrypoint-initdb.d
+    networks:
+      - workflow-network
+
+  # pgAdmin 数据库管理工具
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: workflow-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@workflow.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - workflow-network
+
+  # 工作流 API 应用
+  workflow-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: workflow-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=workflow;Username=workflow_user;Password=workflow_password
+    ports:
+      - "5000:80"
+      - "5001:443"
+    depends_on:
+      - postgres
+    networks:
+      - workflow-network
+    volumes:
+      - ./logs:/app/logs
+
+  # Redis 缓存（可选）
+  redis:
+    image: redis:7-alpine
+    container_name: workflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - workflow-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  workflow-network:
+    driver: bridge

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,12 +7,16 @@ using Volo.Abp.MultiTenancy;
 
 namespace Hx.Workflow.Domain.Persistence
 {
-    public class WkDefinition : FullAuditedAggregateRoot<Guid>, IMultiTenant
+    public class WkDefinition : FullAuditedAggregateRoot, IMultiTenant
     {
+        /// <summary>
+        /// 主键ID
+        /// </summary>
+        public virtual Guid Id { get; protected set; }
         /// <summary>
         /// 版本号
         /// </summary>
-        public int Version { get; protected set; }
+        public virtual int Version { get; protected set; }
         /// <summary>
         /// 流程定义名称
         /// </summary>
@@ -57,6 +61,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// 节点集合
         /// </summary>
         public virtual ICollection<WkNode> Nodes { get; protected set; }
+        
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkDefinition()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
@@ -85,8 +90,8 @@ namespace Hx.Workflow.Domain.Persistence
             ProcessType = processType;
             SortNumber = sortNumber;
             TenantId = tenantId;
-            Nodes = new List<WkNode>();
-            WkCandidates = new List<DefinitionCandidate>();
+            Nodes = [];
+            WkCandidates = [];
         }
         public Task SetVersion(int version)
         {
@@ -148,25 +153,32 @@ namespace Hx.Workflow.Domain.Persistence
             var nodeComparer = EqualityComparer<Guid>.Default;
             var existingDict = Nodes.ToDictionary(n => n.Name);
 
+            // 删除不存在的节点
+            var nodesToRemove = Nodes.Where(existing => !newNodes.Any(newNode => nodeComparer.Equals(newNode.Id, existing.Id))).ToList();
+            foreach (var node in nodesToRemove)
+            {
+                Nodes.Remove(node);
+            }
+
+            // 更新或添加节点
             foreach (var newNode in newNodes)
             {
                 if (existingDict.TryGetValue(newNode.Name, out var existingNode))
                 {
-                    // 更新现有节点属性（根据业务需求实现）
+                    // 更新现有节点
                     await existingNode.UpdateFrom(newNode);
-                    existingDict.Remove(newNode.Name);
                 }
                 else
                 {
-                    // 添加新节点（自动生成新ID）
+                    // 添加新节点
                     Nodes.Add(newNode);
                 }
             }
-            // 删除未被匹配的旧节点
-            foreach (var removedNode in existingDict.Values)
-            {
-                Nodes.Remove(removedNode);
-            }
+        }
+
+        public override object[] GetKeys()
+        {
+            return [Id, Version];
         }
     }
 }

@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Hx.Workflow.Api",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Hx.Workflow.Api/bin/Debug/net8.0/Hx.Workflow.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Hx.Workflow.Api",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": "Attach to Process",
+      "type": "coreclr",
+      "request": "attach"
+    },
+    {
+      "name": "Launch with Hot Reload",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/Hx.Workflow.Api/bin/Debug/net8.0/Hx.Workflow.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Hx.Workflow.Api",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "hotReloadEnabled": true
+    }
+  ]
+} 
