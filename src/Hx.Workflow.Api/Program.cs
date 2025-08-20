@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.IO;
 
@@ -11,10 +12,22 @@ namespace Hx.Workflow.Api
         public static void Main(string[] args)
         {
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            
+            // 閰嶇疆 Serilog
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .WriteTo.File(Path.Combine(baseDirectory, "log/log.txt"))
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+                .MinimumLevel.Override("Hx.Workflow.Domain.HxWorkflowManager", LogEventLevel.Debug)
+                .WriteTo.Console(
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File(
+                    Path.Combine(baseDirectory, "log", "log.txt"),
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    retainedFileCountLimit: 30)
                 .CreateLogger();
+                
             try
             {
                 Log.Information("Starting web host");
@@ -43,7 +56,17 @@ namespace Hx.Workflow.Api
                     })
                     .UseStartup<Startup>();
                 })
-            .UseSerilog()
-            .UseAutofac();  // 添加这一行
+            .UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File(
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log", "log.txt"),
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    retainedFileCountLimit: 30))
+            .UseAutofac();
     }
 }

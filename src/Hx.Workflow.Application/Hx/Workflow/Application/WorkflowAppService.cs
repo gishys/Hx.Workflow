@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
@@ -20,7 +20,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WorkflowAppService(
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
@@ -130,7 +130,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = null;
             }
-            Logger.LogInformation($"Name:{CurrentUser.Name}");
+            Logger.LogInformation("Name:{CurrentUser.Name}",CurrentTenant.Name);
             //userIds = [new Guid("3a1a2bff-b3cd-d1f8-97e4-3ee9d66a1f59")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
@@ -190,7 +190,7 @@ namespace Hx.Workflow.Application
             {
                 userIds = null;
             }
-            Logger.LogInformation($"Name:{CurrentUser.Name}");
+            Logger.LogInformation("Name:{CurrentUser.Name}",CurrentTenant.Name);
             
             List<WkProcessInstanceDto> result = [];
             var instances = await _wkInstanceRepository.GetMyInstancesWithVersionAsync(

@@ -2,6 +2,7 @@ using Hx.Workflow.Domain.JsonDefinition;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,8 @@ namespace Hx.Workflow.Domain
         IUnitOfWorkManager unitOfWorkManager,
         IWkDefinitionRespository wkDefinitionRespository,
         IWorkflowHost workflowHost,
-        IWkInstanceRepository instanceRepository) : DomainService
+        IWkInstanceRepository instanceRepository,
+        ILogger<HxWorkflowManager> logger) : DomainService
     {
         private readonly IWorkflowRegistry _registry = registry;
         private readonly IWkStepBodyRespository _wkStepBodyRespository = wkStepBodyRespository;
@@ -33,8 +35,13 @@ namespace Hx.Workflow.Domain
         private readonly IUnitOfWorkManager _unitOfWorkManager = unitOfWorkManager;
         private readonly IWkDefinitionRespository _wkDefinitionRespository = wkDefinitionRespository;
         protected readonly IWorkflowHost _workflowHost = workflowHost;
+        private readonly ILogger<HxWorkflowManager> _logger = logger;
         private List<WkNode>? _WkNodes;
         public IWkInstanceRepository WkInstanceRepository { get; set; } = instanceRepository;
+
+        // 定义支持的操作符常量
+        private static readonly string[] ValidStringOperators = ["==", "!="];
+        private static readonly string[] ValidNumericOperators = ["==", "!=", ">", "<", ">=", "<="];
 
         /// <summary>
         /// terminate workflow
@@ -129,7 +136,7 @@ namespace Hx.Workflow.Domain
             LoadDefinitionByJson(entity);
             return Task.CompletedTask;
         }
-        
+
         /// <summary>
         /// 更新现有版本
         /// </summary>
@@ -206,6 +213,8 @@ namespace Hx.Workflow.Domain
             JDefinitionSource source,
             WkNode step)
         {
+            _logger.LogDebug("开始构建分支逻辑 - 步骤: {StepName} (ID: {StepId})", step.Name, step.Id);
+
             var stepSource = new JStepSource
             {
                 Id = step.Id.ToString(),
@@ -237,40 +246,205 @@ namespace Hx.Workflow.Domain
             _WkNodes.Add(step);
 #pragma warning restore CS8602 // 解引用可能出现空引用。
             source.Steps.Add(stepSource);
+
             if (step.NextNodes?.Count > 0)
             {
+                _logger.LogDebug("处理步骤 {StepName} 的 {NextNodeCount} 个后续节点", step.Name, step.NextNodes.Count);
+
                 foreach (var nextName in step.NextNodes)
                 {
-                    var subStepNode = allNodes.FirstOrDefault(d => d.Name == nextName.NextNodeName);
-                    if (subStepNode != null)
+                    try
                     {
-                        stepSource.SelectNextStep[subStepNode.Id.ToString()] = "1==1";
-                        if (nextName.Rules?.Count > 0)
-                        {
-                            List<string> exps = [];
-                            foreach (var cond in nextName.Rules)
-                            {
-                                if ((!decimal.TryParse(cond.Value, out decimal tempValue)) && cond.Value is not null)
-                                {
-                                    if (cond.Operator != "==" && cond.Operator != "!=")
-                                    {
-                                        throw new AbpException($" if {cond.Field} is type of 'String', the Operator must be \"==\" or \"!=\"");
-                                    }
-                                    exps.Add($"data[\"{cond.Field}\"].ToString() {cond.Operator} \"{cond.Value}\"");
-                                    continue;
-                                }
-                                exps.Add($"decimal.Parse(data[\"{cond.Field}\"].ToString()) {cond.Operator} {cond.Value}");
-                            }
-                            stepSource.SelectNextStep[subStepNode.Id.ToString()] = string.Join(" && ", exps);
-                        }
-                        if (_WkNodes.Exists(d => d == subStepNode))
-                            continue;
-                        BuildBranching(allNodes, source, subStepNode);
+                        ProcessNextNode(allNodes, source, step, stepSource, nextName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "处理后续节点时发生错误 - 步骤: {StepName}, 后续节点: {NextNodeName}",
+                            step.Name, nextName.NextNodeName);
+                        throw;
                     }
                 }
             }
+            else
+            {
+                _logger.LogDebug("步骤 {StepName} 没有后续节点", step.Name);
+            }
         }
-        private static void GetValue(IHxKeyValueConvert input, IDictionary<string, object> dics)
+
+        /// <summary>
+        /// 处理单个后续节点
+        /// </summary>
+        private void ProcessNextNode(
+            IEnumerable<WkNode> allNodes,
+            JDefinitionSource source,
+            WkNode step,
+            JStepSource stepSource,
+            WkNodeRelation nextName)
+        {
+            _logger.LogDebug("处理后续节点: {NextNodeName} -> {StepName}", nextName.NextNodeName, step.Name);
+
+            var subStepNode = allNodes.FirstOrDefault(d => d.Name == nextName.NextNodeName);
+            if (subStepNode == null)
+            {
+                _logger.LogWarning("未找到后续节点: {NextNodeName} (步骤: {StepName})", nextName.NextNodeName, step.Name);
+                return;
+            }
+
+            // 设置默认条件表达式
+            stepSource.SelectNextStep[subStepNode.Id.ToString()] = "1==1";
+
+            // 处理规则条件
+            if (nextName.Rules?.Count > 0)
+            {
+                try
+                {
+                    var expression = BuildConditionExpression(nextName.Rules, step.Name, nextName.NextNodeName);
+                    stepSource.SelectNextStep[subStepNode.Id.ToString()] = expression;
+
+                    _logger.LogDebug("为节点 {StepName} -> {NextNodeName} 设置条件表达式: {Expression}",
+                        step.Name, nextName.NextNodeName, expression);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "构建条件表达式失败 - 步骤: {StepName}, 后续节点: {NextNodeName}",
+                        step.Name, nextName.NextNodeName);
+                    throw;
+                }
+            }
+            else
+            {
+                _logger.LogDebug("节点 {StepName} -> {NextNodeName} 没有规则条件，使用默认表达式",
+                    step.Name, nextName.NextNodeName);
+            }
+
+            // 递归处理后续节点（避免循环引用）
+            if (_WkNodes != null && _WkNodes.Exists(d => d == subStepNode))
+            {
+                _logger.LogDebug("检测到循环引用，跳过节点: {NextNodeName}", nextName.NextNodeName);
+                return;
+            }
+
+            BuildBranching(allNodes, source, subStepNode);
+        }
+
+        /// <summary>
+        /// 构建条件表达式
+        /// </summary>
+        private string BuildConditionExpression(ICollection<WkNodeRelationRule> rules, string stepName, string nextNodeName)
+        {
+            if (rules == null || rules.Count == 0)
+            {
+                return "1==1";
+            }
+
+            _logger.LogDebug("开始构建条件表达式 - 规则数量: {RuleCount}, 步骤: {StepName} -> {NextNodeName}",
+                rules.Count, stepName, nextNodeName);
+
+            var expressions = new List<string>();
+            var ruleIndex = 0;
+
+            foreach (var rule in rules)
+            {
+                ruleIndex++;
+                try
+                {
+                    ValidateRule(rule, stepName, nextNodeName, ruleIndex);
+                    var expression = BuildSingleRuleExpression(rule, stepName, nextNodeName, ruleIndex);
+                    expressions.Add(expression);
+
+                    _logger.LogDebug("规则 {RuleIndex}: 字段={Field}, 操作符={Operator}, 值={Value} -> 表达式={Expression}",
+                        ruleIndex, rule.Field, rule.Operator, rule.Value, expression);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "处理规则 {RuleIndex} 时发生错误 - 字段: {Field}, 操作符: {Operator}, 值: {Value}",
+                        ruleIndex, rule.Field, rule.Operator, rule.Value);
+                    throw;
+                }
+            }
+
+            var finalExpression = string.Join(" && ", expressions);
+            _logger.LogDebug("最终条件表达式: {FinalExpression}", finalExpression);
+
+            return finalExpression;
+        }
+
+        /// <summary>
+        /// 验证单个规则
+        /// </summary>
+        private void ValidateRule(WkNodeRelationRule rule, string stepName, string nextNodeName, int ruleIndex)
+        {
+            // 验证字段名
+            if (string.IsNullOrWhiteSpace(rule.Field))
+            {
+                throw new AbpException($"规则 {ruleIndex} 的字段名不能为空 - 步骤: {stepName} -> {nextNodeName}");
+            }
+
+            // 验证操作符
+            if (string.IsNullOrWhiteSpace(rule.Operator))
+            {
+                throw new AbpException($"规则 {ruleIndex} 的操作符不能为空 - 字段: {rule.Field}, 步骤: {stepName} -> {nextNodeName}");
+            }
+
+            // 验证值
+            if (rule.Value == null)
+            {
+                throw new AbpException($"规则 {ruleIndex} 的值不能为null - 字段: {rule.Field}, 步骤: {stepName} -> {nextNodeName}");
+            }
+
+            _logger.LogDebug("规则 {RuleIndex} 验证通过 - 字段: {Field}, 操作符: {Operator}, 值: {Value}",
+                ruleIndex, rule.Field, rule.Operator, rule.Value);
+        }
+
+        /// <summary>
+        /// 构建单个规则的表达式
+        /// </summary>
+        private static string BuildSingleRuleExpression(WkNodeRelationRule rule, string stepName, string nextNodeName, int ruleIndex)
+        {
+            // 尝试解析为数值类型
+            if (decimal.TryParse(rule.Value, out decimal numericValue))
+            {
+                return BuildNumericExpression(rule, numericValue, stepName, nextNodeName, ruleIndex);
+            }
+            else
+            {
+                return BuildStringExpression(rule, stepName, nextNodeName, ruleIndex);
+            }
+        }
+
+        /// <summary>
+        /// 构建数值类型表达式
+        /// </summary>
+        private static string BuildNumericExpression(WkNodeRelationRule rule, decimal numericValue, string stepName, string nextNodeName, int ruleIndex)
+        {
+            // 验证数值操作符
+            if (!ValidNumericOperators.Contains(rule.Operator))
+            {
+                throw new AbpException($"规则 {ruleIndex}:数值字段 '{rule.Field}' 不支持操作符 '{rule.Operator}'。支持的操作符: {string.Join(", ", ValidNumericOperators)} - 步骤: {stepName} -> {nextNodeName}");
+            }
+
+            // 使用 Convert.ToDecimal 替代 decimal.Parse 和 ToString，避免 System.Linq.Dynamic.Core 的访问限制
+            return $"Convert.ToDecimal(data[\"{rule.Field}\"]) {rule.Operator} {numericValue}";
+        }
+
+        /// <summary>
+        /// 构建字符串类型表达式
+        /// </summary>
+        private static string BuildStringExpression(WkNodeRelationRule rule, string stepName, string nextNodeName, int ruleIndex)
+        {
+            // 验证字符串操作符
+            if (!ValidStringOperators.Contains(rule.Operator))
+            {
+                throw new AbpException($"规则 {ruleIndex}:字符串字段 '{rule.Field}' 不支持操作符 '{rule.Operator}'。支持的操作符: {string.Join(", ", ValidStringOperators)} - 步骤: {stepName} -> {nextNodeName}");
+            }
+
+            // 转义字符串值中的引号，防止表达式解析错误
+            var escapedValue = rule.Value.Replace("\"", "\\\"");
+
+            // 使用 Convert.ToString 替代 ToString，避免 System.Linq.Dynamic.Core 的访问限制
+            return $"Convert.ToString(data[\"{rule.Field}\"]) {rule.Operator} \"{escapedValue}\"";
+        }
+        private static void GetValue(WkStepBodyParam input, IDictionary<string, object> dics)
         {
             var value = input.Value;
             if (value != null)
