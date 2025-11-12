@@ -78,6 +78,8 @@ namespace Hx.Workflow.Application
         }
         /// <summary>
         /// 更新模板
+        /// 注意：此方法只更新基本信息（Title, Description等），不涉及节点变化，因此直接更新当前版本，不创建新版本
+        /// 只有当节点发生变化时（通过 UpdateAsync(DefinitionNodeUpdateDto)），才会创建新版本
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -86,26 +88,60 @@ namespace Hx.Workflow.Application
             // 获取最新版本的实体
             var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
             
-            // 版本控制最佳实践
-            var newVersion = await GetNextVersionAsync(entity.Id, input.Version);
-            
-            // 检查是否有正在运行的实例使用当前版本
-            var runningInstances = await CheckRunningInstancesAsync(entity.Id, entity.Version);
-            if (runningInstances.Count != 0)
+            // 更新基本信息（不涉及节点变化，直接更新当前版本）
+            if (!string.Equals(entity.Title, input.Title, StringComparison.OrdinalIgnoreCase))
             {
-                throw new UserFriendlyException(message: $"当前版本有正在运行的实例，无法直接更新。请等待实例完成或创建新版本。");
+                await entity.SetTitle(input.Title);
             }
             
-            // 创建新版本而不是修改原版本
-            var newEntity = await CreateNewVersionAsync(entity, input, newVersion);
+            if (!string.Equals(entity.Description, input.Description, StringComparison.OrdinalIgnoreCase))
+            {
+                await entity.SetDescription(input.Description);
+            }
             
-            // 保存新版本到数据库
-            await _definitionRespository.InsertAsync(newEntity);
+            if (!string.Equals(entity.BusinessType, input.BusinessType, StringComparison.OrdinalIgnoreCase))
+            {
+                await entity.SetBusinessType(input.BusinessType);
+            }
             
-            // 注册新版本到工作流引擎
-            await _hxWorkflowManager.UpdateAsync(newEntity);
+            if (!string.Equals(entity.ProcessType, input.ProcessType, StringComparison.OrdinalIgnoreCase))
+            {
+                await entity.SetProcessType(input.ProcessType);
+            }
             
-            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(newEntity);
+            if (entity.LimitTime != input.LimitTime)
+            {
+                await entity.SetLimitTime(input.LimitTime);
+            }
+            
+            if (entity.IsEnabled != input.IsEnabled)
+            {
+                await entity.SetEnabled(input.IsEnabled);
+            }
+            
+            // 更新候选人
+            if (input.WkCandidates != null)
+            {
+                entity.WkCandidates.Clear();
+                foreach (var candidate in input.WkCandidates)
+                {
+                    entity.WkCandidates.Add(new DefinitionCandidate(
+                        candidate.CandidateId,
+                        candidate.UserName,
+                        candidate.DisplayUserName,
+                        candidate.ExecutorType,
+                        candidate.DefaultSelection,
+                        entity.Version));
+                }
+            }
+            
+            // 保存更新
+            await _definitionRespository.UpdateAsync(entity);
+            
+            // 重新注册到工作流引擎（因为基本信息可能影响显示）
+            await _hxWorkflowManager.UpdateAsync(entity);
+            
+            return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
         
         /// <summary>
@@ -113,18 +149,20 @@ namespace Hx.Workflow.Application
         /// </summary>
         private async Task<int> GetNextVersionAsync(Guid definitionId, int requestedVersion)
         {
+            // 获取当前最大版本号
+            var maxVersion = await _definitionRespository.GetMaxVersionAsync(definitionId);
+            
             if (requestedVersion <= 0)
             {
                 // 自动递增版本号
-                var maxVersion = await _definitionRespository.GetMaxVersionAsync(definitionId);
                 return maxVersion + 1;
             }
             
-            // 检查请求的版本号是否已存在
-            var exists = await _definitionRespository.ExistsAsync(definitionId, requestedVersion);
-            if (exists)
+            // 如果请求的版本号小于等于当前最大版本号，自动使用最大版本号+1
+            // 如果请求的版本号大于当前最大版本号，使用请求的版本号
+            if (requestedVersion <= maxVersion)
             {
-                throw new UserFriendlyException(message: $"版本 {requestedVersion} 已存在，请使用其他版本号。");
+                return maxVersion + 1;
             }
             
             return requestedVersion;
@@ -426,23 +464,231 @@ namespace Hx.Workflow.Application
         /// <summary>
         /// 比较节点
         /// </summary>
-#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
-        private static async Task CompareNodesAsync(WkDefinitionDiffDto diff, ICollection<WkNode> nodes1, ICollection<WkNode> nodes2)
-#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
+        private static Task CompareNodesAsync(WkDefinitionDiffDto diff, ICollection<WkNode> nodes1, ICollection<WkNode> nodes2)
         {
-            // 实现节点比较逻辑
-            // 这里需要根据具体的节点结构来实现
+            var nodes1Dict = nodes1?.ToDictionary(n => n.Id) ?? [];
+            var nodes2Dict = nodes2?.ToDictionary(n => n.Id) ?? [];
+            
+            // 检查新增的节点（在 nodes2 中但不在 nodes1 中）
+            foreach (var node2 in nodes2Dict.Values)
+            {
+                if (!nodes1Dict.ContainsKey(node2.Id))
+                {
+                    diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                    {
+                        FieldName = $"Node_{node2.Id}",
+                        FieldDisplayName = $"节点[{node2.Name}]",
+                        Value1 = null,
+                        Value2 = $"{node2.DisplayName} ({node2.StepNodeType})",
+                        ChangeType = DiffChangeType.Added
+                    });
+                }
+            }
+            
+            // 检查删除的节点（在 nodes1 中但不在 nodes2 中）
+            foreach (var node1 in nodes1Dict.Values)
+            {
+                if (!nodes2Dict.ContainsKey(node1.Id))
+                {
+                    diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                    {
+                        FieldName = $"Node_{node1.Id}",
+                        FieldDisplayName = $"节点[{node1.Name}]",
+                        Value1 = $"{node1.DisplayName} ({node1.StepNodeType})",
+                        Value2 = null,
+                        ChangeType = DiffChangeType.Removed
+                    });
+                }
+            }
+            
+            // 检查修改的节点（在两个集合中都存在但属性不同）
+            foreach (var node1 in nodes1Dict.Values)
+            {
+                if (nodes2Dict.TryGetValue(node1.Id, out var node2))
+                {
+                    // 比较节点名称
+                    if (node1.Name != node2.Name)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Node_{node1.Id}_Name",
+                            FieldDisplayName = $"节点[{node1.Name}]名称",
+                            Value1 = node1.Name,
+                            Value2 = node2.Name,
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较显示名称
+                    if (node1.DisplayName != node2.DisplayName)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Node_{node1.Id}_DisplayName",
+                            FieldDisplayName = $"节点[{node1.Name}]显示名称",
+                            Value1 = node1.DisplayName,
+                            Value2 = node2.DisplayName,
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较节点类型
+                    if (node1.StepNodeType != node2.StepNodeType)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Node_{node1.Id}_StepNodeType",
+                            FieldDisplayName = $"节点[{node1.Name}]节点类型",
+                            Value1 = node1.StepNodeType.ToString(),
+                            Value2 = node2.StepNodeType.ToString(),
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较限制时间
+                    if (node1.LimitTime != node2.LimitTime)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Node_{node1.Id}_LimitTime",
+                            FieldDisplayName = $"节点[{node1.Name}]限制时间",
+                            Value1 = node1.LimitTime?.ToString() ?? "无",
+                            Value2 = node2.LimitTime?.ToString() ?? "无",
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较 StepBody ID
+                    if (node1.WkStepBodyId != node2.WkStepBodyId)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Node_{node1.Id}_WkStepBodyId",
+                            FieldDisplayName = $"节点[{node1.Name}]步骤体ID",
+                            Value1 = node1.WkStepBodyId.ToString(),
+                            Value2 = node2.WkStepBodyId.ToString(),
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较排序号
+                    if (node1.SortNumber != node2.SortNumber)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Node_{node1.Id}_SortNumber",
+                            FieldDisplayName = $"节点[{node1.Name}]排序号",
+                            Value1 = node1.SortNumber.ToString(),
+                            Value2 = node2.SortNumber.ToString(),
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                }
+            }
+            
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// 比较候选人
         /// </summary>
-#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
-        private static async Task CompareCandidatesAsync(WkDefinitionDiffDto diff, ICollection<DefinitionCandidate> candidates1, ICollection<DefinitionCandidate> candidates2)
-#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
+        private static Task CompareCandidatesAsync(WkDefinitionDiffDto diff, ICollection<DefinitionCandidate> candidates1, ICollection<DefinitionCandidate> candidates2)
         {
-            // 实现候选人比较逻辑
-            // 这里需要根据具体的候选人结构来实现
+            var candidates1Dict = candidates1?.ToDictionary(c => c.CandidateId) ?? [];
+            var candidates2Dict = candidates2?.ToDictionary(c => c.CandidateId) ?? [];
+            
+            // 检查新增的候选人（在 candidates2 中但不在 candidates1 中）
+            foreach (var candidate2 in candidates2Dict.Values)
+            {
+                if (!candidates1Dict.ContainsKey(candidate2.CandidateId))
+                {
+                    diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                    {
+                        FieldName = $"Candidate_{candidate2.CandidateId}",
+                        FieldDisplayName = $"候选人[{candidate2.DisplayUserName}]",
+                        Value1 = null,
+                        Value2 = $"{candidate2.DisplayUserName} ({candidate2.UserName}) - {candidate2.ExecutorType}",
+                        ChangeType = DiffChangeType.Added
+                    });
+                }
+            }
+            
+            // 检查删除的候选人（在 candidates1 中但不在 candidates2 中）
+            foreach (var candidate1 in candidates1Dict.Values)
+            {
+                if (!candidates2Dict.ContainsKey(candidate1.CandidateId))
+                {
+                    diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                    {
+                        FieldName = $"Candidate_{candidate1.CandidateId}",
+                        FieldDisplayName = $"候选人[{candidate1.DisplayUserName}]",
+                        Value1 = $"{candidate1.DisplayUserName} ({candidate1.UserName}) - {candidate1.ExecutorType}",
+                        Value2 = null,
+                        ChangeType = DiffChangeType.Removed
+                    });
+                }
+            }
+            
+            // 检查修改的候选人（在两个集合中都存在但属性不同）
+            foreach (var candidate1 in candidates1Dict.Values)
+            {
+                if (candidates2Dict.TryGetValue(candidate1.CandidateId, out var candidate2))
+                {
+                    // 比较用户名
+                    if (candidate1.UserName != candidate2.UserName)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Candidate_{candidate1.CandidateId}_UserName",
+                            FieldDisplayName = $"候选人[{candidate1.DisplayUserName}]用户名",
+                            Value1 = candidate1.UserName,
+                            Value2 = candidate2.UserName,
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较显示用户名
+                    if (candidate1.DisplayUserName != candidate2.DisplayUserName)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Candidate_{candidate1.CandidateId}_DisplayUserName",
+                            FieldDisplayName = $"候选人[{candidate1.DisplayUserName}]显示名称",
+                            Value1 = candidate1.DisplayUserName,
+                            Value2 = candidate2.DisplayUserName,
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较执行者类型
+                    if (candidate1.ExecutorType != candidate2.ExecutorType)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Candidate_{candidate1.CandidateId}_ExecutorType",
+                            FieldDisplayName = $"候选人[{candidate1.DisplayUserName}]执行者类型",
+                            Value1 = candidate1.ExecutorType.ToString(),
+                            Value2 = candidate2.ExecutorType.ToString(),
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                    
+                    // 比较默认选择
+                    if (candidate1.DefaultSelection != candidate2.DefaultSelection)
+                    {
+                        diff.DiffItems.Add(new WkDefinitionDiffItemDto
+                        {
+                            FieldName = $"Candidate_{candidate1.CandidateId}_DefaultSelection",
+                            FieldDisplayName = $"候选人[{candidate1.DisplayUserName}]默认选择",
+                            Value1 = candidate1.DefaultSelection.ToString(),
+                            Value2 = candidate2.DefaultSelection.ToString(),
+                            ChangeType = DiffChangeType.Modified
+                        });
+                    }
+                }
+            }
+            
+            return Task.CompletedTask;
         }
         
         /// <summary>
@@ -509,6 +755,7 @@ namespace Hx.Workflow.Application
         }
         /// <summary>
         /// 更新模板节点
+        /// 只有在节点有增减的情况下才创建新版本，如果只是修改节点属性，则直接更新当前版本
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -517,26 +764,99 @@ namespace Hx.Workflow.Application
             // 获取最新版本的实体
             var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
             
-            // 版本控制最佳实践
-            var newVersion = await GetNextVersionAsync(entity.Id, entity.Version);
+            // 检查节点是否有增减（使用 ID 进行严格比较）
+            var existingNodeIds = entity.Nodes.Select(n => n.Id).ToHashSet();
             
-            // 检查是否有正在运行的实例使用当前版本
-            var runningInstances = await CheckRunningInstancesAsync(entity.Id, entity.Version);
-            if (runningInstances.Count != 0)
+            // 如果新节点中有任何节点的 ID 为 null，说明有新增节点
+            var hasNewNodes = input.Nodes.Any(n => !n.Id.HasValue);
+            
+            // 获取新节点中所有有效的 ID（过滤掉 null）
+            var newNodeIds = input.Nodes
+                .Where(n => n.Id.HasValue)
+                .Select(n => n.Id!.Value)
+                .ToHashSet();
+            
+            // 检查是否有节点增减：
+            // 1. 如果有新增节点（ID 为 null），则肯定有变化
+            // 2. 如果 ID 集合数量不一致，则肯定有变化
+            // 3. 如果 ID 集合不完全一致，则肯定有变化
+            var hasNodeChanges = hasNewNodes ||
+                                 existingNodeIds.Count != newNodeIds.Count ||
+                                 !existingNodeIds.SetEquals(newNodeIds);
+            
+            if (hasNodeChanges)
             {
-                throw new UserFriendlyException(message: $"当前版本有正在运行的实例，无法直接更新。请等待实例完成或创建新版本。");
+                // 节点有增减，需要创建新版本
+                // 检查是否有正在运行的实例使用当前版本
+                var runningInstances = await CheckRunningInstancesAsync(entity.Id, entity.Version);
+                if (runningInstances.Count != 0)
+                {
+                    throw new UserFriendlyException(message: $"当前版本有正在运行的实例，无法直接更新。请等待实例完成或创建新版本。");
+                }
+                
+                // 获取新版本号
+                var newVersion = await GetNextVersionAsync(entity.Id, entity.Version);
+                
+                // 创建新版本
+                var newEntity = await CreateNewVersionForNodeUpdateAsync(entity, input, newVersion);
+                
+                // 保存新版本到数据库
+                await _definitionRespository.InsertAsync(newEntity);
+                
+                // 注册新版本到工作流引擎
+                await _hxWorkflowManager.UpdateAsync(newEntity);
+                
+                return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. newEntity.Nodes]);
             }
-            
-            // 创建新版本而不是修改原版本
-            var newEntity = await CreateNewVersionForNodeUpdateAsync(entity, input, newVersion);
-            
-            // 保存新版本到数据库
-            await _definitionRespository.InsertAsync(newEntity);
-            
-            // 注册新版本到工作流引擎
-            await _hxWorkflowManager.UpdateAsync(newEntity);
-            
-            return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. newEntity.Nodes]);
+            else
+            {
+                // 节点没有增减，直接更新当前版本的节点属性
+                await UpdateNodesInCurrentVersionAsync(entity, input);
+                
+                // 保存更新
+                await _definitionRespository.UpdateAsync(entity);
+                
+                // 重新注册到工作流引擎
+                await _hxWorkflowManager.UpdateAsync(entity);
+                
+                return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. entity.Nodes]);
+            }
+        }
+        
+        /// <summary>
+        /// 在当前版本中直接更新节点属性（不创建新版本）
+        /// </summary>
+        private async Task UpdateNodesInCurrentVersionAsync(WkDefinition entity, DefinitionNodeUpdateDto input)
+        {
+            // 处理节点更新
+            var nodeEntitys = input.Nodes.ToWkNodes(GuidGenerator);
+            if (nodeEntitys != null && nodeEntitys.Count > 0)
+            {
+                // 使用 ID 来匹配节点（更严格）
+                var existingDict = entity.Nodes.ToDictionary(n => n.Id);
+                
+                foreach (var newNode in nodeEntitys)
+                {
+                    // 通过 ID 查找现有节点
+                    if (existingDict.TryGetValue(newNode.Id, out var existingNode))
+                    {
+                        // 更新现有节点的属性
+                        var inputNode = input.Nodes.FirstOrDefault(d => d.Id == newNode.Id);
+                        if (inputNode != null)
+                        {
+                            // 更新 StepBody
+                            await existingNode.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, newNode.StepNodeType));
+                            
+                            // 更新 ExtraProperties
+                            if (existingNode.ExtraProperties != null && inputNode.ExtraProperties != null)
+                            {
+                                existingNode.ExtraProperties.Clear();
+                                inputNode.ExtraProperties.ForEach(item => existingNode.ExtraProperties.TryAdd(item.Key, item.Value));
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         /// <summary>

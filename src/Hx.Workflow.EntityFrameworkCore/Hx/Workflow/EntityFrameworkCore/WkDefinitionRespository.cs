@@ -135,7 +135,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Select(d => d.Version)
                 .ToListAsync(GetCancellationToken(cancellationToken));
             
-            return versions.Count != 0 ? versions.Max() : 0;
+            return versions.Count != 0 ? versions.Max() : 1;
         }
         
         /// <summary>

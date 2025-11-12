@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -6,13 +7,10 @@ namespace Hx.Workflow.HttpApi
 {
     [ApiController]
     [Route("/hxworkflow/hxdefinitiongroup")]
-    public class HxDefinitionGroupController : AbpController
+    public class HxDefinitionGroupController(IWkDefinitionGroupAppService appService) : AbpController
     {
-        private IWkDefinitionGroupAppService _appService;
-        public HxDefinitionGroupController(IWkDefinitionGroupAppService appService)
-        {
-            _appService = appService;
-        }
+        private readonly IWkDefinitionGroupAppService _appService = appService;
+
         [HttpPost]
         public Task CreateAsync(WkDefinitionGroupCreateDto input)
         {

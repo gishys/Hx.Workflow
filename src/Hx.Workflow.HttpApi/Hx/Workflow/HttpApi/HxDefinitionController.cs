@@ -1,21 +1,15 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Hx.Workflow.HttpApi
 {
     [ApiController]
     [Route("/hxworkflow/hxdefinition")]
-    public class HxDefinitionController : AbpController
+    public class HxDefinitionController(IWkDefinitionAppService appService) : AbpController
     {
-        private IWkDefinitionAppService _appService;
-        public HxDefinitionController(IWkDefinitionAppService appService)
-        {
-            _appService = appService;
-        }
+        private readonly IWkDefinitionAppService _appService = appService;
+
         [HttpPost]
         public Task CreateAsync(WkDefinitionCreateDto input)
         {

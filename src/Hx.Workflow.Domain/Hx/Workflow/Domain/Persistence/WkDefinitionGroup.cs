@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -41,6 +41,7 @@ namespace Hx.Workflow.Domain.Persistence
         /// 一组模板
         /// </summary>
         public List<WkDefinition> Items { get; protected set; }
+        public void SetItems(List<WkDefinition> items) => Items = items;
         public void SetTitle(string title) => Title = title;
         public void SetDescription(string? description) => Description = description;
         public void AddChildren(WkDefinitionGroup group)

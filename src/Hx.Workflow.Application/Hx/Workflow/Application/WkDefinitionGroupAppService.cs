@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
@@ -12,15 +12,11 @@ using Volo.Abp;
 namespace Hx.Workflow.Application
 {
     [Authorize]
-    public class WkDefinitionGroupAppService : HxWorkflowAppServiceBase, IWkDefinitionGroupAppService
+    public class WkDefinitionGroupAppService(IWkDefinitionGroupRepository definitionGroupRepository, DefinitionGroupManager definitionGroupManager) : HxWorkflowAppServiceBase, IWkDefinitionGroupAppService
     {
-        private IWkDefinitionGroupRepository GroupRepository { get; }
-        private DefinitionGroupManager DefinitionGroupManager { get; }
-        public WkDefinitionGroupAppService(IWkDefinitionGroupRepository definitionGroupRepository, DefinitionGroupManager definitionGroupManager)
-        {
-            GroupRepository = definitionGroupRepository;
-            DefinitionGroupManager = definitionGroupManager;
-        }
+        private IWkDefinitionGroupRepository GroupRepository { get; } = definitionGroupRepository;
+        private DefinitionGroupManager DefinitionGroupManager { get; } = definitionGroupManager;
+
         public async virtual Task CreateAsync(WkDefinitionGroupCreateDto dto)
         {
             if (await GroupRepository.ExistByTitleAsync(dto.Title))
@@ -52,7 +48,7 @@ namespace Hx.Workflow.Application
         public async virtual Task<List<WkDefinitionGroupDto>> GetAllWithChildrenAsync()
         {
             List<WkDefinitionGroup> list = await GroupRepository.GetAllWithChildrenAsync(true);
-            list = list.OrderBy(x => x.Order).ToList();
+            list = [.. list.OrderBy(x => x.Order)];
             return ObjectMapper.Map<List<WkDefinitionGroup>, List<WkDefinitionGroupDto>>(list);
         }
     }

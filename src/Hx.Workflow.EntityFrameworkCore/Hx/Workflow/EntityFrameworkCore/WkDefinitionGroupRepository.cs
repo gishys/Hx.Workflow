@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,13 +10,10 @@ using Volo.Abp.EntityFrameworkCore;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public class WkDefinitionGroupRepository
-        : EfCoreRepository<WkDbContext, WkDefinitionGroup, Guid>
+    public class WkDefinitionGroupRepository(IDbContextProvider<WkDbContext> options)
+                : EfCoreRepository<WkDbContext, WkDefinitionGroup, Guid>(options)
         , IWkDefinitionGroupRepository
     {
-        public WkDefinitionGroupRepository(IDbContextProvider<WkDbContext> options)
-            : base(options)
-        { }
         /// <summary>
         /// 判断是否存在同一标题的组
         /// </summary>
@@ -93,8 +90,44 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <returns></returns>
         public async Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(bool includeDetails)
         {
-            var dbSet = await GetDbSetAsync();
-            return await dbSet.IncludeDetails(true).ToListAsync();
+            var dbContext = await GetDbContextAsync();
+            var groupDbSet = await GetDbSetAsync();
+            var definitionDbSet = dbContext.Set<WkDefinition>();
+
+            // 先查询所有组（不包含 Items）
+            var groups = await groupDbSet.ToListAsync();
+
+            // 在数据库层面直接查询每个工作流定义的最新版本
+            // 使用子查询来获取每个 Id 的最大版本，然后查询完整数据
+            // 注意：IncludeDetails 必须在 Select 之前调用
+            var latestVersionDefinitions = await definitionDbSet
+                .IncludeDetails(includeDetails)
+                .Where(d =>
+                    d.Version == definitionDbSet
+                        .Where(d2 => d2.Id == d.Id)
+                        .Max(d2 => (int?)d2.Version))
+                .ToListAsync();
+
+            // 按 GroupId 分组（过滤掉 GroupId 为 null 的记录）
+            var itemsByGroupId = latestVersionDefinitions?
+                .Where(d => d.GroupId.HasValue)
+                .GroupBy(d => d.GroupId!.Value)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 将 Items 分配给对应的 Group
+            foreach (var group in groups)
+            {
+                if (itemsByGroupId != null && itemsByGroupId.TryGetValue(group.Id, out var items))
+                {
+                    group.SetItems(items);
+                }
+                else
+                {
+                    group.SetItems([]);
+                }
+            }
+
+            return groups;
         }
     }
 }

@@ -37,7 +37,11 @@ namespace Hx.Workflow.EntityFrameworkCore
         {
             if (!include)
                 return query;
-            return query
+            
+            // 加载所有相关数据
+            // 注意：Materials.Children 是 JSON 存储的，EF Core 会自动反序列化所有层级
+            // 但为了确保能够加载足够深的层级，我们添加多层 ThenInclude
+            var result = query
                 .Include(d => d.Items)
                 .ThenInclude(d => d.Nodes)
                 .ThenInclude(d => d.OutcomeSteps)
@@ -56,12 +60,25 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .ThenInclude(d => d.Nodes)
                 .ThenInclude(d => d.ApplicationForms)
                 .ThenInclude(d => d.ApplicationForm)
+                // Materials.Children 是 JSON 存储的，EF Core 会自动反序列化所有层级
+                // 但为了确保能够加载足够深的层级，我们添加多层 ThenInclude（最多10层）
                 .Include(d => d.Items)
                 .ThenInclude(d => d.Nodes)
                 .ThenInclude(d => d.Materials)
                 .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
+                .ThenInclude(d => d.Children)
                 .Include(d => d.Items)
                 .ThenInclude(d => d.WkCandidates);
+            
+            return result;
         }
         public static IQueryable<WkInstance> IncludeDetails(
             this IQueryable<WkInstance> query,
