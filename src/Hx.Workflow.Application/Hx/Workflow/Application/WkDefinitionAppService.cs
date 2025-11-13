@@ -169,12 +169,15 @@ namespace Hx.Workflow.Application
         }
         
         /// <summary>
-        /// 检查是否有正在运行的实例
+        /// 检查指定版本是否有正在运行的实例
+        /// 注意：仅在删除版本时需要检查，创建新版本时不需要检查（因为新版本不会影响正在运行的旧版本实例）
         /// </summary>
-        private async Task<List<WkInstance>> CheckRunningInstancesAsync(Guid definitionId, int version)
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns>正在运行的实例数量</returns>
+        private async Task<int> CheckRunningInstancesAsync(Guid definitionId, int version)
         {
-            // 使用注入的IWkInstanceRepository来检查运行中的实例
-            return await _wkInstanceRepository.GetRunningInstancesByVersionAsync(definitionId, version);
+            return await _wkInstanceRepository.GetRunningInstancesCountByVersionAsync(definitionId, version);
         }
         
         /// <summary>
@@ -368,17 +371,11 @@ namespace Hx.Workflow.Application
         
         /// <summary>
         /// 回滚到指定版本
+        /// 注意：回滚实际上是基于目标版本创建新版本，不会影响正在运行的旧版本实例，因此不需要检查运行中的实例
         /// </summary>
         public virtual async Task<WkDefinitionDto> RollbackToVersionAsync(Guid id, int targetVersion)
         {
             var targetDefinition = await _definitionRespository.GetDefinitionAsync(id, targetVersion) ?? throw new UserFriendlyException(message: $"版本 {targetVersion} 不存在！");
-
-            // 检查目标版本是否有正在运行的实例
-            var runningInstances = await CheckRunningInstancesAsync(id, targetVersion);
-            if (runningInstances.Count != 0)
-            {
-                throw new UserFriendlyException(message: $"目标版本有正在运行的实例，无法回滚。");
-            }
             
             // 获取最新版本号
             var maxVersion = await _definitionRespository.GetMaxVersionAsync(id);
@@ -701,7 +698,7 @@ namespace Hx.Workflow.Application
             
             foreach (var version in versions.OrderByDescending(v => v.Version))
             {
-                var runningInstances = await CheckRunningInstancesAsync(id, version.Version);
+                var runningInstancesCount = await CheckRunningInstancesAsync(id, version.Version);
                 
                 history.Add(new WkDefinitionVersionHistoryDto
                 {
@@ -710,8 +707,8 @@ namespace Hx.Workflow.Application
                     CreationTime = version.CreationTime,
                     //CreatorName = version.Creator?.Name,
                     IsEnabled = version.IsEnabled,
-                    HasRunningInstances = runningInstances.Count != 0,
-                    InstanceCount = runningInstances.Count,
+                    HasRunningInstances = runningInstancesCount > 0,
+                    InstanceCount = runningInstancesCount,
                     // 这里可以添加更多信息，如变更摘要等
                 });
             }
@@ -787,12 +784,8 @@ namespace Hx.Workflow.Application
             if (hasNodeChanges)
             {
                 // 节点有增减，需要创建新版本
-                // 检查是否有正在运行的实例使用当前版本
-                var runningInstances = await CheckRunningInstancesAsync(entity.Id, entity.Version);
-                if (runningInstances.Count != 0)
-                {
-                    throw new UserFriendlyException(message: $"当前版本有正在运行的实例，无法直接更新。请等待实例完成或创建新版本。");
-                }
+                // 注意：创建新版本不会影响正在运行的旧版本实例，因此不需要检查运行中的实例
+                // WorkflowCore 支持多版本共存，每个实例绑定到特定版本的定义
                 
                 // 获取新版本号
                 var newVersion = await GetNextVersionAsync(entity.Id, entity.Version);
@@ -811,6 +804,9 @@ namespace Hx.Workflow.Application
             else
             {
                 // 节点没有增减，直接更新当前版本的节点属性
+                // 注意：直接修改当前版本可能会影响正在运行的实例，但 WorkflowCore 会在实例启动时加载定义快照
+                // 因此修改当前版本不会影响已经运行的实例，只会影响新启动的实例
+                // 如果需要更严格的控制，可以在这里添加检查，但根据最佳实践，通常不需要
                 await UpdateNodesInCurrentVersionAsync(entity, input);
                 
                 // 保存更新
@@ -998,10 +994,10 @@ namespace Hx.Workflow.Application
             var latestVersion = await _definitionRespository.FindAsync(id) ?? throw new UserFriendlyException(message: $"模板 {id} 不存在！");
 
             // 检查是否有正在运行的实例
-            var runningInstances = await CheckRunningInstancesAsync(id, latestVersion.Version);
-            if (runningInstances.Count != 0)
+            var runningInstancesCount = await CheckRunningInstancesAsync(id, latestVersion.Version);
+            if (runningInstancesCount > 0)
             {
-                throw new UserFriendlyException(message: $"该版本有正在运行的实例，无法删除。请等待实例完成后再删除。");
+                throw new UserFriendlyException(message: $"该版本有 {runningInstancesCount} 个正在运行的实例，无法删除。请等待实例完成后再删除。");
             }
             
             // 删除最新版本
@@ -1020,10 +1016,10 @@ namespace Hx.Workflow.Application
             var entity = await _definitionRespository.GetDefinitionAsync(id, version) ?? throw new UserFriendlyException(message: $"版本 {version} 不存在！");
 
             // 检查是否有正在运行的实例使用该版本
-            var runningInstances = await CheckRunningInstancesAsync(id, version);
-            if (runningInstances.Count != 0)
+            var runningInstancesCount = await CheckRunningInstancesAsync(id, version);
+            if (runningInstancesCount > 0)
             {
-                throw new UserFriendlyException(message: $"该版本有正在运行的实例，无法删除。请等待实例完成后再删除。");
+                throw new UserFriendlyException(message: $"该版本有 {runningInstancesCount} 个正在运行的实例，无法删除。请等待实例完成后再删除。");
             }
             
             // 删除指定版本
@@ -1047,10 +1043,10 @@ namespace Hx.Workflow.Application
             // 检查是否有正在运行的实例
             foreach (var version in allVersions)
             {
-                var runningInstances = await CheckRunningInstancesAsync(id, version.Version);
-                if (runningInstances.Count != 0)
+                var runningInstancesCount = await CheckRunningInstancesAsync(id, version.Version);
+                if (runningInstancesCount > 0)
                 {
-                    throw new UserFriendlyException(message: $"版本 {version.Version} 有正在运行的实例，无法删除所有版本。请等待实例完成后再删除。");
+                    throw new UserFriendlyException(message: $"版本 {version.Version} 有 {runningInstancesCount} 个正在运行的实例，无法删除所有版本。请等待实例完成后再删除。");
                 }
             }
             
@@ -1093,10 +1089,10 @@ namespace Hx.Workflow.Application
             // 检查要删除的版本是否有正在运行的实例
             foreach (var version in versionsToDelete)
             {
-                var runningInstances = await CheckRunningInstancesAsync(id, version.Version);
-                if (runningInstances.Count != 0)
+                var runningInstancesCount = await CheckRunningInstancesAsync(id, version.Version);
+                if (runningInstancesCount > 0)
                 {
-                    throw new UserFriendlyException(message: $"版本 {version.Version} 有正在运行的实例，无法删除。请等待实例完成后再删除旧版本。");
+                    throw new UserFriendlyException(message: $"版本 {version.Version} 有 {runningInstancesCount} 个正在运行的实例，无法删除。请等待实例完成后再删除旧版本。");
                 }
             }
             
