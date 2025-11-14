@@ -1,4 +1,3 @@
-﻿using AutoMapper.Internal.Mappers;
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
@@ -11,7 +10,6 @@ using System.Text.Json;
 using Volo.Abp;
 using Volo.Abp.Guids;
 using WorkflowCore.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Hx.Workflow.Application
 {
@@ -27,7 +25,6 @@ namespace Hx.Workflow.Application
                         node.Name,
                         node.DisplayName,
                         node.StepNodeType,
-                        node.Version,
                         count++,
                         node.LimitTime,
                         node.Id == null ? GuidGenerator.Create() : node.Id);
@@ -114,12 +111,12 @@ namespace Hx.Workflow.Application
             }
             return nodeEntitys;
         }
-        public static ICollection<Candidate> ToWkCandidate(this ICollection<WkCandidateUpdateDto> inputs)
+        public static ICollection<WkNodeCandidate> ToWkCandidate(this ICollection<WkCandidateUpdateDto> inputs)
         {
-            var resultEntity = new List<Candidate>();
+            var resultEntity = new List<WkNodeCandidate>();
             foreach (var entity in inputs)
             {
-                resultEntity.Add(new Candidate(
+                resultEntity.Add(new WkNodeCandidate(
                     entity.CandidateId,
                     entity.UserName,
                     entity.DisplayUserName,

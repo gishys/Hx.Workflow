@@ -1,11 +1,12 @@
 ﻿using Hx.Workflow.Domain.Shared;
 using System;
-using System.Threading.Tasks;
-using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Domain
 {
-    public class WkNodeCandidate : Candidate
+    /// <summary>
+    /// 节点候选人（不包含 Version 字段）
+    /// </summary>
+    public class WkNodeCandidate : CandidateBase
     {
         public WkNodeCandidate()
         { }
@@ -14,9 +15,8 @@ namespace Hx.Workflow.Domain
             string userName,
             string displayUserName,
             WkParticipantType executorType,
-            bool defaultSelection = false,
-            int version = 1)
-            : base(candidateId, userName, displayUserName, executorType, defaultSelection, version)
+            bool defaultSelection = false)
+            : base(candidateId, userName, displayUserName, executorType, defaultSelection)
         {
         }
     }

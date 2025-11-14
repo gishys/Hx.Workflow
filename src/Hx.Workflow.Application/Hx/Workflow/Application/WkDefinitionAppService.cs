@@ -54,12 +54,16 @@ namespace Hx.Workflow.Application
             {
                 foreach (var candidate in input.WkCandidates)
                 {
-                    entity.WkCandidates.Add(new DefinitionCandidate(
+                    var newCandidate = new DefinitionCandidate(
                         candidate.CandidateId,
                         candidate.UserName,
                         candidate.DisplayUserName,
                         candidate.ExecutorType,
-                        candidate.DefaultSelection));
+                        candidate.DefaultSelection,
+                        entity.Version);
+                    // 设置 NodeId（实际上是 WkDefinition 的 Id）
+                    await newCandidate.SetNodeId(entity.Id);
+                    entity.WkCandidates.Add(newCandidate);
                 }
             }
             var nodeEntitys = input.Nodes?.ToWkNodes(GuidGenerator);
@@ -125,13 +129,16 @@ namespace Hx.Workflow.Application
                 entity.WkCandidates.Clear();
                 foreach (var candidate in input.WkCandidates)
                 {
-                    entity.WkCandidates.Add(new DefinitionCandidate(
+                    var newCandidate = new DefinitionCandidate(
                         candidate.CandidateId,
                         candidate.UserName,
                         candidate.DisplayUserName,
                         candidate.ExecutorType,
                         candidate.DefaultSelection,
-                        entity.Version));
+                        entity.Version);
+                    // 设置 NodeId（实际上是 WkDefinition 的 Id）
+                    await newCandidate.SetNodeId(entity.Id);
+                    entity.WkCandidates.Add(newCandidate);
                 }
             }
             
@@ -199,23 +206,26 @@ namespace Hx.Workflow.Application
             // 复制节点
             foreach (var node in originalEntity.Nodes)
             {
-                var newNode = await CloneNodeAsync(node, newEntity.Id);
+                var newNode = await CloneNodeAsync(node);
                 await newEntity.AddWkNode(newNode);
             }
             
-            // 更新候选人
+            // 更新候选人（需要设置 NodeId 和 Version 以避免主键冲突）
             newEntity.WkCandidates.Clear();
             if (input.WkCandidates?.Count > 0)
             {
                 foreach (var candidate in input.WkCandidates)
                 {
-                    newEntity.WkCandidates.Add(new DefinitionCandidate(
+                    var newCandidate = new DefinitionCandidate(
                         candidate.CandidateId,
                         candidate.UserName,
                         candidate.DisplayUserName,
                         candidate.ExecutorType,
                         candidate.DefaultSelection,
-                        newVersion));
+                        newVersion);
+                    // 设置 NodeId（实际上是 WkDefinition 的 Id）和 Version
+                    await newCandidate.SetNodeId(newEntity.Id);
+                    newEntity.WkCandidates.Add(newCandidate);
                 }
             }
             
@@ -228,20 +238,19 @@ namespace Hx.Workflow.Application
         /// <param name="originalNode">原节点</param>
         /// <param name="newDefinitionId">新的定义ID</param>
         /// <returns></returns>
-        private async Task<WkNode> CloneNodeAsync(WkNode originalNode, Guid newDefinitionId)
+        private async Task<WkNode> CloneNodeAsync(WkNode originalNode)
         {
             // 创建新节点，使用新的ID
             var clonedNode = new WkNode(
                 originalNode.Name,
                 originalNode.DisplayName,
                 originalNode.StepNodeType,
-                originalNode.Version,
                 originalNode.SortNumber,
                 originalNode.LimitTime,
                 GuidGenerator.Create()); // 生成新的ID
 
-            // 设置新的定义ID
-            await clonedNode.SetDefinitionId(newDefinitionId);
+            // 注意：WkDefinitionId 和 WkDefinitionVersion 会在 AddWkNode 时自动设置
+            // 这里不需要手动设置，因为节点必须通过 AddWkNode 添加到定义中
 
             // 复制步骤体
             if (originalNode.StepBody != null)
@@ -257,8 +266,7 @@ namespace Hx.Workflow.Application
                     candidate.UserName,
                     candidate.DisplayUserName,
                     candidate.ExecutorType,
-                    candidate.DefaultSelection,
-                    candidate.Version));
+                    candidate.DefaultSelection));
             }
             
             // 复制参数
@@ -335,8 +343,7 @@ namespace Hx.Workflow.Application
                 var clonedAppForm = new WkNode_ApplicationForms(
                     appForm.ApplicationId,
                     appForm.SequenceNumber,
-                    [],
-                    appForm.Version);
+                    []);
                 
                 // 复制表单参数
                 foreach (var param in appForm.Params)
@@ -758,25 +765,16 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<List<WkNodeDto>> UpdateAsync(DefinitionNodeUpdateDto input)
         {
-            // 获取最新版本的实体
             var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
             
             // 检查节点是否有增减（使用 ID 进行严格比较）
             var existingNodeIds = entity.Nodes.Select(n => n.Id).ToHashSet();
-            
-            // 如果新节点中有任何节点的 ID 为 null，说明有新增节点
             var hasNewNodes = input.Nodes.Any(n => !n.Id.HasValue);
-            
-            // 获取新节点中所有有效的 ID（过滤掉 null）
             var newNodeIds = input.Nodes
                 .Where(n => n.Id.HasValue)
                 .Select(n => n.Id!.Value)
                 .ToHashSet();
             
-            // 检查是否有节点增减：
-            // 1. 如果有新增节点（ID 为 null），则肯定有变化
-            // 2. 如果 ID 集合数量不一致，则肯定有变化
-            // 3. 如果 ID 集合不完全一致，则肯定有变化
             var hasNodeChanges = hasNewNodes ||
                                  existingNodeIds.Count != newNodeIds.Count ||
                                  !existingNodeIds.SetEquals(newNodeIds);
@@ -784,13 +782,7 @@ namespace Hx.Workflow.Application
             if (hasNodeChanges)
             {
                 // 节点有增减，需要创建新版本
-                // 注意：创建新版本不会影响正在运行的旧版本实例，因此不需要检查运行中的实例
-                // WorkflowCore 支持多版本共存，每个实例绑定到特定版本的定义
-                
-                // 获取新版本号
                 var newVersion = await GetNextVersionAsync(entity.Id, entity.Version);
-                
-                // 创建新版本
                 var newEntity = await CreateNewVersionForNodeUpdateAsync(entity, input, newVersion);
                 
                 // 保存新版本到数据库
@@ -804,15 +796,8 @@ namespace Hx.Workflow.Application
             else
             {
                 // 节点没有增减，直接更新当前版本的节点属性
-                // 注意：直接修改当前版本可能会影响正在运行的实例，但 WorkflowCore 会在实例启动时加载定义快照
-                // 因此修改当前版本不会影响已经运行的实例，只会影响新启动的实例
-                // 如果需要更严格的控制，可以在这里添加检查，但根据最佳实践，通常不需要
                 await UpdateNodesInCurrentVersionAsync(entity, input);
-                
-                // 保存更新
                 await _definitionRespository.UpdateAsync(entity);
-                
-                // 重新注册到工作流引擎
                 await _hxWorkflowManager.UpdateAsync(entity);
                 
                 return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. entity.Nodes]);
@@ -849,6 +834,27 @@ namespace Hx.Workflow.Application
                                 existingNode.ExtraProperties.Clear();
                                 inputNode.ExtraProperties.ForEach(item => existingNode.ExtraProperties.TryAdd(item.Key, item.Value));
                             }
+                            
+                            // 更新 WkCandidates（避免主键冲突）
+                            if (inputNode.WkCandidates != null)
+                            {
+                                // 清除现有的候选人
+                                existingNode.WkCandidates.Clear();
+                                
+                                // 添加新的候选人（确保 NodeId 和 Version 正确设置）
+                                foreach (var candidateDto in inputNode.WkCandidates)
+                                {
+                                    var candidate = new WkNodeCandidate(
+                                        candidateDto.CandidateId,
+                                        candidateDto.UserName,
+                                        candidateDto.DisplayUserName,
+                                        candidateDto.ExecutorType,
+                                        candidateDto.DefaultSelection);
+                                    // 设置 NodeId（使用现有节点的 ID）
+                                    await candidate.SetNodeId(existingNode.Id);
+                                    existingNode.WkCandidates.Add(candidate);
+                                }
+                            }
                         }
                     }
                 }
@@ -876,15 +882,22 @@ namespace Hx.Workflow.Application
                 version: newVersion);
             
             // 复制候选人
-            foreach (var candidate in originalEntity.WkCandidates)
+            if (originalEntity.WkCandidates != null && originalEntity.WkCandidates.Count > 0)
             {
-                newEntity.WkCandidates.Add(new DefinitionCandidate(
-                    candidate.CandidateId,
-                    candidate.UserName,
-                    candidate.DisplayUserName,
-                    candidate.ExecutorType,
-                    candidate.DefaultSelection,
-                    newVersion));
+                foreach (var candidate in originalEntity.WkCandidates.ToList())
+                {
+                    var newCandidate = new DefinitionCandidate(
+                        candidate.CandidateId,
+                        candidate.UserName,
+                        candidate.DisplayUserName,
+                        candidate.ExecutorType,
+                        candidate.DefaultSelection,
+                        newVersion);
+                    
+                    await newCandidate.SetNodeId(newEntity.Id);
+                    await newCandidate.SetVersion(newVersion);
+                    newEntity.WkCandidates.Add(newCandidate);
+                }
             }
             
             // 处理节点更新
@@ -932,13 +945,14 @@ namespace Hx.Workflow.Application
                     {
                         if (existingDict.TryGetValue(newNode.Name, out var existingNode))
                         {
-                            // 更新现有节点
+                            // 更新现有节点的属性（不包括 WkDefinitionId 和 WkDefinitionVersion）
                             await existingNode.UpdateFrom(newNode);
+                            // 将节点添加到新版本的定义中（会自动设置正确的 WkDefinitionId 和 WkDefinitionVersion）
                             await newEntity.AddWkNode(existingNode);
                         }
                         else
                         {
-                            // 添加新节点
+                            // 添加新节点（会自动设置 WkDefinitionId 和 WkDefinitionVersion）
                             await newEntity.AddWkNode(newNode);
                         }
                     }
@@ -949,7 +963,7 @@ namespace Hx.Workflow.Application
                 // 如果没有新节点，复制原节点
                 foreach (var node in originalEntity.Nodes)
                 {
-                    var clonedNode = await CloneNodeAsync(node, newEntity.Id);
+                    var clonedNode = await CloneNodeAsync(node);
                     await newEntity.AddWkNode(clonedNode);
                 }
             }

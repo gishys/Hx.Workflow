@@ -133,10 +133,11 @@ namespace Hx.Workflow.Domain.Persistence
             SortNumber = sortNumber;
             return Task.CompletedTask;
         }
-        public Task AddWkNode(WkNode node)
+        public async Task AddWkNode(WkNode node)
         {
+            // 自动设置节点的 WkDefinitionId 和 WkDefinitionVersion
+            await node.SetDefinition(Id, Version);
             Nodes.Add(node);
-            return Task.CompletedTask;
         }
         public Task AddCandidate(DefinitionCandidate input)
         {
@@ -165,13 +166,14 @@ namespace Hx.Workflow.Domain.Persistence
             {
                 if (existingDict.TryGetValue(newNode.Name, out var existingNode))
                 {
-                    // 更新现有节点
+                    // 更新现有节点的属性（不包括 WkDefinitionId 和 WkDefinitionVersion）
+                    // 注意：现有节点已经属于当前定义，不需要更新 WkDefinitionId 和 WkDefinitionVersion
                     await existingNode.UpdateFrom(newNode);
                 }
                 else
                 {
-                    // 添加新节点
-                    Nodes.Add(newNode);
+                    // 添加新节点（使用 AddWkNode 自动设置 WkDefinitionId 和 WkDefinitionVersion）
+                    await AddWkNode(newNode);
                 }
             }
         }

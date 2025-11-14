@@ -28,9 +28,9 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public StepNodeType StepNodeType { get; set; }
         /// <summary>
-        /// 步骤版本
+        /// WkDefinition 的版本号
         /// </summary>
-        public int Version { get; set; }
+        public int WkDefinitionVersion { get; set; }
         /// <summary>
         /// 限制时间
         /// </summary>

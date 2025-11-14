@@ -34,10 +34,14 @@ namespace Hx.Workflow.EntityFrameworkCore
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
             // 默认返回最新版本
-            return await (await GetDbSetAsync())
+            // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
+            var dbSet = await GetDbSetAsync();
+            return await dbSet
                     .IncludeDetails(includeDetails)
-                    .Where(d => d.Id == id)
-                    .OrderByDescending(d => d.Version)
+                    .Where(d => d.Id == id && 
+                               d.Version == dbSet
+                                   .Where(d2 => d2.Id == id)
+                                   .Max(d2 => (int?)d2.Version))
                     .FirstOrDefaultAsync(cancellation);
         }
         
@@ -95,17 +99,28 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public virtual async Task<WkDefinition?> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)
         {
-            return await (await GetDbSetAsync())
+            // 返回指定名称的最新版本
+            // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
+            var dbSet = await GetDbSetAsync();
+            return await dbSet
                 .IncludeDetails(includeDetails)
-                .Where(d => d.Title == name)
-                .OrderByDescending(d => d.Version)
+                .Where(d => d.Title == name && 
+                           d.Version == dbSet
+                               .Where(d2 => d2.Title == name)
+                               .Max(d2 => (int?)d2.Version))
                 .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));
         }
         public virtual async Task<List<WkNodeCandidate>> GetCandidatesAsync(Guid id, string stepName, CancellationToken cancellationToken = default)
         {
-            var definition = await (await GetDbSetAsync()).IncludeDetails(true)
-                .Where(d => d.Id == id)
-                .OrderByDescending(d => d.Version)
+            // 获取指定ID的最新版本的候选人
+            // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
+            var dbSet = await GetDbSetAsync();
+            var definition = await dbSet
+                .IncludeDetails(true)
+                .Where(d => d.Id == id && 
+                           d.Version == dbSet
+                               .Where(d2 => d2.Id == id)
+                               .Max(d2 => (int?)d2.Version))
                 .FirstOrDefaultAsync(GetCancellationToken(cancellationToken))
                 ?? throw new UserFriendlyException(message: $"Id为[{id}]的流程模板不存在！");
             var node = definition.Nodes.FirstOrDefault(n => n.Name == stepName) ?? throw new UserFriendlyException(message: $"Name为[{stepName}]的流程步骤不存在！");
@@ -126,16 +141,16 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// </summary>
         /// <param name="definitionId">模板ID</param>
         /// <param name="cancellationToken">取消令牌</param>
-        /// <returns>最大版本号，如果没有版本则返回0</returns>
+        /// <returns>最大版本号，如果没有版本则返回1</returns>
         public virtual async Task<int> GetMaxVersionAsync(Guid definitionId, CancellationToken cancellationToken = default)
         {
+            // 直接在数据库层面获取最大版本号，避免加载所有版本到内存
             var dbSet = await GetDbSetAsync();
-            var versions = await dbSet
+            var maxVersion = await dbSet
                 .Where(d => d.Id == definitionId)
-                .Select(d => d.Version)
-                .ToListAsync(GetCancellationToken(cancellationToken));
+                .MaxAsync(d => (int?)d.Version, GetCancellationToken(cancellationToken));
             
-            return versions.Count != 0 ? versions.Max() : 1;
+            return maxVersion ?? 1;
         }
         
         /// <summary>
@@ -171,7 +186,15 @@ namespace Hx.Workflow.EntityFrameworkCore
             Guid userId,
             ICollection<DefinitionCandidate> wkCandidates)
         {
-            var entity = await (await GetDbSetAsync()).Include(d => d.WkCandidates).FirstOrDefaultAsync(d => d.Id == wkDefinitionId);
+            // 获取指定ID的最新版本
+            var dbSet = await GetDbSetAsync();
+            var entity = await dbSet
+                .Include(d => d.WkCandidates)
+                .Where(d => d.Id == wkDefinitionId && 
+                           d.Version == dbSet
+                               .Where(d2 => d2.Id == wkDefinitionId)
+                               .Max(d2 => (int?)d2.Version))
+                .FirstOrDefaultAsync();
             if (entity?.WkCandidates != null)
             {
                 var updateCnadidates = entity.WkCandidates.Where(d => d.CandidateId == userId).ToList();

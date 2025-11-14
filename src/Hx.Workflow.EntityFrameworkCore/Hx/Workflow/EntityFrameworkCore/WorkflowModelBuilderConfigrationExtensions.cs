@@ -4,8 +4,6 @@ using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.StepBodys;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using SharpYaml.Tokens;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
 namespace Hx.Workflow.EntityFrameworkCore
@@ -35,11 +33,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.TenantId).HasColumnName("TENANTID").HasComment("租户Id");
                 t.Property(t => t.Description).IsRequired(false).HasMaxLength(500).HasColumnName("DESCRIPTION").HasComment("描述");
 
+                // WkDefinition 属于 WkDefinitionGroup，但删除组时不应该删除定义
+                // 使用 Restrict 防止删除组时删除定义，或者使用 SetNull 将定义的 GroupId 设置为 null
+                // 由于 GroupId 是可空的，使用 SetNull 更合理
                 t.HasMany(t => t.Items)
                        .WithOne()
                        .HasForeignKey(d => d.GroupId)
                        .HasConstraintName("QI_GROUPS_WKDEFINITION_ID")
-                       .OnDelete(DeleteBehavior.Cascade);
+                       .OnDelete(DeleteBehavior.SetNull);
 
                 t.HasMany(t => t.Children)
                        .WithOne()
@@ -86,7 +87,7 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.HasMany(d => d.Nodes)
                 .WithOne(d => d.WkDefinition)
-                .HasForeignKey(d => new { d.WkDefinitionId, d.Version })
+                .HasForeignKey(d => new { d.WkDefinitionId, d.WkDefinitionVersion })
                 .HasConstraintName("FK_WKNODES_WKDEFINITION_COMPOSITE")
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -129,28 +130,32 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.Property(p => p.DeleterId).HasColumnName("DELETERID");
                 d.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
+                // WkAuditor 属于 WkInstance，删除实例时应该删除审核记录
                 d.HasOne(d => d.Workflow)
                 .WithMany(d => d.WkAuditors)
                 .HasForeignKey(d => d.WorkflowId)
-                .HasConstraintName("Pk_WkAuditor_WkInstance");
+                .HasConstraintName("Pk_WkAuditor_WkInstance")
+                .OnDelete(DeleteBehavior.Cascade);
 
+                // WkAuditor 属于 WkExecutionPointer，删除执行指针时应该删除审核记录
                 d.HasOne(d => d.ExecutionPointer)
                 .WithMany()
                 .HasForeignKey(d => d.ExecutionPointerId)
-                .HasConstraintName("Pk_WkAuditor_ExecPointer");
+                .HasConstraintName("Pk_WkAuditor_ExecPointer")
+                .OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<WkNode>(t =>
             {
                 t.ConfigureExtraProperties();
                 t.ToTable(model.TablePrefix + "WKNODES", model.Schema, tb => { tb.HasComment("执行节点"); });
-                // 使用复合主键支持版本控制
-                t.HasKey(p => new { p.Id, p.Version }).HasName("PK_WKNODES");
+                // 使用单一主键，Version 仅作为外键的一部分，不作为主键
+                t.HasKey(p => p.Id).HasName("PK_WKNODES");
                 t.Property(d => d.Id).HasColumnName("ID");
                 t.Property(d => d.WkStepBodyId).HasColumnName("WKSTEPBODYID");
                 t.Property(d => d.WkDefinitionId).HasColumnName("WKDIFINITIONID");
                 t.Property(d => d.Name).HasColumnName("NAME").HasMaxLength(WkNodeConsts.MaxName);
                 t.Property(d => d.StepNodeType).HasColumnName("STEPNODETYPE").HasPrecision(1);
-                t.Property(d => d.Version).HasColumnName("VERSION");
+                t.Property(d => d.WkDefinitionVersion).HasColumnName("VERSION");
 
                 t.Property(d => d.LimitTime).HasColumnName("LIMITTIME");
                 t.Property(d => d.DisplayName).HasColumnName("DISPLAYNAME").HasMaxLength(WkNodeConsts.MaxDisplayName);
@@ -158,21 +163,25 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
 
+                // WkStepBody 是一个可重用的组件，多个 WkNode 可以共享同一个 WkStepBody
+                // 使用 Restrict 防止删除正在被使用的 WkStepBody，避免级联删除导致数据丢失
+                // 配置为可选关系（IsRequired(false)），确保即使 WkStepBody 不存在，WkNode 仍然会被加载
                 t.HasOne(d => d.StepBody).WithMany()
                 .HasForeignKey(d => d.WkStepBodyId)
                 .HasConstraintName("Pk_WkNode_WkStepBody")
-                .OnDelete(DeleteBehavior.Cascade);
+                .IsRequired(false)  // 明确标记为可选关系，允许 StepBody 为 null
+                .OnDelete(DeleteBehavior.Restrict);
 
                 t.HasMany(d => d.WkCandidates)
                 .WithOne()
-                .HasForeignKey(d => new { d.NodeId, d.Version })
-                .HasConstraintName("FK_NODE_CANDIDATES_WKNODE_COMPOSITE")
+                .HasForeignKey(d => d.NodeId)
+                .HasConstraintName("FK_NODE_CANDIDATES_WKNODE")
                 .OnDelete(DeleteBehavior.Cascade);
 
                 t.HasMany(d => d.OutcomeSteps)
                 .WithOne()
-                .HasForeignKey(d => new { d.WkNodeId, d.Version })
-                .HasConstraintName("FK_WKNODEPARAS_WKNODE_COMPOSITE")
+                .HasForeignKey(d => d.WkNodeId)
+                .HasConstraintName("FK_WKNODEPARAS_WKNODE")
                 .OnDelete(DeleteBehavior.Cascade);
 
                 t.OwnsMany(p => p.Params, param =>
@@ -199,13 +208,16 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkNode_ApplicationForms>(d =>
             {
                 d.ToTable(model.TablePrefix + "_NODES_APPLICATION_FORMS", model.Schema, tb => { tb.HasComment("节点表单关联表"); });
-                d.HasKey(d => new { d.NodeId, d.ApplicationId, d.Version });
+                // Version 仅作为外键的一部分，不作为主键
+                d.HasKey(d => new { d.NodeId, d.ApplicationId });
                 d.Property(d => d.ApplicationId).HasColumnName("APPLICATION_ID");
                 d.Property(d => d.NodeId).HasColumnName("NODE_ID");
                 d.Property(d => d.SequenceNumber).HasColumnName("SEQUENCENUMBER");
-                d.Property(d => d.Version).HasColumnName("VERSION");
-                d.HasOne<WkNode>().WithMany(d => d.ApplicationForms).HasForeignKey(d => new { d.NodeId, d.Version }).HasConstraintName("FK_NODES_APPLICATION_FORMS_WKNODE_COMPOSITE");
-                d.HasOne(d => d.ApplicationForm).WithMany().HasForeignKey(d => d.ApplicationId).HasConstraintName("APLLICATION_FKEY");
+                d.HasOne<WkNode>().WithMany(d => d.ApplicationForms).HasForeignKey(d => d.NodeId).HasConstraintName("FK_NODES_APPLICATION_FORMS_WKNODE");
+                // ApplicationForm 是可重用的组件，多个节点可以共享同一个表单
+                // 使用 Restrict 防止删除正在被使用的表单，避免级联删除导致数据丢失
+                d.HasOne(d => d.ApplicationForm).WithMany().HasForeignKey(d => d.ApplicationId).HasConstraintName("APLLICATION_FKEY")
+                .OnDelete(DeleteBehavior.Restrict);
 
                 d.OwnsMany(p => p.Params, param =>
                 {
@@ -215,10 +227,10 @@ namespace Hx.Workflow.EntityFrameworkCore
             builder.Entity<WkNodeCandidate>(d =>
             {
                 d.ToTable(model.TablePrefix + "NODE_CANDIDATES", model.Schema, tb => { tb.HasComment("流程模板候选人"); });
-                d.HasKey(d => new { d.NodeId, d.CandidateId, d.Version });
+                // Version 仅作为外键的一部分，不作为主键
+                d.HasKey(d => new { d.NodeId, d.CandidateId });
                 d.Property(d => d.CandidateId).HasColumnName("CANDIDATEID");
                 d.Property(d => d.NodeId).HasColumnName("NODEID");
-                d.Property(d => d.Version).HasColumnName("VERSION");
                 d.Property(d => d.UserName).HasColumnName("USERNAME").HasMaxLength(WkCandidateConsts.MaxUserNameLength);
                 d.Property(d => d.DisplayUserName).HasColumnName("DISPLAYUSERNAME").HasMaxLength(WkCandidateConsts.MaxDisplayUserNameLength);
                 d.Property(d => d.ExecutorType).HasColumnName("EXECUTORTYPE");
@@ -230,7 +242,6 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.HasKey(p => p.Id).HasName("PK_WKNODEPARAS");
                 d.Property(d => d.Id).HasColumnName("ID");
                 d.Property(d => d.WkNodeId).HasColumnName("WKNODEID");
-                d.Property(d => d.Version).HasColumnName("VERSION");
                 d.Property(d => d.Key).HasColumnName("KEY").HasMaxLength(WkNodeParaConsts.MaxKey);
                 d.Property(d => d.Value).HasColumnName("VALUE").HasMaxLength(WkNodeParaConsts.MaxValue);
             });
@@ -248,11 +259,14 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.TenantId).HasColumnName("TENANTID").HasComment("租户Id");
                 t.Property(t => t.Description).IsRequired(false).HasMaxLength(500).HasColumnName("DESCRIPTION").HasComment("描述");
 
+                // ApplicationForm 属于 ApplicationFormGroup，但删除组时不应该删除表单
+                // 使用 Restrict 防止删除组时删除表单，或者使用 SetNull 将表单的 GroupId 设置为 null
+                // 由于 GroupId 是可空的，使用 SetNull 更合理
                 t.HasMany(t => t.Items)
                        .WithOne()
                        .HasForeignKey(d => d.GroupId)
                        .HasConstraintName("AF_GROUPS_APPLICATIONFORM_ID")
-                       .OnDelete(DeleteBehavior.Cascade);
+                       .OnDelete(DeleteBehavior.SetNull);
 
                 t.HasMany(t => t.Children)
                        .WithOne()
@@ -276,6 +290,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.HasIndex(t => new { t.GroupId, t.Title }).IsUnique();
 
                 t.Property(d => d.Id).HasColumnName("ID");
+                t.Property(d => d.GroupId).HasColumnName("GROUPID").HasComment("属于组");
                 t.Property(d => d.Data).HasColumnName("DATA");
                 t.Property(d => d.ApplicationComponentType).HasColumnName("APPLICATIONCOMPONENTTYPE").HasPrecision(ApplicationFormConsts.MaxApplicationComponentType);
                 t.Property(p => p.ExtraProperties).HasColumnName("EXTRAPROPERTIES");
@@ -352,6 +367,20 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.ErrorTime).HasColumnName("ERRORTIME").HasColumnType("timestamp with time zone");
                 t.Property(d => d.Message).HasColumnName("MESSAGE").HasMaxLength(WkExecutionErrorConsts.MaxMessage);
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
+
+                // WkExecutionError 属于 WkInstance，删除实例时应该删除错误记录
+                t.HasOne<WkInstance>()
+                .WithMany()
+                .HasForeignKey(d => d.WkInstanceId)
+                .HasConstraintName("FK_WKEXECUTIONERRORS_WKINSTANCE")
+                .OnDelete(DeleteBehavior.Cascade);
+
+                // WkExecutionError 属于 WkExecutionPointer，删除执行指针时应该删除错误记录
+                t.HasOne<WkExecutionPointer>()
+                .WithMany()
+                .HasForeignKey(d => d.WkExecutionPointerId)
+                .HasConstraintName("FK_WKEXECUTIONERRORS_EXECUTIONPOINTER")
+                .OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<WkExtensionAttribute>(d =>
             {
@@ -429,10 +458,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .HasConstraintName("FK_POINTER_CANDIDATES_EXECUTIONPOINTER")
                 .OnDelete(DeleteBehavior.Cascade);
 
+                // WkSubscription 属于 WkExecutionPointer，删除执行指针时应该删除订阅
                 t.HasMany(d => d.WkSubscriptions)
                 .WithOne()
                 .HasForeignKey(d => d.ExecutionPointerId)
-                .HasConstraintName("FK_EXTENSIONATTRIBUTES_POINTERS");
+                .HasConstraintName("FK_EXTENSIONATTRIBUTES_POINTERS")
+                .OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<ExePointerCandidate>(d =>
             {
@@ -476,10 +507,13 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
                 t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
 
+                // WkInstance 关联到特定版本的 WkDefinition
+                // 使用 Restrict 防止删除正在被实例使用的定义版本，保证数据完整性
                 t.HasOne(d => d.WkDefinition)
                 .WithMany()
                 .HasForeignKey(d => new { d.WkDifinitionId, d.Version })
-                .HasConstraintName("FK_WKINSTANCES_WKDEFINITION_COMPOSITE");
+                .HasConstraintName("FK_WKINSTANCES_WKDEFINITION_COMPOSITE")
+                .OnDelete(DeleteBehavior.Restrict);
 
                 t.HasMany(d => d.ExecutionPointers)
                 .WithOne(d => d.WkInstance)

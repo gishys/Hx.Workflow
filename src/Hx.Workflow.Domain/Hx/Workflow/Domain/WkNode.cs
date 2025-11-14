@@ -4,15 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Volo.Abp.Data;
 using Volo.Abp.Domain.Entities;
 
 namespace Hx.Workflow.Domain
 {
-    public class WkNode : Entity, IHasExtraProperties
+    public class WkNode : Entity<Guid>, IHasExtraProperties
     {
-        public Guid Id { get; set; }
         /// <summary>
         /// 步骤体Id
         /// </summary>
@@ -34,9 +32,9 @@ namespace Hx.Workflow.Domain
         /// </summary>
         public virtual StepNodeType StepNodeType { get; protected set; }
         /// <summary>
-        /// 步骤版本
+        /// WkDefinition 的版本号（用于外键关联，不作为主键）
         /// </summary>
-        public virtual int Version { get; protected set; }
+        public virtual int WkDefinitionVersion { get; protected set; }
         /// <summary>
         /// 限制时间
         /// </summary>
@@ -73,8 +71,8 @@ namespace Hx.Workflow.Domain
         /// 排序
         /// </summary>
         public virtual int SortNumber { get; protected set; }
-        public virtual ICollection<WkParam> Params { get; protected set; } = new List<WkParam>();
-        public virtual ICollection<WkNodeMaterials> Materials { get; protected set; } = new List<WkNodeMaterials>();
+        public virtual ICollection<WkParam> Params { get; protected set; } = [];
+        public virtual ICollection<WkNodeMaterials> Materials { get; protected set; } = [];
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public WkNode()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
@@ -85,7 +83,6 @@ namespace Hx.Workflow.Domain
             string name,
             string displayName,
             StepNodeType stepNodeType,
-            int version,
             int sortNumber,
             int? limitTime = null,
             Guid? id = null)
@@ -93,7 +90,6 @@ namespace Hx.Workflow.Domain
             Name = name;
             DisplayName = displayName;
             StepNodeType = stepNodeType;
-            Version = version;
             LimitTime = limitTime;
             SortNumber = sortNumber;
             NextNodes = [];
@@ -137,9 +133,15 @@ namespace Hx.Workflow.Domain
             StepBody = stepBody;
             return Task.CompletedTask;
         }
-        public Task SetDefinitionId(Guid definitionId)
+        /// <summary>
+        /// 设置节点的定义ID和版本（必须同时设置，因为它们作为外键关联到 WkDefinition）
+        /// </summary>
+        /// <param name="definitionId">定义ID</param>
+        /// <param name="version">定义版本</param>
+        public Task SetDefinition(Guid definitionId, int version)
         {
             WkDefinitionId = definitionId;
+            WkDefinitionVersion = version;
             return Task.CompletedTask;
         }
         public Task AddNextNode(WkNodeRelation node)
@@ -157,12 +159,15 @@ namespace Hx.Workflow.Domain
             Materials.Add(materials);
             return Task.CompletedTask;
         }
+        /// <summary>
+        /// 从另一个节点更新属性（不包括 WkDefinitionId 和 WkDefinitionVersion，这些必须通过 SetDefinition 或 AddWkNode 设置）
+        /// </summary>
+        /// <param name="node">源节点</param>
         public Task UpdateFrom(WkNode node)
         {
             Name = node.Name;
             DisplayName = node.DisplayName;
             LimitTime = node.LimitTime;
-            Version = node.Version;
             StepNodeType = node.StepNodeType;
             OutcomeSteps = node.OutcomeSteps;
             WkCandidates = node.WkCandidates;
@@ -172,6 +177,8 @@ namespace Hx.Workflow.Domain
             Materials = node.Materials;
             NextNodes = node.NextNodes;
             //UpdateNextNodes(node.NextNodes);
+            // 注意：WkDefinitionId 和 WkDefinitionVersion 不在这里更新
+            // 它们必须通过 SetDefinition 方法或 AddWkNode 方法设置
             return Task.CompletedTask;
         }
         public void UpdateNextNodes(IEnumerable<WkNodeRelation> newNextNodes)
@@ -196,10 +203,6 @@ namespace Hx.Workflow.Domain
             {
                 NextNodes.Remove(removedNode);
             }
-        }
-        public override object[] GetKeys()
-        {
-            return [Id, Version];
         }
     }
 }

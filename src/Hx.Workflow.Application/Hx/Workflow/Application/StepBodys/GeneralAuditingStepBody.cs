@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
@@ -18,9 +18,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application.StepBodys
 {
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     public class GeneralAuditingStepBody(
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         IWkAuditorRespository wkAuditor,
         IWkInstanceRepository wkInstance,
         IWkDefinitionRespository wkDefinition,
@@ -109,7 +107,7 @@ namespace Hx.Workflow.Application.StepBodys
                             var tempCandidates = Candidates.Split(',');
                             if (tempCandidates?.Length > 0)
                             {
-                                dcandidate = pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId)).ToList();
+                                dcandidate = [.. pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId))];
                             }
                             else
                             {

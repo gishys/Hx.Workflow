@@ -21,10 +21,6 @@ namespace Hx.Workflow.Application.Contracts
         /// </summary>
         public StepNodeType StepNodeType { get; set; }
         /// <summary>
-        /// 步骤版本
-        /// </summary>
-        public int Version { get; set; }
-        /// <summary>
         /// 步骤体Id
         /// </summary>
         public string? WkStepBodyId { get; set; }
