@@ -806,6 +806,7 @@ namespace Hx.Workflow.Application
         
         /// <summary>
         /// 在当前版本中直接更新节点属性（不创建新版本）
+        /// 注意：直接更新当前版本可能会影响正在运行的流程实例的执行逻辑
         /// </summary>
         private async Task UpdateNodesInCurrentVersionAsync(WkDefinition entity, DefinitionNodeUpdateDto input)
         {
@@ -833,6 +834,13 @@ namespace Hx.Workflow.Application
                             {
                                 existingNode.ExtraProperties.Clear();
                                 inputNode.ExtraProperties.ForEach(item => existingNode.ExtraProperties.TryAdd(item.Key, item.Value));
+                            }
+                            
+                            // 更新 NextNodes（节点的上下手关系）
+                            // 如果提供了 NextNodes（即使为空），则更新；如果为 null，则保持不变
+                            if (newNode.NextNodes != null)
+                            {
+                                existingNode.UpdateNextNodes(newNode.NextNodes);
                             }
                             
                             // 更新 WkCandidates（避免主键冲突）

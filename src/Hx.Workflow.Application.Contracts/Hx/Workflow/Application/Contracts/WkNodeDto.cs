@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
 using Volo.Abp.Data;
@@ -7,6 +7,7 @@ namespace Hx.Workflow.Application.Contracts
 {
     public class WkNodeDto
     {
+        public Guid Id { get; set; }
         /// <summary>
         /// 步骤体Id
         /// </summary>
