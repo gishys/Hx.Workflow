@@ -49,7 +49,25 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns>是否存在</returns>
         Task<bool> ExistsAsync(Guid id, int version, CancellationToken cancellationToken = default);
+        
+        /// <summary>
+        /// 获取指定ID的最新版本（包括已归档的版本）
+        /// </summary>
+        /// <param name="id">模板ID</param>
+        /// <param name="includeDetails">是否包含详细信息</param>
+        /// <param name="cancellation">取消令牌</param>
+        /// <returns></returns>
         Task<WkDefinition?> FindAsync(
+            Guid id, bool includeDetails = true, CancellationToken cancellation = default);
+        
+        /// <summary>
+        /// 获取指定ID的最新未归档版本
+        /// </summary>
+        /// <param name="id">模板ID</param>
+        /// <param name="includeDetails">是否包含详细信息</param>
+        /// <param name="cancellation">取消令牌</param>
+        /// <returns></returns>
+        Task<WkDefinition?> FindLatestVersionAsync(
             Guid id, bool includeDetails = true, CancellationToken cancellation = default);
     }
 }

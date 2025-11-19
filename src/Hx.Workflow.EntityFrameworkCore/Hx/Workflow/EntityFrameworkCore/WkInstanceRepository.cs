@@ -554,5 +554,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                            x.Status == WorkflowStatus.Runnable)
                 .CountAsync();
         }
+        
+        public virtual async Task<int> GetInstancesCountByVersionAsync(Guid definitionId, int version)
+        {
+            return await (await GetDbSetAsync())
+                .Where(x => x.WkDifinitionId == definitionId && x.Version == version)
+                .CountAsync();
+        }
     }
 }

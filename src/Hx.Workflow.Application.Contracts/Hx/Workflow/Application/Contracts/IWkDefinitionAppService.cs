@@ -31,29 +31,6 @@ namespace Hx.Workflow.Application.Contracts
         /// <param name="id"></param>
         /// <returns></returns>
         Task DeleteAsync(Guid id);
-        
-        /// <summary>
-        /// 删除指定版本
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <param name="version">版本号</param>
-        /// <returns></returns>
-        Task DeleteVersionAsync(Guid id, int version);
-        
-        /// <summary>
-        /// 删除所有版本
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <returns></returns>
-        Task DeleteAllVersionsAsync(Guid id);
-        
-        /// <summary>
-        /// 删除旧版本（保留指定数量的最新版本）
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <param name="keepCount">保留的最新版本数量</param>
-        /// <returns></returns>
-        Task DeleteOldVersionsAsync(Guid id, int keepCount = 5);
         Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1);
         
         /// <summary>

@@ -23,7 +23,9 @@ namespace Hx.Workflow.Domain.Repositories
         /// <summary>
         /// 获取所有节点，包含子节点
         /// </summary>
+        /// <param name="includeDetails">是否包含详细信息</param>
+        /// <param name="includeArchived">是否包含已归档的模板定义，默认不包含</param>
         /// <returns></returns>
-        Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(Boolean includeDetails);
+        Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(Boolean includeDetails, bool includeArchived = false);
     }
 }

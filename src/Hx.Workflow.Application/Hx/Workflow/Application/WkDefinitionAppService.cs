@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
+using Volo.Abp.Domain.Repositories;
 
 namespace Hx.Workflow.Application
 {
@@ -89,8 +90,8 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkDefinitionDto> UpdateAsync(WkDefinitionUpdateDto input)
         {
-            // 获取最新版本的实体
-            var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
+            // 获取最新未归档版本的实体
+            var entity = await _definitionRespository.FindLatestVersionAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
             
             // 更新基本信息（不涉及节点变化，直接更新当前版本）
             if (!string.Equals(entity.Title, input.Title, StringComparison.OrdinalIgnoreCase))
@@ -765,7 +766,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<List<WkNodeDto>> UpdateAsync(DefinitionNodeUpdateDto input)
         {
-            var entity = await _definitionRespository.FindAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
+            var entity = await _definitionRespository.FindLatestVersionAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
             
             // 检查节点是否有增减（使用 ID 进行严格比较）
             var existingNodeIds = entity.Nodes.Select(n => n.Id).ToHashSet();
@@ -1002,127 +1003,64 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<WkDefinitionDto?> GetAsync(Guid id)
         {
-            var entity = await _definitionRespository.FindAsync(id);
+            var entity = await _definitionRespository.FindLatestVersionAsync(id);
             return ObjectMapper.Map<WkDefinition?, WkDefinitionDto?>(entity);
         }
         /// <summary>
-        /// 删除实体（删除最新版本）
+        /// 删除模板定义
+        /// 删除逻辑：
+        /// 1. 删除所有没有实例关联的版本
+        /// 2. 对于有实例关联的版本，标记为已归档（IsArchived = true），并禁用（IsEnabled = false）
+        /// 3. 已归档的版本不再用于模板管理，仅用于服务已创建的实例
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">模板ID</param>
         /// <returns></returns>
         public virtual async Task DeleteAsync(Guid id)
         {
-            // 获取最新版本
-            var latestVersion = await _definitionRespository.FindAsync(id) ?? throw new UserFriendlyException(message: $"模板 {id} 不存在！");
-
-            // 检查是否有正在运行的实例
-            var runningInstancesCount = await CheckRunningInstancesAsync(id, latestVersion.Version);
-            if (runningInstancesCount > 0)
-            {
-                throw new UserFriendlyException(message: $"该版本有 {runningInstancesCount} 个正在运行的实例，无法删除。请等待实例完成后再删除。");
-            }
-            
-            // 删除最新版本
-            await _definitionRespository.DeleteAsync(latestVersion);
-        }
-        
-        /// <summary>
-        /// 删除指定版本
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <param name="version">版本号</param>
-        /// <returns></returns>
-        public virtual async Task DeleteVersionAsync(Guid id, int version)
-        {
-            // 检查版本是否存在
-            var entity = await _definitionRespository.GetDefinitionAsync(id, version) ?? throw new UserFriendlyException(message: $"版本 {version} 不存在！");
-
-            // 检查是否有正在运行的实例使用该版本
-            var runningInstancesCount = await CheckRunningInstancesAsync(id, version);
-            if (runningInstancesCount > 0)
-            {
-                throw new UserFriendlyException(message: $"该版本有 {runningInstancesCount} 个正在运行的实例，无法删除。请等待实例完成后再删除。");
-            }
-            
-            // 删除指定版本
-            await _definitionRespository.DeleteAsync(entity);
-        }
-        
-        /// <summary>
-        /// 删除所有版本
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <returns></returns>
-        public virtual async Task DeleteAllVersionsAsync(Guid id)
-        {
-            // 获取所有版本
+            // 获取所有版本（包括已归档的）
             var allVersions = await _definitionRespository.GetAllVersionsAsync(id);
             if (allVersions.Count == 0)
             {
                 throw new UserFriendlyException(message: $"模板 {id} 不存在！");
             }
-            
-            // 检查是否有正在运行的实例
+
+            var versionsToDelete = new List<WkDefinition>();
+            var versionsToArchive = new List<WkDefinition>();
+
+            // 检查每个版本是否有实例关联
             foreach (var version in allVersions)
             {
-                var runningInstancesCount = await CheckRunningInstancesAsync(id, version.Version);
-                if (runningInstancesCount > 0)
+                var instancesCount = await _wkInstanceRepository.GetInstancesCountByVersionAsync(id, version.Version);
+                
+                if (instancesCount == 0)
                 {
-                    throw new UserFriendlyException(message: $"版本 {version.Version} 有 {runningInstancesCount} 个正在运行的实例，无法删除所有版本。请等待实例完成后再删除。");
+                    // 没有实例关联，可以删除
+                    versionsToDelete.Add(version);
+                }
+                else
+                {
+                    // 有实例关联，需要归档
+                    versionsToArchive.Add(version);
                 }
             }
-            
-            // 删除所有版本
-            foreach (var version in allVersions)
-            {
-                await _definitionRespository.DeleteAsync(version);
-            }
-        }
-        
-        /// <summary>
-        /// 删除旧版本（保留指定数量的最新版本）
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <param name="keepCount">保留的最新版本数量</param>
-        /// <returns></returns>
-        public virtual async Task DeleteOldVersionsAsync(Guid id, int keepCount = 5)
-        {
-            if (keepCount <= 0)
-            {
-                throw new UserFriendlyException(message: "保留版本数量必须大于0！");
-            }
-            
-            // 获取所有版本，按版本号降序排列
-            var allVersions = await _definitionRespository.GetAllVersionsAsync(id);
-            if (allVersions.Count == 0)
-            {
-                throw new UserFriendlyException(message: $"模板 {id} 不存在！");
-            }
-            
-            // 如果版本数量不超过保留数量，则不需要删除
-            if (allVersions.Count <= keepCount)
-            {
-                return;
-            }
-            
-            // 获取需要删除的旧版本
-            var versionsToDelete = allVersions.Skip(keepCount).ToList();
-            
-            // 检查要删除的版本是否有正在运行的实例
+
+            // 物理删除没有实例关联的版本
             foreach (var version in versionsToDelete)
             {
-                var runningInstancesCount = await CheckRunningInstancesAsync(id, version.Version);
-                if (runningInstancesCount > 0)
-                {
-                    throw new UserFriendlyException(message: $"版本 {version.Version} 有 {runningInstancesCount} 个正在运行的实例，无法删除。请等待实例完成后再删除旧版本。");
-                }
+                await _definitionRespository.HardDeleteAsync(version, true);
             }
-            
-            // 删除旧版本
-            foreach (var version in versionsToDelete)
+
+            // 归档有实例关联的版本
+            foreach (var version in versionsToArchive)
             {
-                await _definitionRespository.DeleteAsync(version);
+                await version.SetArchived(true);
+                await version.SetEnabled(false);
+                await _definitionRespository.UpdateAsync(version);
             }
+
+            // 从工作流引擎中注销已归档的版本
+            // 注意：已归档的版本仍然需要保留在工作流引擎中，以便已创建的实例可以继续执行
+            // 因此这里不需要注销，只需要标记为已归档即可
         }
         /// <summary>
         /// 获取流程模版

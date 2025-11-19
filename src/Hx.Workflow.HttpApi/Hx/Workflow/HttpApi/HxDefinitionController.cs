@@ -36,44 +36,6 @@ namespace Hx.Workflow.HttpApi
         {
             return _appService.DeleteAsync(id);
         }
-        
-        /// <summary>
-        /// 删除指定版本
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <param name="version">版本号</param>
-        /// <returns></returns>
-        [HttpDelete]
-        [Route("version")]
-        public Task DeleteVersionAsync(Guid id, int version)
-        {
-            return _appService.DeleteVersionAsync(id, version);
-        }
-        
-        /// <summary>
-        /// 删除所有版本
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <returns></returns>
-        [HttpDelete]
-        [Route("all-versions")]
-        public Task DeleteAllVersionsAsync(Guid id)
-        {
-            return _appService.DeleteAllVersionsAsync(id);
-        }
-        
-        /// <summary>
-        /// 删除旧版本
-        /// </summary>
-        /// <param name="id">模板ID</param>
-        /// <param name="keepCount">保留的最新版本数量</param>
-        /// <returns></returns>
-        [HttpDelete]
-        [Route("old-versions")]
-        public Task DeleteOldVersionsAsync(Guid id, int keepCount = 5)
-        {
-            return _appService.DeleteOldVersionsAsync(id, keepCount);
-        }
         [HttpGet]
         [Route("details")]
         public Task<WkDefinitionDto> GetAsync(Guid id, int version = 1)

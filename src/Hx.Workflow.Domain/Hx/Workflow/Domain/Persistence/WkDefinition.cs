@@ -54,6 +54,10 @@ namespace Hx.Workflow.Domain.Persistence
         /// </summary>
         public bool IsEnabled { get; protected set; }
         /// <summary>
+        /// 是否已归档（已归档的版本不再用于模板管理，仅用于服务已创建的实例）
+        /// </summary>
+        public bool IsArchived { get; protected set; }
+        /// <summary>
         /// 后选者
         /// </summary>
         public ICollection<DefinitionCandidate> WkCandidates { get; protected set; }
@@ -77,7 +81,8 @@ namespace Hx.Workflow.Domain.Persistence
             int? limitTime = null,
             Guid? groupId = null,
             Guid? tenantId = null,
-            int version = 1)
+            int version = 1,
+            bool isArchived = false)
         {
             Id = id;
             Version = version;
@@ -85,6 +90,7 @@ namespace Hx.Workflow.Domain.Persistence
             GroupId = groupId;
             LimitTime = limitTime;
             IsEnabled = isEnabled;
+            IsArchived = isArchived;
             Description = description;
             BusinessType = businessType;
             ProcessType = processType;
@@ -111,6 +117,11 @@ namespace Hx.Workflow.Domain.Persistence
         public Task SetEnabled(bool isEnabled)
         {
             IsEnabled = isEnabled;
+            return Task.CompletedTask;
+        }
+        public Task SetArchived(bool isArchived)
+        {
+            IsArchived = isArchived;
             return Task.CompletedTask;
         }
         public Task SetDescription(string? discription)

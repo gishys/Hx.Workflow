@@ -9,6 +9,6 @@ namespace Hx.Workflow.Application.Contracts
         Task CreateAsync(WkDefinitionGroupCreateDto dto);
         Task UpdateAsync(WkDefinitionGroupUpdateDto dto);
         Task DeleteAsync(Guid id);
-        Task<List<WkDefinitionGroupDto>> GetAllWithChildrenAsync();
+        Task<List<WkDefinitionGroupDto>> GetAllWithChildrenAsync(bool includeArchived = false);
     }
 }

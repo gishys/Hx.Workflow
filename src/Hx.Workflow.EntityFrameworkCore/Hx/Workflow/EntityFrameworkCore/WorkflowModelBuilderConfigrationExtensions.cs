@@ -84,6 +84,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(p => p.DeleterId).HasColumnName("DELETERID");
                 t.Property(p => p.DeletionTime).HasColumnName("DELETIONTIME").HasColumnType("timestamp with time zone");
                 t.Property(p => p.IsEnabled).HasColumnName("ISENABLED").HasDefaultValue(true);
+                t.Property(p => p.IsArchived).HasColumnName("ISARCHIVED").HasDefaultValue(false).HasComment("是否已归档（已归档的版本不再用于模板管理，仅用于服务已创建的实例）");
 
                 t.HasMany(d => d.Nodes)
                 .WithOne(d => d.WkDefinition)

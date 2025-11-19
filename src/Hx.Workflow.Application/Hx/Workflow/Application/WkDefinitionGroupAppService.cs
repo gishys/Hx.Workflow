@@ -45,9 +45,9 @@ namespace Hx.Workflow.Application
         {
             await GroupRepository.DeleteAsync(id);
         }
-        public async virtual Task<List<WkDefinitionGroupDto>> GetAllWithChildrenAsync()
+        public async virtual Task<List<WkDefinitionGroupDto>> GetAllWithChildrenAsync(bool includeArchived = false)
         {
-            List<WkDefinitionGroup> list = await GroupRepository.GetAllWithChildrenAsync(true);
+            List<WkDefinitionGroup> list = await GroupRepository.GetAllWithChildrenAsync(true, includeArchived);
             list = [.. list.OrderBy(x => x.Order)];
             return ObjectMapper.Map<List<WkDefinitionGroup>, List<WkDefinitionGroupDto>>(list);
         }

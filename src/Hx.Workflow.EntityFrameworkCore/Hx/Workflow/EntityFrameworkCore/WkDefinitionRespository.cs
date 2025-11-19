@@ -16,24 +16,18 @@ namespace Hx.Workflow.EntityFrameworkCore
     public class WkDefinitionRespository(IDbContextProvider<WkDbContext> options)
                 : EfCoreRepository<WkDbContext, WkDefinition>(options),
         IWkDefinitionRespository
-    {
-        public async Task<WkDefinition?> FindAsync(
-            object[] id, bool includeDetails = true, CancellationToken cancellation = default)
-        {
-            if (id.Length != 2 || id[0] is not Guid definitionId || id[1] is not int version)
-            {
-                return null;
-            }
-            
-            return await (await GetDbSetAsync())
-                    .IncludeDetails(includeDetails)
-                    .FirstOrDefaultAsync(d => d.Id == definitionId && d.Version == version, cancellation);
-        }
-        
+    {        
+        /// <summary>
+        /// 获取指定ID的最新版本（包括已归档的版本）
+        /// </summary>
+        /// <param name="id">模板ID</param>
+        /// <param name="includeDetails">是否包含详细信息</param>
+        /// <param name="cancellation">取消令牌</param>
+        /// <returns></returns>
         public async Task<WkDefinition?> FindAsync(
             Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
-            // 默认返回最新版本
+            // 返回最新版本（包括已归档的版本）
             // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
             var dbSet = await GetDbSetAsync();
             return await dbSet
@@ -46,19 +40,26 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         
         /// <summary>
-        /// 获取指定ID和版本的实体
+        /// 获取指定ID的最新未归档版本
         /// </summary>
         /// <param name="id">模板ID</param>
-        /// <param name="version">版本号</param>
         /// <param name="includeDetails">是否包含详细信息</param>
         /// <param name="cancellation">取消令牌</param>
         /// <returns></returns>
-        public virtual async Task<WkDefinition?> FindAsync(
-            Guid id, int version, bool includeDetails = true, CancellationToken cancellation = default)
+        public virtual async Task<WkDefinition?> FindLatestVersionAsync(
+            Guid id, bool includeDetails = true, CancellationToken cancellation = default)
         {
-            return await (await GetDbSetAsync())
+            // 返回最新版本（排除已归档的版本）
+            // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
+            var dbSet = await GetDbSetAsync();
+            return await dbSet
                     .IncludeDetails(includeDetails)
-                    .FirstOrDefaultAsync(d => d.Id == id && d.Version == version, cancellation);
+                    .Where(d => d.Id == id && 
+                               !d.IsArchived &&  // 排除已归档的版本
+                               d.Version == dbSet
+                                   .Where(d2 => d2.Id == id && !d2.IsArchived)  // 在子查询中也排除已归档的版本
+                                   .Max(d2 => (int?)d2.Version))
+                    .FirstOrDefaultAsync(cancellation);
         }
         
         /// <summary>
@@ -99,14 +100,15 @@ namespace Hx.Workflow.EntityFrameworkCore
         }
         public virtual async Task<WkDefinition?> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default)
         {
-            // 返回指定名称的最新版本
+            // 返回指定名称的最新版本（排除已归档的版本）
             // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
             var dbSet = await GetDbSetAsync();
             return await dbSet
                 .IncludeDetails(includeDetails)
                 .Where(d => d.Title == name && 
+                           !d.IsArchived &&  // 排除已归档的版本
                            d.Version == dbSet
-                               .Where(d2 => d2.Title == name)
+                               .Where(d2 => d2.Title == name && !d2.IsArchived)  // 在子查询中也排除已归档的版本
                                .Max(d2 => (int?)d2.Version))
                 .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));
         }
@@ -144,10 +146,10 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <returns>最大版本号，如果没有版本则返回1</returns>
         public virtual async Task<int> GetMaxVersionAsync(Guid definitionId, CancellationToken cancellationToken = default)
         {
-            // 直接在数据库层面获取最大版本号，避免加载所有版本到内存
+            // 直接在数据库层面获取最大版本号（排除已归档的版本），避免加载所有版本到内存
             var dbSet = await GetDbSetAsync();
             var maxVersion = await dbSet
-                .Where(d => d.Id == definitionId)
+                .Where(d => d.Id == definitionId && !d.IsArchived)  // 排除已归档的版本
                 .MaxAsync(d => (int?)d.Version, GetCancellationToken(cancellationToken));
             
             return maxVersion ?? 1;

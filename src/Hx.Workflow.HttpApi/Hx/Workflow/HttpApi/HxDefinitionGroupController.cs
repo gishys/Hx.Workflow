@@ -23,9 +23,9 @@ namespace Hx.Workflow.HttpApi
         }
         [HttpGet]
         [Route("all")]
-        public Task<List<WkDefinitionGroupDto>> GetAllAsync()
+        public Task<List<WkDefinitionGroupDto>> GetAllAsync(bool includeArchived = false)
         {
-            return _appService.GetAllWithChildrenAsync();
+            return _appService.GetAllWithChildrenAsync(includeArchived);
         }
         [HttpDelete]
         public Task DeleteAsync(Guid id)

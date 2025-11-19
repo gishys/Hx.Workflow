@@ -95,6 +95,14 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="version">版本号</param>
         /// <returns>运行中的实例数量</returns>
         Task<int> GetRunningInstancesCountByVersionAsync(Guid definitionId, int version);
+        
+        /// <summary>
+        /// 获取指定模板版本的所有实例数量（包括已完成和运行中的）
+        /// </summary>
+        /// <param name="definitionId">模板ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns>实例数量</returns>
+        Task<int> GetInstancesCountByVersionAsync(Guid definitionId, int version);
         Task<int> GetMyInstancesCountAsync(
             ICollection<Guid>? creatorIds,
             ICollection<Guid>? definitionIds,

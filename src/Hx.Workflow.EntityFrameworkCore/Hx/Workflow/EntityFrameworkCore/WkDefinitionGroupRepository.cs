@@ -87,8 +87,10 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <summary>
         /// 获取所有节点，包含子节点
         /// </summary>
+        /// <param name="includeDetails">是否包含详细信息</param>
+        /// <param name="includeArchived">是否包含已归档的模板定义，默认不包含</param>
         /// <returns></returns>
-        public async Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(bool includeDetails)
+        public async Task<List<WkDefinitionGroup>> GetAllWithChildrenAsync(bool includeDetails, bool includeArchived = false)
         {
             var dbContext = await GetDbContextAsync();
             var groupDbSet = await GetDbSetAsync();
@@ -100,13 +102,28 @@ namespace Hx.Workflow.EntityFrameworkCore
             // 在数据库层面直接查询每个工作流定义的最新版本
             // 使用子查询来获取每个 Id 的最大版本，然后查询完整数据
             // 注意：IncludeDetails 必须在 Select 之前调用
-            var latestVersionDefinitions = await definitionDbSet
-                .IncludeDetails(includeDetails)
-                .Where(d =>
+            var query = definitionDbSet
+                .IncludeDetails(includeDetails);
+            
+            if (includeArchived)
+            {
+                // 包含已归档版本：查询所有版本的最新版本
+                query = query.Where(d =>
                     d.Version == definitionDbSet
                         .Where(d2 => d2.Id == d.Id)
-                        .Max(d2 => (int?)d2.Version))
-                .ToListAsync();
+                        .Max(d2 => (int?)d2.Version));
+            }
+            else
+            {
+                // 不包含已归档版本：只查询未归档版本的最新版本
+                query = query.Where(d =>
+                    !d.IsArchived &&
+                    d.Version == definitionDbSet
+                        .Where(d2 => d2.Id == d.Id && !d2.IsArchived)
+                        .Max(d2 => (int?)d2.Version));
+            }
+            
+            var latestVersionDefinitions = await query.ToListAsync();
 
             // 按 GroupId 分组（过滤掉 GroupId 为 null 的记录）
             var itemsByGroupId = latestVersionDefinitions?

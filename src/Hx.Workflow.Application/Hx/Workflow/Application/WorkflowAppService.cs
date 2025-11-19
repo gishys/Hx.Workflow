@@ -75,6 +75,13 @@ namespace Hx.Workflow.Application
                 }
 
                 var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version) ?? throw new UserFriendlyException(message: $"不存在Id为：[{input.Id},{input.Version}]流程模板！");
+                
+                // 检查版本是否已归档
+                if (entity.IsArchived)
+                {
+                    throw new UserFriendlyException(message: $"版本 {input.Version} 已归档，无法用于创建新实例。该版本仅用于服务已创建的实例。");
+                }
+                
                 if (!entity.WkCandidates.Any(d => d.CandidateId == candidateId))
                 {
                     throw new UserFriendlyException(message: $"无权限，请在流程定义中配置Id为（{input.Inputs["Candidates"]}）的权限！");
