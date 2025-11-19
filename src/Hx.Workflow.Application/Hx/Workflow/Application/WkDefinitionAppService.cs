@@ -798,6 +798,14 @@ namespace Hx.Workflow.Application
             {
                 // 节点没有增减，直接更新当前版本的节点属性
                 await UpdateNodesInCurrentVersionAsync(entity, input);
+                
+                // 更新模板定义的扩展属性
+                if (input.ExtraProperties != null)
+                {
+                    entity.ExtraProperties.Clear();
+                    input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+                }
+                
                 await _definitionRespository.UpdateAsync(entity);
                 await _hxWorkflowManager.UpdateAsync(entity);
                 
