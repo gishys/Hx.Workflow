@@ -108,6 +108,21 @@ namespace Hx.Workflow.Domain
             Name = name;
             return Task.CompletedTask;
         }
+        public Task SetDisplayName(string displayName)
+        {
+            DisplayName = displayName;
+            return Task.CompletedTask;
+        }
+        public Task SetStepNodeType(StepNodeType stepNodeType)
+        {
+            StepNodeType = stepNodeType;
+            return Task.CompletedTask;
+        }
+        public Task SetLimitTime(int? limitTime)
+        {
+            LimitTime = limitTime;
+            return Task.CompletedTask;
+        }
         public Task AddOutcomeSteps(WkNodePara para)
         {
             OutcomeSteps.Add(para);

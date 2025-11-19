@@ -827,6 +827,23 @@ namespace Hx.Workflow.Application
                         var inputNode = input.Nodes.FirstOrDefault(d => d.Id == newNode.Id);
                         if (inputNode != null)
                         {
+                            // 更新基本属性
+                            
+                            if (!string.Equals(existingNode.DisplayName, inputNode.DisplayName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                await existingNode.SetDisplayName(inputNode.DisplayName);
+                            }
+                            
+                            if (existingNode.StepNodeType != inputNode.StepNodeType)
+                            {
+                                await existingNode.SetStepNodeType(inputNode.StepNodeType);
+                            }
+                            
+                            if (existingNode.LimitTime != inputNode.LimitTime)
+                            {
+                                await existingNode.SetLimitTime(inputNode.LimitTime);
+                            }
+                            
                             // 更新 StepBody
                             await existingNode.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, newNode.StepNodeType));
                             
@@ -842,6 +859,16 @@ namespace Hx.Workflow.Application
                             if (newNode.NextNodes != null)
                             {
                                 existingNode.UpdateNextNodes(newNode.NextNodes);
+                            }
+                            
+                            // 更新 OutcomeSteps（分支节点参数）
+                            if (inputNode.OutcomeSteps != null)
+                            {
+                                existingNode.OutcomeSteps.Clear();
+                                foreach (var outcomeStepDto in inputNode.OutcomeSteps)
+                                {
+                                    await existingNode.AddOutcomeSteps(new WkNodePara(outcomeStepDto.Key, outcomeStepDto.Value));
+                                }
                             }
                             
                             // 更新 WkCandidates（避免主键冲突）
@@ -862,6 +889,71 @@ namespace Hx.Workflow.Application
                                     // 设置 NodeId（使用现有节点的 ID）
                                     await candidate.SetNodeId(existingNode.Id);
                                     existingNode.WkCandidates.Add(candidate);
+                                }
+                            }
+                            
+                            // 更新 ApplicationForms（表单集合）
+                            if (inputNode.ApplicationForms != null)
+                            {
+                                existingNode.ApplicationForms.Clear();
+                                foreach (var formDto in inputNode.ApplicationForms)
+                                {
+                                    var ps = new List<WkParam>();
+                                    if (formDto.Params != null && formDto.Params.Count > 0)
+                                    {
+                                        foreach (var paramDto in formDto.Params)
+                                        {
+                                            ps.Add(new WkParam(paramDto.WkParamKey, paramDto.Name, paramDto.DisplayName, paramDto.Value));
+                                        }
+                                    }
+                                    await existingNode.AddApplicationForms(formDto.ApplicationFormId, formDto.SequenceNumber, ps);
+                                }
+                            }
+                            
+                            // 更新 Params（流程参数）
+                            if (inputNode.Params != null)
+                            {
+                                existingNode.Params.Clear();
+                                foreach (var paramDto in inputNode.Params)
+                                {
+                                    await existingNode.AddParam(new WkParam(paramDto.WkParamKey, paramDto.Name, paramDto.DisplayName, paramDto.Value));
+                                }
+                            }
+                            
+                            // 更新 Materials（材料集合）
+                            if (inputNode.Materials != null)
+                            {
+                                existingNode.Materials.Clear();
+                                foreach (var materialDto in inputNode.Materials)
+                                {
+                                    var material = new WkNodeMaterials(
+                                        materialDto.AttachReceiveType,
+                                        materialDto.ReferenceType,
+                                        materialDto.CatalogueName,
+                                        materialDto.SequenceNumber,
+                                        materialDto.IsRequired,
+                                        materialDto.IsStatic,
+                                        materialDto.IsVerification,
+                                        materialDto.VerificationPassed);
+                                    
+                                    // 处理子材料（递归）
+                                    if (materialDto.Children != null && materialDto.Children.Count > 0)
+                                    {
+                                        foreach (var childDto in materialDto.Children)
+                                        {
+                                            material.AddChild(new WkNodeMaterials(
+                                                childDto.AttachReceiveType,
+                                                childDto.ReferenceType,
+                                                childDto.CatalogueName,
+                                                childDto.SequenceNumber,
+                                                childDto.IsRequired,
+                                                childDto.IsStatic,
+                                                childDto.IsVerification,
+                                                childDto.VerificationPassed));
+                                        }
+                                    }
+                                    
+                                    await existingNode.AddMaterails(material);
                                 }
                             }
                         }
@@ -913,11 +1005,25 @@ namespace Hx.Workflow.Application
             var nodeEntitys = input.Nodes.ToWkNodes(GuidGenerator);
             if (nodeEntitys != null && nodeEntitys.Count > 0)
             {
+                // 创建 inputNode 字典，使用 ID 作为键（因为 Name 可能会被更新）
+                var inputNodeDict = input.Nodes.Where(n => n.Id.HasValue).ToDictionary(n => n.Id!.Value);
+                
                 foreach (var node in nodeEntitys)
                 {
-                    var inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name) ?? throw new UserFriendlyException(message: $"节点：{node.Name}不存在！");
+                    // 使用 ID 来查找对应的 inputNode（更可靠，因为 Name 可能会被更新）
+                    if (!inputNodeDict.TryGetValue(node.Id, out var inputNode))
+                    {
+                        // 如果通过 ID 找不到，尝试通过 Name 查找（兼容新节点的情况）
+                        inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
+                    }
+                    
+                    if (inputNode == null)
+                    {
+                        throw new UserFriendlyException(message: $"节点 ID：{node.Id} 或 Name：{node.Name} 不存在！");
+                    }
+                    
                     await node.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, node.StepNodeType));
-                    if (node.ExtraProperties != null)
+                    if (node.ExtraProperties != null && inputNode.ExtraProperties != null)
                     {
                         node.ExtraProperties.Clear();
                         inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
@@ -940,7 +1046,8 @@ namespace Hx.Workflow.Application
                     // 复制原节点并更新
                     var existingNodes = originalEntity.Nodes.ToList();
                     var nodeComparer = EqualityComparer<Guid>.Default;
-                    var existingDict = existingNodes.ToDictionary(n => n.Name);
+                    // 使用 ID 作为字典键，因为 Name 可能会被更新
+                    var existingDict = existingNodes.ToDictionary(n => n.Id);
                     
                     // 删除不存在的节点
                     var nodesToRemove = existingNodes.Where(existing => !nodeEntitys.Any(newNode => nodeComparer.Equals(newNode.Id, existing.Id))).ToList();
@@ -952,9 +1059,10 @@ namespace Hx.Workflow.Application
                     // 更新或添加节点
                     foreach (var newNode in nodeEntitys)
                     {
-                        if (existingDict.TryGetValue(newNode.Name, out var existingNode))
+                        if (existingDict.TryGetValue(newNode.Id, out var existingNode))
                         {
                             // 更新现有节点的属性（不包括 WkDefinitionId 和 WkDefinitionVersion）
+                            // UpdateFrom 会更新所有属性，包括 Name、DisplayName、StepNodeType、LimitTime 等
                             await existingNode.UpdateFrom(newNode);
                             // 将节点添加到新版本的定义中（会自动设置正确的 WkDefinitionId 和 WkDefinitionVersion）
                             await newEntity.AddWkNode(existingNode);

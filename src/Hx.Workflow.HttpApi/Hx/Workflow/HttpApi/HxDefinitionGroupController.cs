@@ -23,6 +23,7 @@ namespace Hx.Workflow.HttpApi
         }
         [HttpGet]
         [Route("all")]
+        //[AllowAnonymous]
         public Task<List<WkDefinitionGroupDto>> GetAllAsync(bool includeArchived = false)
         {
             return _appService.GetAllWithChildrenAsync(includeArchived);
