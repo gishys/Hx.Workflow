@@ -1121,6 +1121,12 @@ namespace Hx.Workflow.Application
                     }
                 }
             }
+            
+            // 验证节点限制时间
+            if (entity.LimitTime < entity.Nodes.Sum(d => d.LimitTime ?? 0))
+            {
+                throw new UserFriendlyException(message: "节点限制时间合计值不能大于流程限制时间！");
+            }
         }
         
         /// <summary>
@@ -1344,7 +1350,7 @@ namespace Hx.Workflow.Application
             }
             
             // 4. 验证节点限制时间
-            if (newEntity.LimitTime < newEntity.Nodes.Sum(d => d.LimitTime))
+            if (newEntity.LimitTime < newEntity.Nodes.Sum(d => d.LimitTime ?? 0))
             {
                 throw new UserFriendlyException(message: "节点限制时间合计值不能大于流程限制时间！");
             }
