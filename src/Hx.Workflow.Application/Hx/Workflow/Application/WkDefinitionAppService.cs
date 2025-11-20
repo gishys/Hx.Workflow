@@ -4,6 +4,7 @@ using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
@@ -761,6 +762,7 @@ namespace Hx.Workflow.Application
         /// <summary>
         /// 更新模板节点
         /// 只有在节点有增减的情况下才创建新版本，如果只是修改节点属性，则直接更新当前版本
+        /// 注意：如果当前版本没有节点（刚创建的模板定义），则直接更新当前版本，不创建新版本
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -768,10 +770,47 @@ namespace Hx.Workflow.Application
         {
             var entity = await _definitionRespository.FindLatestVersionAsync(input.Id) ?? throw new UserFriendlyException(message: $"Id为：{input.Id}模板不存在！");
             
+            // 验证并过滤节点：确保只有一个开始节点，并且所有节点都在关系链中
+            var validatedNodes = ValidateAndFilterNodes(input.Nodes);
+            
+            // 如果验证后没有节点，抛出异常
+            if (validatedNodes.Count == 0)
+            {
+                throw new UserFriendlyException(message: "节点验证失败：没有有效的节点可以保存。请确保至少有一个开始节点，并且所有节点都能通过开始节点的关系链关联起来。");
+            }
+            
+            // 创建新的输入对象，使用验证后的节点
+            var validatedInput = new DefinitionNodeUpdateDto
+            {
+                Id = input.Id,
+                ExtraProperties = input.ExtraProperties,
+                Nodes = validatedNodes
+            };
+            
+            // 如果当前版本没有节点（刚创建的模板定义），直接更新当前版本，不创建新版本
+            // 这是因为创建模板定义和更新节点是独立的方法，首次添加节点不应该触发版本变更
+            if (entity.Nodes.Count == 0)
+            {
+                // 首次添加节点，直接更新当前版本
+                await UpdateNodesInCurrentVersionAsync(entity, validatedInput);
+                
+                // 更新模板定义的扩展属性
+                if (validatedInput.ExtraProperties != null)
+                {
+                    entity.ExtraProperties.Clear();
+                    validatedInput.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+                }
+                
+                await _definitionRespository.UpdateAsync(entity);
+                await _hxWorkflowManager.UpdateAsync(entity);
+                
+                return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. entity.Nodes]);
+            }
+            
             // 检查节点是否有增减（使用 ID 进行严格比较）
             var existingNodeIds = entity.Nodes.Select(n => n.Id).ToHashSet();
-            var hasNewNodes = input.Nodes.Any(n => !n.Id.HasValue);
-            var newNodeIds = input.Nodes
+            var hasNewNodes = validatedNodes.Any(n => !n.Id.HasValue);
+            var newNodeIds = validatedNodes
                 .Where(n => n.Id.HasValue)
                 .Select(n => n.Id!.Value)
                 .ToHashSet();
@@ -784,7 +823,7 @@ namespace Hx.Workflow.Application
             {
                 // 节点有增减，需要创建新版本
                 var newVersion = await GetNextVersionAsync(entity.Id, entity.Version);
-                var newEntity = await CreateNewVersionForNodeUpdateAsync(entity, input, newVersion);
+                var newEntity = await CreateNewVersionForNodeUpdateAsync(entity, validatedInput, newVersion);
                 
                 // 保存新版本到数据库
                 await _definitionRespository.InsertAsync(newEntity);
@@ -797,19 +836,132 @@ namespace Hx.Workflow.Application
             else
             {
                 // 节点没有增减，直接更新当前版本的节点属性
-                await UpdateNodesInCurrentVersionAsync(entity, input);
+                await UpdateNodesInCurrentVersionAsync(entity, validatedInput);
                 
                 // 更新模板定义的扩展属性
-                if (input.ExtraProperties != null)
+                if (validatedInput.ExtraProperties != null)
                 {
                     entity.ExtraProperties.Clear();
-                    input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+                    validatedInput.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
                 }
                 
                 await _definitionRespository.UpdateAsync(entity);
                 await _hxWorkflowManager.UpdateAsync(entity);
                 
                 return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. entity.Nodes]);
+            }
+        }
+        
+        /// <summary>
+        /// 验证并过滤节点
+        /// 1. 检查节点名称不能重复
+        /// 2. 确保只有一个开始节点
+        /// 3. 从开始节点遍历所有可达节点（通过 NextNodes，NodeType == Forward）
+        /// 4. 所有节点必须在关系链中，否则抛出异常
+        /// </summary>
+        /// <param name="nodes">输入的节点列表</param>
+        /// <returns>验证并过滤后的节点列表</returns>
+        private static List<WkNodeCreateDto> ValidateAndFilterNodes(ICollection<WkNodeCreateDto> nodes)
+        {
+            if (nodes == null || nodes.Count == 0)
+            {
+                return [];
+            }
+            
+            // 1. 检查节点名称不能重复
+            var nodeNameGroups = nodes.GroupBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Count() > 1)
+                .ToList();
+            
+            if (nodeNameGroups.Count > 0)
+            {
+                var duplicateNames = nodeNameGroups.Select(g => $"'{g.Key}'（出现 {g.Count()} 次）").ToList();
+                var duplicateNamesStr = string.Join("、", duplicateNames);
+                throw new UserFriendlyException(message: $"节点验证失败：节点名称不能重复。发现重复的节点名称：{duplicateNamesStr}。");
+            }
+            
+            // 2. 检查开始节点数量（只能有一个）
+            var startNodes = nodes.Where(n => n.StepNodeType == StepNodeType.Start).ToList();
+            if (startNodes.Count == 0)
+            {
+                throw new UserFriendlyException(message: "节点验证失败：模板定义必须包含一个开始节点（StepNodeType = Start）。");
+            }
+            
+            if (startNodes.Count > 1)
+            {
+                var startNodeNames = string.Join("、", startNodes.Select(n => $"'{n.Name}'"));
+                throw new UserFriendlyException(message: $"节点验证失败：模板定义只能有一个开始节点，但找到了 {startNodes.Count} 个：{startNodeNames}。");
+            }
+            
+            var startNode = startNodes.First();
+            
+            // 3. 创建节点名称到节点的映射，用于快速查找
+            var nodeDict = nodes.ToDictionary(n => n.Name, StringComparer.OrdinalIgnoreCase);
+            
+            // 4. 从开始节点开始，通过 NextNodes（NodeType == Forward）遍历所有可达节点
+            var reachableNodeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var visitedNodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // 使用深度优先搜索遍历所有可达节点
+            TraverseNodesFromStart(startNode.Name, nodeDict, reachableNodeNames, visitedNodes);
+            
+            // 5. 检查所有节点是否都在关系链中
+            var isolatedNodeNames = nodes
+                .Where(n => !reachableNodeNames.Contains(n.Name))
+                .Select(n => $"'{n.Name}'")
+                .ToList();
+            
+            if (isolatedNodeNames.Count > 0)
+            {
+                var isolatedNames = string.Join("、", isolatedNodeNames);
+                throw new UserFriendlyException(message: $"节点验证失败：以下节点不在关系链中（无法从开始节点通过 NextNodes 关系链到达）：{isolatedNames}。请确保所有节点都能通过开始节点的关系链关联起来。");
+            }
+            
+            // 6. 返回所有节点（因为都已经验证通过）
+            return [.. nodes];
+        }
+        
+        /// <summary>
+        /// 从指定节点开始，递归遍历所有可达节点（通过 NextNodes，NodeType == Forward）
+        /// </summary>
+        /// <param name="nodeName">当前节点名称</param>
+        /// <param name="nodeDict">节点名称到节点的映射</param>
+        /// <param name="reachableNodeNames">可达节点名称集合（输出）</param>
+        /// <param name="visitedNodes">已访问节点集合（用于防止循环）</param>
+        private static void TraverseNodesFromStart(
+            string nodeName,
+            Dictionary<string, WkNodeCreateDto> nodeDict,
+            HashSet<string> reachableNodeNames,
+            HashSet<string> visitedNodes)
+        {
+            // 防止循环引用
+            if (visitedNodes.Contains(nodeName))
+            {
+                return;
+            }
+            
+            // 如果节点不存在，抛出异常
+            if (!nodeDict.TryGetValue(nodeName, out var currentNode))
+            {
+                throw new UserFriendlyException(message: $"节点验证失败：未找到节点 '{nodeName}'。可能引用了不存在的节点，请检查 NextNodes 中的节点名称是否正确。");
+            }
+            
+            // 标记为已访问并添加到可达节点集合
+            visitedNodes.Add(nodeName);
+            reachableNodeNames.Add(nodeName);
+            
+            // 遍历当前节点的所有 NextNodes（只处理 NodeType == Forward 的节点）
+            if (currentNode.NextNodes != null && currentNode.NextNodes.Count > 0)
+            {
+                foreach (var nextNode in currentNode.NextNodes)
+                {
+                    // 只处理类型为 Forward（向后）的节点关系
+                    if (nextNode.NodeType == WkRoleNodeType.Forward)
+                    {
+                        // 递归遍历下一个节点
+                        TraverseNodesFromStart(nextNode.NextNodeName, nodeDict, reachableNodeNames, visitedNodes);
+                    }
+                }
             }
         }
         
@@ -972,6 +1124,8 @@ namespace Hx.Workflow.Application
         
         /// <summary>
         /// 为节点更新创建新版本
+        /// 主要目的：克隆出一个新的模板定义，并把最新的节点等信息维护到模板定义上
+        /// 注意：创建新版本时，所有节点都是全新的，ID会重新生成，与旧版本节点没有关联
         /// </summary>
         /// <param name="originalEntity">原实体</param>
         /// <param name="input">更新输入</param>
@@ -979,6 +1133,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         private async Task<WkDefinition> CreateNewVersionForNodeUpdateAsync(WkDefinition originalEntity, DefinitionNodeUpdateDto input, int newVersion)
         {
+            // 1. 创建新的模板定义实体（新版本）
             var newEntity = new WkDefinition(
                 originalEntity.Id, // 使用相同的DefinitionId
                 originalEntity.Title,
@@ -990,7 +1145,7 @@ namespace Hx.Workflow.Application
                 groupId: originalEntity.GroupId,
                 version: newVersion);
             
-            // 复制候选人
+            // 2. 复制候选人
             if (originalEntity.WkCandidates != null && originalEntity.WkCandidates.Count > 0)
             {
                 foreach (var candidate in originalEntity.WkCandidates.ToList())
@@ -1009,83 +1164,174 @@ namespace Hx.Workflow.Application
                 }
             }
             
-            // 处理节点更新
-            var nodeEntitys = input.Nodes.ToWkNodes(GuidGenerator);
-            if (nodeEntitys != null && nodeEntitys.Count > 0)
+            // 3. 根据输入的节点创建全新的节点（所有节点都是新的，ID重新生成）
+            if (input.Nodes != null && input.Nodes.Count > 0)
             {
-                // 创建 inputNode 字典，使用 ID 作为键（因为 Name 可能会被更新）
-                var inputNodeDict = input.Nodes.Where(n => n.Id.HasValue).ToDictionary(n => n.Id!.Value);
+                // 第一步：创建所有节点实例（使用新ID，避免与旧版本节点关联）
+                var newNodeDict = new Dictionary<string, WkNode>(); // 使用节点名称作为键，因为ID都是新的
+                int sortNumber = 0;
                 
-                foreach (var node in nodeEntitys)
+                foreach (var inputNode in input.Nodes)
                 {
-                    // 使用 ID 来查找对应的 inputNode（更可靠，因为 Name 可能会被更新）
-                    if (!inputNodeDict.TryGetValue(node.Id, out var inputNode))
+                    // 创建新节点，始终生成新ID（忽略inputNode.Id，因为这是新版本）
+                    var newNode = new WkNode(
+                        inputNode.Name,
+                        inputNode.DisplayName,
+                        inputNode.StepNodeType,
+                        sortNumber++,
+                        inputNode.LimitTime,
+                        GuidGenerator.Create()); // 始终生成新ID
+                    
+                    // 设置 StepBody
+                    if (!string.IsNullOrEmpty(inputNode.WkStepBodyId))
                     {
-                        // 如果通过 ID 找不到，尝试通过 Name 查找（兼容新节点的情况）
-                        inputNode = input.Nodes.FirstOrDefault(d => d.Name == node.Name);
+                        await newNode.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, inputNode.StepNodeType));
                     }
                     
-                    if (inputNode == null)
+                    // 设置 ExtraProperties
+                    if (inputNode.ExtraProperties != null && inputNode.ExtraProperties.Count > 0)
                     {
-                        throw new UserFriendlyException(message: $"节点 ID：{node.Id} 或 Name：{node.Name} 不存在！");
+                        inputNode.ExtraProperties.ForEach(item => newNode.ExtraProperties.TryAdd(item.Key, item.Value));
                     }
                     
-                    await node.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, node.StepNodeType));
-                    if (node.ExtraProperties != null && inputNode.ExtraProperties != null)
+                    // 设置 OutcomeSteps
+                    if (inputNode.OutcomeSteps != null && inputNode.OutcomeSteps.Count > 0)
                     {
-                        node.ExtraProperties.Clear();
-                        inputNode.ExtraProperties.ForEach(item => node.ExtraProperties.TryAdd(item.Key, item.Value));
-                    }
-                }
-            }
-            
-            if (nodeEntitys != null && nodeEntitys.Count > 0)
-            {
-                if (input.RecreateNodes)
-                {
-                    // 重新创建所有节点
-                    foreach (var node in nodeEntitys)
-                    {
-                        await newEntity.AddWkNode(node);
-                    }
-                }
-                else
-                {
-                    // 复制原节点并更新
-                    var existingNodes = originalEntity.Nodes.ToList();
-                    var nodeComparer = EqualityComparer<Guid>.Default;
-                    // 使用 ID 作为字典键，因为 Name 可能会被更新
-                    var existingDict = existingNodes.ToDictionary(n => n.Id);
-                    
-                    // 删除不存在的节点
-                    var nodesToRemove = existingNodes.Where(existing => !nodeEntitys.Any(newNode => nodeComparer.Equals(newNode.Id, existing.Id))).ToList();
-                    foreach (var node in nodesToRemove)
-                    {
-                        existingNodes.Remove(node);
-                    }
-                    
-                    // 更新或添加节点
-                    foreach (var newNode in nodeEntitys)
-                    {
-                        if (existingDict.TryGetValue(newNode.Id, out var existingNode))
+                        foreach (var outcomeStepDto in inputNode.OutcomeSteps)
                         {
-                            // 更新现有节点的属性（不包括 WkDefinitionId 和 WkDefinitionVersion）
-                            // UpdateFrom 会更新所有属性，包括 Name、DisplayName、StepNodeType、LimitTime 等
-                            await existingNode.UpdateFrom(newNode);
-                            // 将节点添加到新版本的定义中（会自动设置正确的 WkDefinitionId 和 WkDefinitionVersion）
-                            await newEntity.AddWkNode(existingNode);
-                        }
-                        else
-                        {
-                            // 添加新节点（会自动设置 WkDefinitionId 和 WkDefinitionVersion）
-                            await newEntity.AddWkNode(newNode);
+                            await newNode.AddOutcomeSteps(new WkNodePara(outcomeStepDto.Key, outcomeStepDto.Value));
                         }
                     }
+                    
+                    // 设置 WkCandidates
+                    if (inputNode.WkCandidates != null && inputNode.WkCandidates.Count > 0)
+                    {
+                        foreach (var candidateDto in inputNode.WkCandidates)
+                        {
+                            var candidate = new WkNodeCandidate(
+                                candidateDto.CandidateId,
+                                candidateDto.UserName,
+                                candidateDto.DisplayUserName,
+                                candidateDto.ExecutorType,
+                                candidateDto.DefaultSelection);
+                            await candidate.SetNodeId(newNode.Id);
+                            newNode.WkCandidates.Add(candidate);
+                        }
+                    }
+                    
+                    // 设置 ApplicationForms
+                    if (inputNode.ApplicationForms != null && inputNode.ApplicationForms.Count > 0)
+                    {
+                        foreach (var formDto in inputNode.ApplicationForms)
+                        {
+                            var ps = new List<WkParam>();
+                            if (formDto.Params != null && formDto.Params.Count > 0)
+                            {
+                                foreach (var paramDto in formDto.Params)
+                                {
+                                    ps.Add(new WkParam(paramDto.WkParamKey, paramDto.Name, paramDto.DisplayName, paramDto.Value));
+                                }
+                            }
+                            await newNode.AddApplicationForms(formDto.ApplicationFormId, formDto.SequenceNumber, ps);
+                        }
+                    }
+                    
+                    // 设置 Params
+                    if (inputNode.Params != null && inputNode.Params.Count > 0)
+                    {
+                        foreach (var paramDto in inputNode.Params)
+                        {
+                            await newNode.AddParam(new WkParam(paramDto.WkParamKey, paramDto.Name, paramDto.DisplayName, paramDto.Value));
+                        }
+                    }
+                    
+                    // 设置 Materials
+                    if (inputNode.Materials != null && inputNode.Materials.Count > 0)
+                    {
+                        foreach (var materialDto in inputNode.Materials)
+                        {
+                            var material = new WkNodeMaterials(
+                                materialDto.AttachReceiveType,
+                                materialDto.ReferenceType,
+                                materialDto.CatalogueName,
+                                materialDto.SequenceNumber,
+                                materialDto.IsRequired,
+                                materialDto.IsStatic,
+                                materialDto.IsVerification,
+                                materialDto.VerificationPassed);
+                            
+                            if (materialDto.Children != null && materialDto.Children.Count > 0)
+                            {
+                                foreach (var childDto in materialDto.Children)
+                                {
+                                    material.AddChild(new WkNodeMaterials(
+                                        childDto.AttachReceiveType,
+                                        childDto.ReferenceType,
+                                        childDto.CatalogueName,
+                                        childDto.SequenceNumber,
+                                        childDto.IsRequired,
+                                        childDto.IsStatic,
+                                        childDto.IsVerification,
+                                        childDto.VerificationPassed));
+                                }
+                            }
+                            
+                            await newNode.AddMaterails(material);
+                        }
+                    }
+                    
+                    // 保存到字典中（使用节点名称作为键，用于建立关系）
+                    newNodeDict[newNode.Name] = newNode;
+                }
+                
+                // 第二步：建立节点关系（NextNodes）
+                // 根据节点名称查找目标节点，因为 NextNodes 中使用的是节点名称
+                foreach (var inputNode in input.Nodes)
+                {
+                    var newNode = newNodeDict[inputNode.Name];
+                    
+                    if (inputNode.NextNodes != null && inputNode.NextNodes.Count > 0)
+                    {
+                        foreach (var nextNodeRelation in inputNode.NextNodes)
+                        {
+                            // 查找目标节点（通过节点名称）
+                            if (newNodeDict.TryGetValue(nextNodeRelation.NextNodeName, out var targetNode))
+                            {
+                                // 创建新的关系对象
+                                // 注意：WkConditionNodeCreateDto 没有 Label 属性，使用空字符串
+                                var newRelation = new WkNodeRelation(
+                                    nextNodeRelation.NextNodeName,
+                                    nextNodeRelation.NodeType,
+                                    "");
+                                
+                                // 复制规则
+                                if (nextNodeRelation.Rules != null && nextNodeRelation.Rules.Count > 0)
+                                {
+                                    foreach (var rule in nextNodeRelation.Rules)
+                                    {
+                                        await newRelation.AddConNodeCondition(new WkNodeRelationRule(
+                                            rule.Field,
+                                            rule.Operator,
+                                            rule.Value));
+                                    }
+                                }
+                                
+                                await newNode.AddNextNode(newRelation);
+                            }
+                        }
+                    }
+                }
+                
+                // 第三步：将所有节点添加到新实体（按输入顺序添加）
+                foreach (var inputNode in input.Nodes)
+                {
+                    var newNode = newNodeDict[inputNode.Name];
+                    await newEntity.AddWkNode(newNode);
                 }
             }
             else
             {
-                // 如果没有新节点，复制原节点
+                // 如果没有输入节点，复制原节点的所有节点（这种情况不应该发生，因为验证已经确保有节点）
                 foreach (var node in originalEntity.Nodes)
                 {
                     var clonedNode = await CloneNodeAsync(node);
@@ -1093,20 +1339,20 @@ namespace Hx.Workflow.Application
                 }
             }
             
-            // 验证节点限制时间
+            // 4. 验证节点限制时间
             if (newEntity.LimitTime < newEntity.Nodes.Sum(d => d.LimitTime))
             {
                 throw new UserFriendlyException(message: "节点限制时间合计值不能大于流程限制时间！");
             }
             
-            // 验证节点名称唯一性
-            var count = newEntity.Nodes.GroupBy(p => p.Name).Where(g => g.Count() > 1).Select(g => g.Key);
-            if (count.Any())
+            // 5. 验证节点名称唯一性
+            var duplicateNames = newEntity.Nodes.GroupBy(p => p.Name).Where(g => g.Count() > 1).Select(g => g.Key);
+            if (duplicateNames.Any())
             {
-                throw new UserFriendlyException(message: "节点名称{Name}不能重复！");
+                throw new UserFriendlyException(message: $"节点名称不能重复：{string.Join(", ", duplicateNames)}");
             }
             
-            // 复制扩展属性
+            // 6. 复制扩展属性
             newEntity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => newEntity.ExtraProperties.TryAdd(item.Key, item.Value));
             

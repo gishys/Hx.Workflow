@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.96] - 2025-11-20
+
+### 修复
+
+- **版本创建逻辑优化**：重构了 `CreateNewVersionForNodeUpdateAsync` 方法，修复了节点 ID 继承问题
+  - 不再使用 `ToWkNodes` 方法，因为该方法会保留传入的节点 ID，导致新版本节点与旧版本节点关联
+  - 创建新版本时，所有节点都使用新生成的 ID，确保新版本节点与旧版本节点完全独立
+  - 简化了节点创建和关系建立的逻辑流程，使代码更清晰易懂
+
+### 变更
+
+- **删除冗余字段**：从 `DefinitionNodeUpdateDto` 中删除了 `RecreateNodes` 字段
+  - 该字段在业务逻辑上没有意义，因为创建新版本时所有节点都应该是全新的
+  - 简化了 API 接口，减少了不必要的参数
+
+### 技术细节
+
+#### 版本创建逻辑重构
+
+`CreateNewVersionForNodeUpdateAsync` 方法的核心目的是：克隆一个新的模板定义，并把最新的节点等信息维护到模板定义上。
+
+**关键改进点：**
+
+1. **节点 ID 管理**
+
+   - 创建新版本时，所有节点都使用 `GuidGenerator.Create()` 生成新 ID
+   - 忽略 `inputNode.Id`，确保节点是新版本的一部分
+   - 避免了新版本节点与旧版本节点的 ID 冲突
+
+2. **节点创建流程**
+
+   - 第一步：创建所有节点实例（使用新 ID）
+   - 第二步：建立节点关系（通过节点名称）
+   - 第三步：将所有节点添加到新实体
+   - 使用节点名称作为字典键（因为 ID 都是新的）
+
+3. **代码简化**
+
+   - 移除了复杂的节点匹配和克隆逻辑
+   - 移除了 `RecreateNodes` 相关的条件判断
+   - 代码结构更清晰，易于理解和维护
+
+4. **EF Core 变更跟踪**
+   - 所有节点都是新实例，避免了变更跟踪冲突
+   - 不再需要处理已跟踪实体的克隆问题
+
+---
+
 ## [1.1.95] - 2025-02-24
 
 ### Added
