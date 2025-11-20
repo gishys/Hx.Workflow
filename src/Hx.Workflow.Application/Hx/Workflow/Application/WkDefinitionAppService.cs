@@ -254,11 +254,12 @@ namespace Hx.Workflow.Application
             // 注意：WkDefinitionId 和 WkDefinitionVersion 会在 AddWkNode 时自动设置
             // 这里不需要手动设置，因为节点必须通过 AddWkNode 添加到定义中
 
-            // 复制步骤体
-            if (originalNode.StepBody != null)
+            // 复制步骤体（必需）
+            if (originalNode.StepBody == null)
             {
-                await clonedNode.SetWkStepBody(originalNode.StepBody);
+                throw new InvalidOperationException($"节点 [{originalNode.Name}] 的 StepBody 不能为 null，节点必须有一个执行体。");
             }
+            await clonedNode.SetWkStepBody(originalNode.StepBody);
             
             // 复制候选人
             foreach (var candidate in originalNode.WkCandidates)
@@ -1182,11 +1183,14 @@ namespace Hx.Workflow.Application
                         inputNode.LimitTime,
                         GuidGenerator.Create()); // 始终生成新ID
                     
-                    // 设置 StepBody
-                    if (!string.IsNullOrEmpty(inputNode.WkStepBodyId))
+                    // 设置 StepBody（必需）
+                    // 注意：开始和结束节点如果 WkStepBodyId 为空，会自动使用预定义的 StartStepBody 或 StopStepBody
+                    // Activity 类型的节点必须提供有效的 WkStepBodyId
+                    if (inputNode.StepNodeType == StepNodeType.Activity && string.IsNullOrEmpty(inputNode.WkStepBodyId))
                     {
-                        await newNode.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, inputNode.StepNodeType));
+                        throw new UserFriendlyException(message: $"节点 [{inputNode.Name}] 是 Activity 类型，必须提供有效的 WkStepBodyId。");
                     }
+                    await newNode.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, inputNode.StepNodeType));
                     
                     // 设置 ExtraProperties
                     if (inputNode.ExtraProperties != null && inputNode.ExtraProperties.Count > 0)

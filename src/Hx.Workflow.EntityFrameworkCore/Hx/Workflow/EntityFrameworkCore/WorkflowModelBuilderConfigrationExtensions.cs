@@ -166,11 +166,11 @@ namespace Hx.Workflow.EntityFrameworkCore
 
                 // WkStepBody 是一个可重用的组件，多个 WkNode 可以共享同一个 WkStepBody
                 // 使用 Restrict 防止删除正在被使用的 WkStepBody，避免级联删除导致数据丢失
-                // 配置为可选关系（IsRequired(false)），确保即使 WkStepBody 不存在，WkNode 仍然会被加载
+                // 配置为必需关系（IsRequired(true)），确保每个节点都必须有一个执行体
                 t.HasOne(d => d.StepBody).WithMany()
                 .HasForeignKey(d => d.WkStepBodyId)
                 .HasConstraintName("Pk_WkNode_WkStepBody")
-                .IsRequired(false)  // 明确标记为可选关系，允许 StepBody 为 null
+                .IsRequired(true)  // 明确标记为必需关系，节点必须有一个执行体
                 .OnDelete(DeleteBehavior.Restrict);
 
                 t.HasMany(d => d.WkCandidates)

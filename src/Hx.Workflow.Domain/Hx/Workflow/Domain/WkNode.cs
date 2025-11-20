@@ -12,7 +12,7 @@ namespace Hx.Workflow.Domain
     public class WkNode : Entity<Guid>, IHasExtraProperties
     {
         /// <summary>
-        /// 步骤体Id
+        /// 步骤体Id（必需）
         /// </summary>
         public virtual Guid WkStepBodyId { get; protected set; }
         /// <summary>
@@ -40,7 +40,7 @@ namespace Hx.Workflow.Domain
         /// </summary>
         public virtual int? LimitTime { get; protected set; }
         /// <summary>
-        /// 流程参数
+        /// 流程参数（必需）
         /// </summary>
         public virtual WkStepBody StepBody { get; protected set; }
         /// <summary>
@@ -145,7 +145,13 @@ namespace Hx.Workflow.Domain
         }
         public Task SetWkStepBody(WkStepBody stepBody)
         {
+            if (stepBody == null)
+            {
+                throw new ArgumentNullException(nameof(stepBody), "StepBody 不能为 null，节点必须有一个执行体。");
+            }
             StepBody = stepBody;
+            // 确保外键值与导航属性同步
+            WkStepBodyId = stepBody.Id;
             return Task.CompletedTask;
         }
         /// <summary>
