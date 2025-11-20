@@ -125,9 +125,7 @@ namespace Hx.Workflow.Application
             }
             return resultEntity;
         }
-        public static WkProcessInstanceDto ToProcessInstanceDto(
-            this WkInstance instance,
-            ICollection<Guid> userIds)
+        public static WkProcessInstanceDto ToProcessInstanceDto(this WkInstance instance)
         {
             var businessData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.Data);
             //如果节点不是已完成状态则获取当前节点（后续需要确定其他状态的含义）
@@ -217,6 +215,7 @@ namespace Hx.Workflow.Application
             return new WkCurrentInstanceDetailsDto()
             {
                 Id = instance.Id,
+                Version = instance.Version,
                 DefinitionId = instance.WkDefinition.Id,
                 Reference = instance.Reference,
                 Receiver = pointer.Recipient,

@@ -86,7 +86,8 @@ namespace Hx.Workflow.Application.StepBodys
                     dataDict["BusinessCommitmentDeadline"] = deadline;
                 }
                 var executionPointer = instance.ExecutionPointers.FirstOrDefault(d => d.Id == new Guid(context.ExecutionPointer.Id)) ?? throw new UserFriendlyException(message: $"Id为：{context.ExecutionPointer.Id}的执行点不存在！");
-                var definition = await _wkDefinition.FindAsync(instance.WkDifinitionId) ?? throw new UserFriendlyException(message: $"Id为：{instance.WkDifinitionId}的流程模板不存在！");
+                // 使用实例的版本号获取模板定义，而不是最新版本
+                var definition = await _wkDefinition.GetDefinitionAsync(instance.WkDifinitionId, instance.Version) ?? throw new UserFriendlyException(message: $"Id为：{instance.WkDifinitionId}，版本为：{instance.Version}的流程模板不存在！");
                 var pointer = definition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                 if (pointer.LimitTime != null)
                 {

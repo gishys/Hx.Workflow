@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -31,7 +31,7 @@ namespace Hx.Workflow.Application.Contracts
         /// <param name="id"></param>
         /// <returns></returns>
         Task DeleteAsync(Guid id);
-        Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1);
+        Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version);
         
         /// <summary>
         /// 获取模板的所有版本

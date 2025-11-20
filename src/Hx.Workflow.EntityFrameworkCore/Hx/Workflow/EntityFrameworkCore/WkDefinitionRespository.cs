@@ -90,7 +90,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public async Task<List<WkDefinition>> GetListHasPermissionAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await (await GetDbSetAsync())
-                .Where(d => d.IsEnabled && d.WkCandidates.Any(c => c.CandidateId == userId))
+                .Where(d => d.IsEnabled && !d.IsArchived && d.WkCandidates.Any(c => c.CandidateId == userId))
                 .Include(d => d.Nodes)
                 .ThenInclude(d => d.NextNodes)
                 .ThenInclude(d => d.Rules)
@@ -112,19 +112,33 @@ namespace Hx.Workflow.EntityFrameworkCore
                                .Max(d2 => (int?)d2.Version))
                 .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));
         }
-        public virtual async Task<List<WkNodeCandidate>> GetCandidatesAsync(Guid id, string stepName, CancellationToken cancellationToken = default)
+        public virtual async Task<List<WkNodeCandidate>> GetCandidatesAsync(Guid id, string stepName, int? version = null, CancellationToken cancellationToken = default)
         {
-            // 获取指定ID的最新版本的候选人
-            // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
             var dbSet = await GetDbSetAsync();
-            var definition = await dbSet
-                .IncludeDetails(true)
-                .Where(d => d.Id == id && 
-                           d.Version == dbSet
-                               .Where(d2 => d2.Id == id)
-                               .Max(d2 => (int?)d2.Version))
-                .FirstOrDefaultAsync(GetCancellationToken(cancellationToken))
-                ?? throw new UserFriendlyException(message: $"Id为[{id}]的流程模板不存在！");
+            WkDefinition? definition;
+            
+            if (version.HasValue)
+            {
+                // 获取指定版本的候选人
+                definition = await dbSet
+                    .IncludeDetails(true)
+                    .FirstOrDefaultAsync(d => d.Id == id && d.Version == version.Value, GetCancellationToken(cancellationToken))
+                    ?? throw new UserFriendlyException(message: $"Id为[{id}]，版本为[{version.Value}]的流程模板不存在！");
+            }
+            else
+            {
+                // 获取指定ID的最新版本的候选人
+                // 使用子查询直接获取最大版本，避免排序操作，提高查询性能
+                definition = await dbSet
+                    .IncludeDetails(true)
+                    .Where(d => d.Id == id && 
+                               d.Version == dbSet
+                                   .Where(d2 => d2.Id == id)
+                                   .Max(d2 => (int?)d2.Version))
+                    .FirstOrDefaultAsync(GetCancellationToken(cancellationToken))
+                    ?? throw new UserFriendlyException(message: $"Id为[{id}]的流程模板不存在！");
+            }
+            
             var node = definition.Nodes.FirstOrDefault(n => n.Name == stepName) ?? throw new UserFriendlyException(message: $"Name为[{stepName}]的流程步骤不存在！");
             return [.. node.WkCandidates];
         }

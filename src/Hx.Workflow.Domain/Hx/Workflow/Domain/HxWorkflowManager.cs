@@ -152,6 +152,17 @@ namespace Hx.Workflow.Domain
             LoadDefinitionByJson(wkDefinitionSource);
         }
         /// <summary>
+        /// 检查工作流定义是否已注册到引擎
+        /// </summary>
+        /// <param name="id">工作流定义ID</param>
+        /// <param name="version">版本号</param>
+        /// <returns>是否已注册</returns>
+        public virtual bool IsRegistered(string id, int version)
+        {
+            return _registry.IsRegistered(id, version);
+        }
+        
+        /// <summary>
         /// 启动工作流
         /// </summary>
         /// <param name="input"></param>

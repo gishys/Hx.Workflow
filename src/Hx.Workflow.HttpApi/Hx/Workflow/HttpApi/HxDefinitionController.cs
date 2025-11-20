@@ -38,7 +38,7 @@ namespace Hx.Workflow.HttpApi
         }
         [HttpGet]
         [Route("details")]
-        public Task<WkDefinitionDto> GetAsync(Guid id, int version = 1)
+        public Task<WkDefinitionDto> GetAsync(Guid id, int version)
         {
             return _appService.GetDefinitionAsync(id, version);
         }

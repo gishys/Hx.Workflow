@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Hx.Workflow.Application.Contracts
@@ -6,6 +6,7 @@ namespace Hx.Workflow.Application.Contracts
     public class WkCurrentInstanceDetailsDto
     {
         public Guid Id { get; set; }
+        public int Version { get; set; }
         public Guid DefinitionId { get; set; }
         public required string Reference { get; set; }
         public required string RegistrationCategory { get; set; }

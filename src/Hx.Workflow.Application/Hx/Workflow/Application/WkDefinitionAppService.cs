@@ -1183,9 +1183,15 @@ namespace Hx.Workflow.Application
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public virtual async Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version = 1)
+        public virtual async Task<WkDefinitionDto> GetDefinitionAsync(Guid id, int version)
         {
-            var entity = await _definitionRespository.GetDefinitionAsync(id, version) ?? throw new UserFriendlyException(message: $"Id为：{id}模板不存在！");
+            // 验证版本号
+            if (version <= 0)
+            {
+                throw new UserFriendlyException(message: $"版本号必须大于0，当前值：{version}");
+            }
+            
+            var entity = await _definitionRespository.GetDefinitionAsync(id, version) ?? throw new UserFriendlyException(message: $"Id为：{id}，版本为：{version}的模板不存在！");
             var result = ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
             result.Nodes = [];
             WkNode? node = entity.Nodes.FirstOrDefault(d => d.StepNodeType == StepNodeType.Start);

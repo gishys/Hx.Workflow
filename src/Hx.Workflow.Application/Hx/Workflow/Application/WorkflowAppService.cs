@@ -62,35 +62,58 @@ namespace Hx.Workflow.Application
         {
             try
             {
-                // 1. 候选人参数解析优化
+                // 验证版本号
+                if (input.Version <= 0)
+                {
+                    throw new UserFriendlyException(message: $"流程启动失败：版本号必须大于0，当前提供的版本号为 {input.Version}。");
+                }
+                
+                // 验证候选人参数
                 var candidateKeyValue = input.Inputs.FirstOrDefault(kv => kv.Key == "Candidates");
                 if (candidateKeyValue.Equals(default(KeyValuePair<string, object>)))
                 {
-                    throw new UserFriendlyException(message: "流程启动参数中缺少候选人信息");
+                    throw new UserFriendlyException(message: "流程启动失败：启动参数中缺少候选人信息（Candidates）。请确保在输入参数中包含候选人ID。");
                 }
 
                 if (!Guid.TryParse(candidateKeyValue.Value?.ToString(), out Guid candidateId))
                 {
-                    throw new UserFriendlyException(message: "候选人ID格式无效，请提供有效的GUID格式");
+                    var candidateValue = candidateKeyValue.Value?.ToString() ?? "null";
+                    throw new UserFriendlyException(message: $"流程启动失败：候选人ID格式无效。提供的值：{candidateValue}，期望格式：有效的GUID（例如：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）。");
                 }
 
-                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version) ?? throw new UserFriendlyException(message: $"不存在Id为：[{input.Id},{input.Version}]流程模板！");
+                // 查询流程模板定义
+                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version) 
+                    ?? throw new UserFriendlyException(message: $"流程启动失败：未找到流程模板。模板ID：{input.Id}，版本号：{input.Version}。请确认模板ID和版本号是否正确。");
                 
                 // 检查版本是否已归档
                 if (entity.IsArchived)
                 {
-                    throw new UserFriendlyException(message: $"版本 {input.Version} 已归档，无法用于创建新实例。该版本仅用于服务已创建的实例。");
+                    throw new UserFriendlyException(message: $"流程启动失败：流程模板版本已归档。模板ID：{input.Id}，版本号：{input.Version}。已归档的版本仅用于服务已创建的实例，无法用于创建新实例。请使用未归档的版本。");
                 }
                 
+                // 检查版本是否已注册到工作流引擎
+                if (!_hxWorkflowManager.IsRegistered(input.Id, input.Version))
+                {
+                    throw new UserFriendlyException(message: $"流程启动失败：流程模板未注册到工作流引擎。模板ID：{input.Id}，版本号：{input.Version}。请确保模板已正确创建并注册到工作流引擎。");
+                }
+                
+                // 检查用户权限
                 if (!entity.WkCandidates.Any(d => d.CandidateId == candidateId))
                 {
-                    throw new UserFriendlyException(message: $"无权限，请在流程定义中配置Id为（{input.Inputs["Candidates"]}）的权限！");
+                    throw new UserFriendlyException(message: $"流程启动失败：当前用户无权限启动此流程。候选人ID：{candidateId}，模板ID：{input.Id}，版本号：{input.Version}。请在流程定义中配置该用户的权限。");
                 }
+                
                 return await _hxWorkflowManager.StartWorkflowAsync(input.Id, input.Version, input.Inputs);
+            }
+            catch (UserFriendlyException)
+            {
+                // 重新抛出用户友好异常，保持原始错误信息
+                throw;
             }
             catch (Exception ex)
             {
-                throw new UserFriendlyException(message: ex.Message);
+                // 对于其他异常，包装为用户友好异常
+                throw new UserFriendlyException(message: $"流程启动失败：{ex.Message}");
             }
         }
         /// <summary>
@@ -157,7 +180,7 @@ namespace Hx.Workflow.Application
                 reference, status);
             foreach (var instance in instances)
             {
-                var processInstance = instance.ToProcessInstanceDto(userIds ?? []);
+                var processInstance = instance.ToProcessInstanceDto();
                 result.Add(processInstance);
             }
             return new PagedResultDto<WkProcessInstanceDto>(count, result);
@@ -219,7 +242,7 @@ namespace Hx.Workflow.Application
                 reference, status);
             foreach (var instance in instances)
             {
-                var processInstance = instance.ToProcessInstanceDto(userIds ?? []);
+                var processInstance = instance.ToProcessInstanceDto();
                 result.Add(processInstance);
             }
             return new PagedResultDto<WkProcessInstanceDto>(count, result);
@@ -237,7 +260,7 @@ namespace Hx.Workflow.Application
             var result = new List<WkProcessInstanceDto>();
             foreach (var instance in instances)
             {
-                var processInstance = instance.ToProcessInstanceDto([]);
+                var processInstance = instance.ToProcessInstanceDto();
                 result.Add(processInstance);
             }
             return result;
@@ -255,7 +278,7 @@ namespace Hx.Workflow.Application
             var result = new List<WkProcessInstanceDto>();
             foreach (var instance in instances)
             {
-                var processInstance = instance.ToProcessInstanceDto([]);
+                var processInstance = instance.ToProcessInstanceDto();
                 result.Add(processInstance);
             }
             return result;
@@ -386,7 +409,8 @@ namespace Hx.Workflow.Application
             var currentPointer = instance.ExecutionPointers.First(p => p.Status != PointerStatus.Complete);
             var currentNode = instance.WkDefinition.Nodes.First(n => n.Name == currentPointer.StepName);
             var nextNode = currentNode.NextNodes.First(n => n.NodeType == WkRoleNodeType.Forward);
-            var candidates = await _wkDefinition.GetCandidatesAsync(instance.WkDifinitionId, nextNode.NextNodeName);
+            // 使用实例的版本号获取候选人，而不是最新版本
+            var candidates = await _wkDefinition.GetCandidatesAsync(instance.WkDifinitionId, nextNode.NextNodeName, instance.Version);
             return ObjectMapper.Map<ICollection<WkNodeCandidate>, ICollection<WkCandidateDto>>(candidates);
         }
         /// <summary>
