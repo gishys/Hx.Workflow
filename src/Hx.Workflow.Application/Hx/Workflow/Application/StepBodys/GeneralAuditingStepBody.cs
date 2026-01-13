@@ -23,13 +23,15 @@ namespace Hx.Workflow.Application.StepBodys
         IWkInstanceRepository wkInstance,
         IWkDefinitionRespository wkDefinition,
         ILimitTimeManager limitTimeManager,
-        ILocalEventBus localEventBus) : StepBodyAsync, ITransientDependency
+        ILocalEventBus localEventBus,
+        WorkflowUserContext workflowUserContext) : StepBodyAsync, ITransientDependency
     {
         private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
         private readonly IWkInstanceRepository _wkInstance = wkInstance;
         private readonly IWkDefinitionRespository _wkDefinition = wkDefinition;
         private readonly ILimitTimeManager _limitTimeManager = limitTimeManager;
         private readonly ILocalEventBus _localEventBus = localEventBus;
+        private readonly WorkflowUserContext _workflowUserContext = workflowUserContext;
         public const string Name = "GeneralAuditingStepBody";
         public const string DisplayName = "指定用户审核";
 
@@ -52,6 +54,11 @@ namespace Hx.Workflow.Application.StepBodys
             try
             {
                 var dataDict = context.Workflow.Data as IDictionary<string, object> ?? throw new InvalidOperationException("Workflow.Data 必须为字典类型");
+                
+                // 尝试从工作流数据中获取当前用户信息（用于日志记录和审计）
+                var currentUserId = await _workflowUserContext.GetCurrentUserIdAsync(context);
+                var currentUserName = WorkflowUserContext.GetCurrentUserName(context);
+                
                 if (string.IsNullOrEmpty(Candidates))
                 {
                     const string key = "Candidates";
@@ -196,7 +203,34 @@ namespace Hx.Workflow.Application.StepBodys
                         NextCandidates = string.Join(",", beRolledBackNode.WkCandidates.Select(d => d.CandidateId).ToList());
                         await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
                     }
-                    if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException(message: "未传入正确的接收者！");
+                    // 优先从工作流数据中获取当前操作用户ID，如果获取不到则使用 Candidates
+                    Guid candidateId;
+                    var currentUserIdFromData = await _workflowUserContext.GetCurrentUserIdAsync(context);
+                    if (currentUserIdFromData.HasValue)
+                    {
+                        // 验证该用户是否在执行指针的候选人列表中
+                        if (executionPointer.WkCandidates.Any(d => d.CandidateId == currentUserIdFromData.Value))
+                        {
+                            candidateId = currentUserIdFromData.Value;
+                        }
+                        else if (Guid.TryParse(Candidates, out var parsedCandidateId))
+                        {
+                            candidateId = parsedCandidateId;
+                        }
+                        else
+                        {
+                            throw new UserFriendlyException(message: "未传入正确的接收者！");
+                        }
+                    }
+                    else if (Guid.TryParse(Candidates, out var parsedCandidateId))
+                    {
+                        candidateId = parsedCandidateId;
+                    }
+                    else
+                    {
+                        throw new UserFriendlyException(message: "未传入正确的接收者！");
+                    }
+                    
                     await Audit(eventData.Data, instance.Id, executionPointer, candidateId, auditStatus);
                     foreach (var item in executionPointer.WkCandidates.Where(d => d.CandidateId == new Guid(Candidates)))
                     {

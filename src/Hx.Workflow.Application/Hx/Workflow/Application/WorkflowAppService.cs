@@ -103,6 +103,22 @@ namespace Hx.Workflow.Application
                     throw new UserFriendlyException(message: $"流程启动失败：当前用户无权限启动此流程。候选人ID：{candidateId}，模板ID：{input.Id}，版本号：{input.Version}。请在流程定义中配置该用户的权限。");
                 }
                 
+                // 将当前用户信息添加到工作流数据中，以便在 StepBody 中获取
+                if (CurrentUser.Id.HasValue)
+                {
+                    input.Inputs["StartUserId"] = CurrentUser.Id.Value;
+                    if (!string.IsNullOrEmpty(CurrentUser.UserName))
+                    {
+                        input.Inputs["StartUserName"] = CurrentUser.UserName;
+                    }
+                    // 设置当前操作用户（启动时与启动用户相同）
+                    input.Inputs["CurrentUserId"] = CurrentUser.Id.Value;
+                    if (!string.IsNullOrEmpty(CurrentUser.UserName))
+                    {
+                        input.Inputs["CurrentUserName"] = CurrentUser.UserName;
+                    }
+                }
+                
                 return await _hxWorkflowManager.StartWorkflowAsync(input.Id, input.Version, input.Inputs);
             }
             catch (UserFriendlyException)
@@ -129,6 +145,18 @@ namespace Hx.Workflow.Application
             var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(data));
             if (string.IsNullOrEmpty(eventPointerEventData?.DecideBranching))
                 throw new UserFriendlyException(message: "提交必须携带分支节点名称！");
+            
+            // 将当前用户信息添加到活动数据中，以便在 StepBody 中获取
+            data ??= new Dictionary<string, object>();
+            if (CurrentUser.Id.HasValue)
+            {
+                data["CurrentUserId"] = CurrentUser.Id.Value;
+                if (!string.IsNullOrEmpty(CurrentUser.UserName))
+                {
+                    data["CurrentUserName"] = CurrentUser.UserName;
+                }
+            }
+            
             await _hxWorkflowManager.StartActivityAsync(actName, workflowId, data);
         }
         /// <summary>
