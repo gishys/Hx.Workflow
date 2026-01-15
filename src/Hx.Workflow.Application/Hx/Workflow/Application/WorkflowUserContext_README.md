@@ -11,13 +11,14 @@
 工作流启动和活动执行时，当前用户信息会被自动添加到工作流数据中：
 
 - **启动工作流时** (`WorkflowAppService.StartAsync`)：
-  - `StartUserId`: 启动工作流的用户ID
+
+  - `StartUserId`: 启动工作流的用户 ID
   - `StartUserName`: 启动工作流的用户名
-  - `CurrentUserId`: 当前操作用户ID（启动时与启动用户相同）
+  - `CurrentUserId`: 当前操作用户 ID（启动时与启动用户相同）
   - `CurrentUserName`: 当前操作用户名（启动时与启动用户相同）
 
 - **启动活动时** (`WorkflowAppService.StartActivityAsync`)：
-  - `CurrentUserId`: 当前操作用户ID
+  - `CurrentUserId`: 当前操作用户 ID
   - `CurrentUserName`: 当前操作用户名
 
 ### 2. 用户信息获取优先级
@@ -112,83 +113,99 @@ public class YourAppService : ApplicationService
 
 #### GetCurrentUserIdAsync(IStepExecutionContext context)
 
-综合获取当前用户ID，按优先级从多个来源获取。
+综合获取当前用户 ID，按优先级从多个来源获取。
 
 **参数：**
+
 - `context`: 工作流执行上下文
 
 **返回：**
-- `Task<Guid?>`: 用户ID，如果不存在则返回 null
+
+- `Task<Guid?>`: 用户 ID，如果不存在则返回 null
 
 #### GetCurrentUserId(IStepExecutionContext context)
 
-从工作流数据中获取当前用户ID（同步方法）。
+从工作流数据中获取当前用户 ID（同步方法）。
 
 **参数：**
+
 - `context`: 工作流执行上下文
 
 **返回：**
-- `Guid?`: 用户ID，如果不存在则返回 null
+
+- `Guid?`: 用户 ID，如果不存在则返回 null
 
 #### GetCurrentUserName(IStepExecutionContext context)
 
 从工作流数据中获取当前用户名（同步方法）。
 
 **参数：**
+
 - `context`: 工作流执行上下文
 
 **返回：**
+
 - `string?`: 用户名，如果不存在则返回 null
 
 #### GetCurrentUserIdFromWorkflowData(IDictionary<string, object>? workflowData)
 
-从工作流数据字典中获取当前用户ID。
+从工作流数据字典中获取当前用户 ID。
 
 **参数：**
+
 - `workflowData`: 工作流数据字典
 
 **返回：**
-- `Guid?`: 用户ID，如果不存在则返回 null
+
+- `Guid?`: 用户 ID，如果不存在则返回 null
 
 #### GetCurrentUserNameFromWorkflowData(IDictionary<string, object>? workflowData)
 
 从工作流数据字典中获取当前用户名。
 
 **参数：**
+
 - `workflowData`: 工作流数据字典
 
 **返回：**
+
 - `string?`: 用户名，如果不存在则返回 null
 
 #### GetCreatorIdFromInstanceAsync(string workflowId)
 
-从工作流实例中获取创建者ID（后备方案）。
+从工作流实例中获取创建者 ID（后备方案）。
 
 **参数：**
-- `workflowId`: 工作流ID
+
+- `workflowId`: 工作流 ID
 
 **返回：**
-- `Task<Guid?>`: 创建者ID，如果不存在则返回 null
+
+- `Task<Guid?>`: 创建者 ID，如果不存在则返回 null
 
 #### GetRecipientIdFromExecutionPointerAsync(string workflowId, string executionPointerId)
 
-从执行指针中获取接收者ID（后备方案）。
+从执行指针中获取接收者 ID（后备方案）。
 
 **参数：**
-- `workflowId`: 工作流ID
-- `executionPointerId`: 执行指针ID
+
+- `workflowId`: 工作流 ID
+- `executionPointerId`: 执行指针 ID
 
 **返回：**
-- `Task<Guid?>`: 接收者ID，如果不存在则返回 null
+
+- `Task<Guid?>`: 接收者 ID，如果不存在则返回 null
 
 #### HasUserInfoAsync(IStepExecutionContext context)
 
 验证是否能够获取到用户信息。
 
 **参数：**
+
 - `context`: 工作流执行上下文
 
 **返回：**
+
 - `Task<bool>`: 如果能够获取到用户信息则返回 true
 
 ## 最佳实践
@@ -196,6 +213,7 @@ public class YourAppService : ApplicationService
 1. **优先使用异步方法**：`GetCurrentUserIdAsync` 提供了最完整的用户信息获取逻辑，包括后备方案。
 
 2. **验证用户信息存在**：在使用用户信息之前，先检查是否为 null：
+
    ```csharp
    var userId = await _workflowUserContext.GetCurrentUserIdAsync(context);
    if (!userId.HasValue)
@@ -215,9 +233,10 @@ public class YourAppService : ApplicationService
 ## 注意事项
 
 1. **工作流数据键名**：系统使用以下键名存储用户信息：
-   - `StartUserId`: 启动用户ID
+
+   - `StartUserId`: 启动用户 ID
    - `StartUserName`: 启动用户名
-   - `CurrentUserId`: 当前操作用户ID
+   - `CurrentUserId`: 当前操作用户 ID
    - `CurrentUserName`: 当前操作用户名
 
 2. **性能考虑**：`GetCurrentUserIdAsync` 方法可能会查询数据库（作为后备方案），如果性能敏感，可以考虑直接使用 `GetCurrentUserId` 方法。
@@ -236,7 +255,7 @@ var currentUserName = _workflowUserContext.GetCurrentUserName(context);
 // 在审核时使用用户信息
 if (currentUserId.HasValue)
 {
-    Logger.LogInformation("用户 {UserId} ({UserName}) 执行了审核操作", 
+    Logger.LogInformation("用户 {UserId} ({UserName}) 执行了审核操作",
         currentUserId.Value, currentUserName);
 }
 ```
