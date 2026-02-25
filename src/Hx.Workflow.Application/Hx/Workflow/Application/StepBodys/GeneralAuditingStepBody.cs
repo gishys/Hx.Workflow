@@ -129,18 +129,19 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     else if (pointer.StepNodeType == StepNodeType.Start)
                     {
-                        if (!Guid.TryParse(Candidates, out var candidateId)) throw new UserFriendlyException(message: "未传入正确的接收者！");
-                        var defCandidate = definition.WkCandidates.FirstOrDefault(d => d.CandidateId == candidateId);
-                        if ((defCandidate == null))
+                        var candidateIds = ParseCandidateIds(Candidates);
+                        if (candidateIds.Count == 0) throw new UserFriendlyException(message: "未传入正确的接收者！");
+                        var defCandidates = candidateIds
+                            .Select(id => definition.WkCandidates.FirstOrDefault(d => d.CandidateId == id))
+                            .ToList();
+                        if (defCandidates.Any(d => d == null))
                         {
-                            throw new UserFriendlyException(message: $"无权限，请在流程定义中配置Id为（{candidateId}）的权限！");
+                            var invalidIds = defCandidates.Select((d, i) => (d, i)).Where(x => x.d == null).Select(x => candidateIds[x.i]).ToList();
+                            throw new UserFriendlyException(message: $"无权限，请在流程定义中配置以下候选人ID的权限：{string.Join(", ", invalidIds)}");
                         }
-                        dcandidate = [new(
-                        defCandidate.CandidateId,
-                        defCandidate.UserName,
-                        defCandidate.DisplayUserName,
-                        defCandidate.ExecutorType,
-                        defCandidate.DefaultSelection)];
+                        dcandidate = [.. defCandidates
+                            .Where(d => d != null)
+                            .Select(d => new WkNodeCandidate(d!.CandidateId, d.UserName, d.DisplayUserName, d.ExecutorType, d.DefaultSelection))];
                     }
                     if (dcandidate == null)
                         throw new UserFriendlyException(message: "未传入正确的接收者!");
@@ -203,8 +204,9 @@ namespace Hx.Workflow.Application.StepBodys
                         NextCandidates = string.Join(",", beRolledBackNode.WkCandidates.Select(d => d.CandidateId).ToList());
                         await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
                     }
-                    // 优先从工作流数据中获取当前操作用户ID，如果获取不到则使用 Candidates
+                    // 优先从工作流数据中获取当前操作用户ID，如果获取不到则使用 Candidates（支持逗号分隔的多个 GUID，取第一个匹配或第一个作为当前操作人）
                     Guid candidateId;
+                    var candidateIdsForAudit = ParseCandidateIds(Candidates);
                     var currentUserIdFromData = await _workflowUserContext.GetCurrentUserIdAsync(context);
                     if (currentUserIdFromData.HasValue)
                     {
@@ -213,18 +215,22 @@ namespace Hx.Workflow.Application.StepBodys
                         {
                             candidateId = currentUserIdFromData.Value;
                         }
-                        else if (Guid.TryParse(Candidates, out var parsedCandidateId))
+                        else if (candidateIdsForAudit.Count > 0 && candidateIdsForAudit.Contains(currentUserIdFromData.Value))
                         {
-                            candidateId = parsedCandidateId;
+                            candidateId = currentUserIdFromData.Value;
+                        }
+                        else if (candidateIdsForAudit.Count > 0)
+                        {
+                            candidateId = candidateIdsForAudit[0];
                         }
                         else
                         {
                             throw new UserFriendlyException(message: "未传入正确的接收者！");
                         }
                     }
-                    else if (Guid.TryParse(Candidates, out var parsedCandidateId))
+                    else if (candidateIdsForAudit.Count > 0)
                     {
-                        candidateId = parsedCandidateId;
+                        candidateId = candidateIdsForAudit[0];
                     }
                     else
                     {
@@ -232,7 +238,8 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     
                     await Audit(eventData.Data, instance.Id, executionPointer, candidateId, auditStatus);
-                    foreach (var item in executionPointer.WkCandidates.Where(d => d.CandidateId == new Guid(Candidates)))
+                    var candidateIdSet = candidateIdsForAudit.ToHashSet();
+                    foreach (var item in executionPointer.WkCandidates.Where(d => candidateIdSet.Contains(d.CandidateId)))
                     {
                         if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
                         {
@@ -319,6 +326,22 @@ namespace Hx.Workflow.Application.StepBodys
                 await entity.Audit(auditStatus);
                 await _wkAuditor.UpdateAsync(entity);
             }
+        }
+
+        /// <summary>
+        /// 解析候选人参数字符串，支持英文逗号分隔的多个 GUID。
+        /// </summary>
+        private static List<Guid> ParseCandidateIds(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return [];
+            var parts = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var list = new List<Guid>(parts.Length);
+            foreach (var part in parts)
+            {
+                if (Guid.TryParse(part, out var id))
+                    list.Add(id);
+            }
+            return list;
         }
     }
 }

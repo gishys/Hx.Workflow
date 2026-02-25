@@ -68,17 +68,18 @@ namespace Hx.Workflow.Application
                     throw new UserFriendlyException(message: $"流程启动失败：版本号必须大于0，当前提供的版本号为 {input.Version}。");
                 }
                 
-                // 验证候选人参数
+                // 验证候选人参数（支持英文逗号分隔的多个 GUID）
                 var candidateKeyValue = input.Inputs.FirstOrDefault(kv => kv.Key == "Candidates");
                 if (candidateKeyValue.Equals(default(KeyValuePair<string, object>)))
                 {
-                    throw new UserFriendlyException(message: "流程启动失败：启动参数中缺少候选人信息（Candidates）。请确保在输入参数中包含候选人ID。");
+                    throw new UserFriendlyException(message: "流程启动失败：启动参数中缺少候选人信息（Candidates）。请确保在输入参数中包含候选人ID（多个时使用英文逗号分隔）。");
                 }
 
-                if (!Guid.TryParse(candidateKeyValue.Value?.ToString(), out Guid candidateId))
+                var candidateIds = ParseCandidateIds(candidateKeyValue.Value?.ToString());
+                if (candidateIds.Count == 0)
                 {
                     var candidateValue = candidateKeyValue.Value?.ToString() ?? "null";
-                    throw new UserFriendlyException(message: $"流程启动失败：候选人ID格式无效。提供的值：{candidateValue}，期望格式：有效的GUID（例如：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）。");
+                    throw new UserFriendlyException(message: $"流程启动失败：候选人ID格式无效。提供的值：{candidateValue}，期望格式：有效的GUID，多个时使用英文逗号分隔（例如：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx 或 id1,id2,id3）。");
                 }
 
                 // 查询流程模板定义
@@ -97,10 +98,10 @@ namespace Hx.Workflow.Application
                     throw new UserFriendlyException(message: $"流程启动失败：流程模板未注册到工作流引擎。模板ID：{input.Id}，版本号：{input.Version}。请确保模板已正确创建并注册到工作流引擎。");
                 }
                 
-                // 检查用户权限
-                if (!entity.WkCandidates.Any(d => d.CandidateId == candidateId))
+                // 检查用户权限：至少有一个候选人在模板的启动候选人列表中
+                if (!entity.WkCandidates.Any(d => candidateIds.Contains(d.CandidateId)))
                 {
-                    throw new UserFriendlyException(message: $"流程启动失败：当前用户无权限启动此流程。候选人ID：{candidateId}，模板ID：{input.Id}，版本号：{input.Version}。请在流程定义中配置该用户的权限。");
+                    throw new UserFriendlyException(message: $"流程启动失败：当前用户无权限启动此流程。提供的候选人ID均未在模板中配置，模板ID：{input.Id}，版本号：{input.Version}。请在流程定义中配置对应用户的权限。");
                 }
                 
                 // 将当前用户信息添加到工作流数据中，以便在 StepBody 中获取
@@ -147,7 +148,7 @@ namespace Hx.Workflow.Application
                 throw new UserFriendlyException(message: "提交必须携带分支节点名称！");
             
             // 将当前用户信息添加到活动数据中，以便在 StepBody 中获取
-            data ??= new Dictionary<string, object>();
+            data ??= [];
             if (CurrentUser.Id.HasValue)
             {
                 data["CurrentUserId"] = CurrentUser.Id.Value;
@@ -600,6 +601,24 @@ namespace Hx.Workflow.Application
         public virtual Task RetryAsync(Guid executionPointerId)
         {
             return _wkExecutionPointerRepository.RetryAsync(executionPointerId);
+        }
+
+        /// <summary>
+        /// 解析候选人参数字符串，支持英文逗号分隔的多个 GUID。
+        /// </summary>
+        private static List<Guid> ParseCandidateIds(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return [];
+            var parts = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var list = new List<Guid>(parts.Length);
+            foreach (var part in parts)
+            {
+                if (Guid.TryParse(part, out var id))
+                    list.Add(id);
+                else
+                    return []; // 任一无效则视为格式错误，由调用方统一报错
+            }
+            return list;
         }
     }
 }
