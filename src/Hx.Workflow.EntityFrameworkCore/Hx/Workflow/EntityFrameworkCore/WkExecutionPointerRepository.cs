@@ -1,5 +1,6 @@
-﻿using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Hx.Workflow.Domain.Stats;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,16 +11,14 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
+using WorkflowCore.Models;
 
 namespace Hx.Workflow.EntityFrameworkCore
 {
-    public class WkExecutionPointerRepository
-        : EfCoreRepository<WkDbContext, WkExecutionPointer, Guid>,
+    public class WkExecutionPointerRepository(IDbContextProvider<WkDbContext> options)
+        : EfCoreRepository<WkDbContext, WkExecutionPointer, Guid>(options),
         IWkExecutionPointerRepository
     {
-        public WkExecutionPointerRepository(IDbContextProvider<WkDbContext> options)
-            : base(options)
-        { }
         /// <summary>
         /// 标记初始化物料
         /// </summary>
@@ -69,6 +68,33 @@ namespace Hx.Workflow.EntityFrameworkCore
             var entity = await FindAsync(id) ?? throw new UserFriendlyException(message: $"Id为：[{id}]执行点为空");
             await entity.SetSleepUntil(null);
             await UpdateAsync(entity);
+        }
+
+        public virtual async Task<List<StepDurationStat>> GetStepDurationStatListAsync(Guid definitionId, int version, DateTime? startTime, DateTime? endTime, Guid? tenantId)
+        {
+            var dbContext = await GetDbContextAsync();
+            var pointers = dbContext.WkExecutionPointers.AsQueryable();
+            var instances = dbContext.WkInstances.AsQueryable();
+            var joined = from p in pointers
+                         join i in instances on p.WkInstanceId equals i.Id
+                         where i.WkDifinitionId == definitionId && i.Version == version
+                               && p.Status == PointerStatus.Complete
+                               && p.StartTime != null && p.EndTime != null
+                               && (!tenantId.HasValue || i.TenantId == tenantId.Value)
+                               && (!startTime.HasValue || p.EndTime >= startTime)
+                               && (!endTime.HasValue || p.EndTime <= endTime)
+                         select new { p.StepId, p.StepName, p.StartTime, p.EndTime };
+            var list = await joined
+                .GroupBy(x => new { x.StepId, x.StepName })
+                .Select(g => new StepDurationStat
+                {
+                    StepId = g.Key.StepId,
+                    StepName = g.Key.StepName ?? "",
+                    PassCount = g.Count(),
+                    AvgDurationMinutes = g.Average(x => (x.EndTime!.Value - x.StartTime!.Value).TotalMinutes)
+                })
+                .ToListAsync();
+            return list;
         }
     }
 }

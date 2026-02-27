@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -124,5 +124,15 @@ namespace Hx.Workflow.Application.Contracts
         /// <exception cref="UserFriendlyException"></exception>
         Task SaveExecutionPointerDataAsync(Guid executionPointerId, IDictionary<string, object> data);
         Task RetryAsync(Guid executionPointerId);
+
+        Task<InstanceOverviewStatDto> GetInstanceOverviewStatAsync(StatsQueryInput? input = null);
+        Task<List<DurationStatDto>> GetDurationStatListAsync(StatsQueryInput? input = null);
+        Task<List<OverdueStatDto>> GetOverdueStatListAsync(StatsQueryInput? input = null);
+        Task<List<DefinitionStatDto>> GetDefinitionStatListAsync(StatsQueryInput? input = null);
+        Task<List<CreatorStatDto>> GetCreatorStatListAsync(StatsQueryInput? input = null);
+        Task<ErrorsStatResultDto> GetErrorsStatAsync(StatsQueryInput? input = null);
+        Task<List<StepDurationStatDto>> GetStepDurationStatListAsync(StepDurationQueryInput input);
+        Task<List<TrendStatDto>> GetTrendStatListAsync(StatsQueryInput? input = null);
+        Task<DashboardStatDto> GetDashboardStatAsync(StatsQueryInput? input = null);
     }
 }

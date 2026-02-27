@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Application.Dtos;
@@ -200,6 +200,52 @@ namespace Hx.Workflow.HttpApi
         {
             return _workflowAppService.GetProcessTypeStatListAsync();
         }
+
+        [HttpGet]
+        [Route("workflow/stats/overview")]
+        public Task<InstanceOverviewStatDto> GetStatsOverviewAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetInstanceOverviewStatAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/duration")]
+        public Task<List<DurationStatDto>> GetStatsDurationAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetDurationStatListAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/overdue")]
+        public Task<List<OverdueStatDto>> GetStatsOverdueAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetOverdueStatListAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/by-definition")]
+        public Task<List<DefinitionStatDto>> GetStatsByDefinitionAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetDefinitionStatListAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/by-creator")]
+        public Task<List<CreatorStatDto>> GetStatsByCreatorAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetCreatorStatListAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/errors")]
+        public Task<ErrorsStatResultDto> GetStatsErrorsAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetErrorsStatAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/step-duration")]
+        public Task<List<StepDurationStatDto>> GetStatsStepDurationAsync([FromQuery] StepDurationQueryInput input)
+            => _workflowAppService.GetStepDurationStatListAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/trend")]
+        public Task<List<TrendStatDto>> GetStatsTrendAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetTrendStatListAsync(input);
+
+        [HttpGet]
+        [Route("workflow/stats/dashboard")]
+        public Task<DashboardStatDto> GetStatsDashboardAsync([FromQuery] StatsQueryInput? input = null)
+            => _workflowAppService.GetDashboardStatAsync(input);
+
         /// <summary>
         /// 审核
         /// </summary>

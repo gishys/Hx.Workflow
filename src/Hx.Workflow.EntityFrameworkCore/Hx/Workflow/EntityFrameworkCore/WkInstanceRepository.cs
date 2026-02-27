@@ -6,7 +6,6 @@ using Hx.Workflow.Domain.Stats;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text.Json;
@@ -560,6 +559,251 @@ namespace Hx.Workflow.EntityFrameworkCore
             return await (await GetDbSetAsync())
                 .Where(x => x.WkDifinitionId == definitionId && x.Version == version)
                 .CountAsync();
+        }
+
+        public virtual async Task<InstanceOverviewStat> GetInstanceOverviewStatAsync(DateTime? startTime, DateTime? endTime, Guid? tenantId)
+        {
+            var dbSet = await GetDbSetAsync();
+            var query = dbSet.AsQueryable();
+            if (tenantId.HasValue)
+                query = query.Where(x => x.TenantId == tenantId.Value);
+            if (startTime.HasValue)
+                query = query.Where(x => x.CreateTime >= startTime.Value);
+            if (endTime.HasValue)
+                query = query.Where(x => x.CreateTime <= endTime.Value);
+
+            var total = await query.CountAsync();
+            var running = await query.CountAsync(x => x.Status == WorkflowStatus.Runnable);
+            var complete = await query.CountAsync(x => x.Status == WorkflowStatus.Complete);
+            var terminated = await query.CountAsync(x => x.Status == WorkflowStatus.Terminated);
+            var suspended = await query.CountAsync(x => x.Status == WorkflowStatus.Suspended);
+
+            return new InstanceOverviewStat
+            {
+                TotalCount = total,
+                RunningCount = running,
+                CompleteCount = complete,
+                TerminatedCount = terminated,
+                SuspendedCount = suspended
+            };
+        }
+
+        public virtual async Task<List<DurationStat>> GetDurationStatListAsync(DateTime? startTime, DateTime? endTime, Guid? definitionId, string? groupBy, Guid? tenantId)
+        {
+            var dbSet = (await GetDbSetAsync()).Include(x => x.WkDefinition);
+            var query = dbSet
+                .Where(x => x.Status == WorkflowStatus.Complete && x.CompleteTime != null)
+                .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                .Where(x => !definitionId.HasValue || x.WkDifinitionId == definitionId.Value)
+                .Where(x => !startTime.HasValue || x.CompleteTime >= startTime)
+                .Where(x => !endTime.HasValue || x.CompleteTime <= endTime);
+
+            List<DurationStat> result;
+            if (groupBy == "Definition" || string.IsNullOrEmpty(groupBy))
+            {
+                result = await query
+                    .GroupBy(x => new { x.WkDifinitionId, x.Version, x.WkDefinition.Title, x.WkDefinition.BusinessType })
+                    .Select(g => new DurationStat
+                    {
+                        DefinitionId = g.Key.WkDifinitionId,
+                        DefinitionTitle = g.Key.Title,
+                        BusinessType = g.Key.BusinessType,
+                        AvgDurationMinutes = g.Average(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes),
+                        MedianDurationMinutes = 0,
+                        CompletedCount = g.Count()
+                    })
+                    .ToListAsync();
+            }
+            else if (groupBy == "BusinessType")
+            {
+                result = await query
+                    .GroupBy(x => x.WkDefinition.BusinessType)
+                    .Select(g => new DurationStat
+                    {
+                        DefinitionTitle = g.Key,
+                        BusinessType = g.Key,
+                        AvgDurationMinutes = g.Average(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes),
+                        MedianDurationMinutes = 0,
+                        CompletedCount = g.Count()
+                    })
+                    .ToListAsync();
+            }
+            else
+            {
+                var all = await query.ToListAsync();
+                var avg = all.Count > 0 ? all.Average(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes) : 0;
+                var sorted = all.Select(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes).OrderBy(x => x).ToList();
+                var median = sorted.Count > 0 ? (sorted.Count % 2 == 1 ? sorted[sorted.Count / 2] : (sorted[sorted.Count / 2 - 1] + sorted[sorted.Count / 2]) / 2) : 0;
+                result = [new DurationStat { AvgDurationMinutes = avg, MedianDurationMinutes = median, CompletedCount = all.Count }];
+            }
+            return result;
+        }
+
+        public virtual async Task<List<OverdueStat>> GetOverdueStatListAsync(DateTime? startTime, DateTime? endTime, Guid? definitionId, Guid? tenantId)
+        {
+            var dbSet = (await GetDbSetAsync())
+                .Include(x => x.WkDefinition);
+            var query = dbSet
+                .Where(x => x.WkDefinition.LimitTime.HasValue && x.WkDefinition.LimitTime > 0)
+                .Where(x => x.Status == WorkflowStatus.Runnable || x.Status == WorkflowStatus.Complete)
+                .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                .Where(x => !definitionId.HasValue || x.WkDifinitionId == definitionId.Value)
+                .Where(x => !startTime.HasValue || x.CreateTime >= startTime.Value)
+                .Where(x => !endTime.HasValue || x.CreateTime <= endTime.Value);
+
+            var instances = await query.ToListAsync();
+            var now = DateTime.UtcNow;
+            var grouped = instances
+                .GroupBy(x => new { x.WkDifinitionId, x.Version, x.WkDefinition.Title })
+                .Select(g =>
+                {
+                    var total = g.Count();
+                    var overdue = g.Count(i =>
+                    {
+                        var deadline = i.CreateTime.AddMinutes(i.WkDefinition.LimitTime ?? 0);
+                        return (i.Status == WorkflowStatus.Runnable && now > deadline) || (i.Status == WorkflowStatus.Complete && i.CompleteTime.HasValue && i.CompleteTime.Value > deadline);
+                    });
+                    return new OverdueStat
+                    {
+                        DefinitionId = g.Key.WkDifinitionId,
+                        DefinitionTitle = g.Key.Title,
+                        TotalCount = total,
+                        OverdueCount = overdue,
+                        OverdueRate = total > 0 ? (double)overdue / total : 0
+                    };
+                })
+                .ToList();
+            return grouped;
+        }
+
+        public virtual async Task<List<DefinitionStat>> GetDefinitionStatListAsync(DateTime? startTime, DateTime? endTime, Guid? tenantId)
+        {
+            var dbSet = (await GetDbSetAsync()).Include(x => x.WkDefinition);
+            var query = dbSet.AsQueryable()
+                .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                .Where(x => !startTime.HasValue || x.CreateTime >= startTime.Value)
+                .Where(x => !endTime.HasValue || x.CreateTime <= endTime.Value);
+
+            var list = await query
+                .GroupBy(x => new { x.WkDifinitionId, x.Version, x.WkDefinition.Title })
+                .Select(g => new DefinitionStat
+                {
+                    DefinitionId = g.Key.WkDifinitionId,
+                    Title = g.Key.Title ?? "",
+                    Version = g.Key.Version,
+                    TotalCount = g.Count(),
+                    RunningCount = g.Count(x => x.Status == WorkflowStatus.Runnable),
+                    CompleteCount = g.Count(x => x.Status == WorkflowStatus.Complete),
+                    TerminatedCount = g.Count(x => x.Status == WorkflowStatus.Terminated)
+                })
+                .ToListAsync();
+            return list;
+        }
+
+        public virtual async Task<List<CreatorStat>> GetCreatorStatListAsync(DateTime? startTime, DateTime? endTime, Guid? creatorId, Guid? tenantId)
+        {
+            var dbSet = await GetDbSetAsync();
+            var query = dbSet.AsQueryable()
+                .Where(x => x.CreatorId != null)
+                .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                .Where(x => !creatorId.HasValue || x.CreatorId == creatorId.Value)
+                .Where(x => !startTime.HasValue || x.CreateTime >= startTime.Value)
+                .Where(x => !endTime.HasValue || x.CreateTime <= endTime.Value);
+
+            var list = await query
+                .GroupBy(x => x.CreatorId!.Value)
+                .Select(g => new CreatorStat
+                {
+                    CreatorId = g.Key,
+                    CreatedCount = g.Count(),
+                    CompletedCount = g.Count(x => x.Status == WorkflowStatus.Complete),
+                    CompletedRate = 0
+                })
+                .ToListAsync();
+            foreach (var item in list)
+                item.CompletedRate = item.CreatedCount > 0 ? (double)item.CompletedCount / item.CreatedCount : 0;
+            return list;
+        }
+
+        public virtual async Task<List<TrendStat>> GetTrendStatListAsync(DateTime startTime, DateTime endTime, string granularity, Guid? tenantId)
+        {
+            var dbSet = await GetDbSetAsync();
+            var query = dbSet.AsQueryable()
+                .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                .Where(x => x.CreateTime >= startTime && x.CreateTime <= endTime);
+
+            List<TrendStat> result;
+            if (granularity == "month")
+            {
+                var createdByMonth = await query
+                    .GroupBy(x => new { x.CreateTime.Year, x.CreateTime.Month })
+                    .Select(g => new { g.Key.Year, g.Key.Month, Created = g.Count() })
+                    .ToListAsync();
+                var completedByMonth = await dbSet
+                    .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                    .Where(x => x.CompleteTime >= startTime && x.CompleteTime <= endTime)
+                    .GroupBy(x => new { x.CompleteTime!.Value.Year, x.CompleteTime.Value.Month })
+                    .Select(g => new { g.Key.Year, g.Key.Month, Completed = g.Count() })
+                    .ToListAsync();
+                var periodStart = new DateTime(startTime.Year, startTime.Month, 1);
+                var endMonth = new DateTime(endTime.Year, endTime.Month, 1);
+                result = [];
+                for (var d = periodStart; d <= endMonth; d = d.AddMonths(1))
+                {
+                    var created = createdByMonth.FirstOrDefault(x => x.Year == d.Year && x.Month == d.Month)?.Created ?? 0;
+                    var completed = completedByMonth.FirstOrDefault(x => x.Year == d.Year && x.Month == d.Month)?.Completed ?? 0;
+                    result.Add(new TrendStat { PeriodStart = d, CreatedCount = created, CompletedCount = completed });
+                }
+            }
+            else if (granularity == "week")
+            {
+                var start = startTime.Date;
+                var end = endTime.Date;
+                var createdByWeek = await query
+                    .GroupBy(x => StartOfWeek(x.CreateTime))
+                    .Select(g => new { Period = g.Key, Created = g.Count() })
+                    .ToListAsync();
+                var completedByWeek = await dbSet
+                    .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                    .Where(x => x.CompleteTime >= startTime && x.CompleteTime <= endTime)
+                    .GroupBy(x => StartOfWeek(x.CompleteTime!.Value))
+                    .Select(g => new { Period = g.Key, Completed = g.Count() })
+                    .ToListAsync();
+                var periods = createdByWeek.Select(x => x.Period).Union(completedByWeek.Select(x => x.Period)).Distinct().OrderBy(x => x).ToList();
+                result = [.. periods.Select(p => new TrendStat
+                {
+                    PeriodStart = p,
+                    CreatedCount = createdByWeek.FirstOrDefault(x => x.Period == p)?.Created ?? 0,
+                    CompletedCount = completedByWeek.FirstOrDefault(x => x.Period == p)?.Completed ?? 0
+                })];
+            }
+            else
+            {
+                var createdByDay = await query
+                    .GroupBy(x => x.CreateTime.Date)
+                    .Select(g => new { Period = g.Key, Created = g.Count() })
+                    .ToListAsync();
+                var completedByDay = await dbSet
+                    .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
+                    .Where(x => x.CompleteTime >= startTime && x.CompleteTime <= endTime)
+                    .GroupBy(x => x.CompleteTime!.Value.Date)
+                    .Select(g => new { Period = g.Key, Completed = g.Count() })
+                    .ToListAsync();
+                var days = createdByDay.Select(x => x.Period).Union(completedByDay.Select(x => x.Period)).Distinct().OrderBy(x => x).ToList();
+                result = [.. days.Select(p => new TrendStat
+                {
+                    PeriodStart = DateTime.SpecifyKind(p, DateTimeKind.Utc),
+                    CreatedCount = createdByDay.FirstOrDefault(x => x.Period == p)?.Created ?? 0,
+                    CompletedCount = completedByDay.FirstOrDefault(x => x.Period == p)?.Completed ?? 0
+                })];
+            }
+            return result;
+        }
+
+        private static DateTime StartOfWeek(DateTime d)
+        {
+            var diff = (7 + (d.DayOfWeek - DayOfWeek.Monday)) % 7;
+            return d.AddDays(-1 * diff).Date;
         }
     }
 }

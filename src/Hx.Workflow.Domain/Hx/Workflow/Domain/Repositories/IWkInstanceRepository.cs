@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.Domain.Stats;
 using System;
@@ -141,5 +141,18 @@ namespace Hx.Workflow.Domain.Repositories
         Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();
         Task<WkInstance?> FindNoTrackAsync(
     Guid id, bool includeDetails = true, CancellationToken cancellation = default);
+
+        /// <summary>实例概览统计</summary>
+        Task<InstanceOverviewStat> GetInstanceOverviewStatAsync(DateTime? startTime, DateTime? endTime, Guid? tenantId);
+        /// <summary>流程耗时统计</summary>
+        Task<List<DurationStat>> GetDurationStatListAsync(DateTime? startTime, DateTime? endTime, Guid? definitionId, string? groupBy, Guid? tenantId);
+        /// <summary>超期/SLA 统计（按模板分项）</summary>
+        Task<List<OverdueStat>> GetOverdueStatListAsync(DateTime? startTime, DateTime? endTime, Guid? definitionId, Guid? tenantId);
+        /// <summary>按模板统计</summary>
+        Task<List<DefinitionStat>> GetDefinitionStatListAsync(DateTime? startTime, DateTime? endTime, Guid? tenantId);
+        /// <summary>发起人统计</summary>
+        Task<List<CreatorStat>> GetCreatorStatListAsync(DateTime? startTime, DateTime? endTime, Guid? creatorId, Guid? tenantId);
+        /// <summary>趋势统计（时间序列）</summary>
+        Task<List<TrendStat>> GetTrendStatListAsync(DateTime startTime, DateTime endTime, string granularity, Guid? tenantId);
     }
 }

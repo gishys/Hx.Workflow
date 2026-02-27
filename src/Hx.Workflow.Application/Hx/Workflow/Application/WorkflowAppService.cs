@@ -603,6 +603,111 @@ namespace Hx.Workflow.Application
             return _wkExecutionPointerRepository.RetryAsync(executionPointerId);
         }
 
+        public virtual async Task<InstanceOverviewStatDto> GetInstanceOverviewStatAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var tenantId = CurrentTenant.Id;
+            var stat = await _wkInstanceRepository.GetInstanceOverviewStatAsync(start, end, tenantId);
+            return ObjectMapper.Map<InstanceOverviewStat, InstanceOverviewStatDto>(stat);
+        }
+
+        public virtual async Task<List<DurationStatDto>> GetDurationStatListAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var tenantId = CurrentTenant.Id;
+            var list = await _wkInstanceRepository.GetDurationStatListAsync(start, end, input?.DefinitionId, input?.GroupBy, tenantId);
+            return ObjectMapper.Map<List<DurationStat>, List<DurationStatDto>>(list);
+        }
+
+        public virtual async Task<List<OverdueStatDto>> GetOverdueStatListAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var tenantId = CurrentTenant.Id;
+            var list = await _wkInstanceRepository.GetOverdueStatListAsync(start, end, input?.DefinitionId, tenantId);
+            return ObjectMapper.Map<List<OverdueStat>, List<OverdueStatDto>>(list);
+        }
+
+        public virtual async Task<List<DefinitionStatDto>> GetDefinitionStatListAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var tenantId = CurrentTenant.Id;
+            var list = await _wkInstanceRepository.GetDefinitionStatListAsync(start, end, tenantId);
+            return ObjectMapper.Map<List<DefinitionStat>, List<DefinitionStatDto>>(list);
+        }
+
+        public virtual async Task<List<CreatorStatDto>> GetCreatorStatListAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var tenantId = CurrentTenant.Id;
+            var list = await _wkInstanceRepository.GetCreatorStatListAsync(start, end, input?.CreatorId, tenantId);
+            return ObjectMapper.Map<List<CreatorStat>, List<CreatorStatDto>>(list);
+        }
+
+        public virtual async Task<ErrorsStatResultDto> GetErrorsStatAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var tenantId = CurrentTenant.Id;
+            var summary = await _errorRepository.GetErrorSummaryAsync(start, end, input?.DefinitionId, tenantId);
+            var byDef = await _errorRepository.GetErrorStatByDefinitionAsync(start, end, input?.DefinitionId, tenantId);
+            var byStep = await _errorRepository.GetErrorByStepStatListAsync(start, end, input?.DefinitionId, tenantId);
+            var overview = await _wkInstanceRepository.GetInstanceOverviewStatAsync(start, end, tenantId);
+            var totalInPeriod = overview.TotalCount;
+            var errorRate = totalInPeriod > 0 ? (double)summary.AffectedInstanceCount / totalInPeriod : 0;
+            return new ErrorsStatResultDto
+            {
+                TotalErrorCount = summary.TotalErrorCount,
+                AffectedInstanceCount = summary.AffectedInstanceCount,
+                ErrorRate = errorRate,
+                ByDefinition = ObjectMapper.Map<List<ErrorStat>, List<ErrorStatDto>>(byDef),
+                ByStep = ObjectMapper.Map<List<ErrorByStepStat>, List<ErrorByStepStatDto>>(byStep)
+            };
+        }
+
+        public virtual async Task<List<StepDurationStatDto>> GetStepDurationStatListAsync(StepDurationQueryInput input)
+        {
+            if (input == null || input.DefinitionId == Guid.Empty)
+                throw new UserFriendlyException("步骤时长统计需要提供 DefinitionId 和 Version。");
+            var tenantId = CurrentTenant.Id;
+            var list = await _wkExecutionPointerRepository.GetStepDurationStatListAsync(input.DefinitionId, input.Version, input.StartTime, input.EndTime, tenantId);
+            return ObjectMapper.Map<List<StepDurationStat>, List<StepDurationStatDto>>(list);
+        }
+
+        public virtual async Task<List<TrendStatDto>> GetTrendStatListAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var granularity = input?.Granularity ?? "month";
+            var tenantId = CurrentTenant.Id;
+            var list = await _wkInstanceRepository.GetTrendStatListAsync(start, end, granularity, tenantId);
+            return ObjectMapper.Map<List<TrendStat>, List<TrendStatDto>>(list);
+        }
+
+        public virtual async Task<DashboardStatDto> GetDashboardStatAsync(StatsQueryInput? input = null)
+        {
+            var (start, end) = ResolveTimeRange(input);
+            var tenantId = CurrentTenant.Id;
+
+            var overview = await _wkInstanceRepository.GetInstanceOverviewStatAsync(start, end, tenantId);
+            var definitionList = await _wkInstanceRepository.GetDefinitionStatListAsync(start, end, tenantId);
+            var overdueList = await _wkInstanceRepository.GetOverdueStatListAsync(start, end, null, tenantId);
+            var trendList = await _wkInstanceRepository.GetTrendStatListAsync(start, end, "month", tenantId);
+
+            return new DashboardStatDto
+            {
+                Overview = ObjectMapper.Map<InstanceOverviewStat, InstanceOverviewStatDto>(overview),
+                DefinitionTopN = ObjectMapper.Map<List<DefinitionStat>, List<DefinitionStatDto>>([.. definitionList.OrderByDescending(x => x.TotalCount).Take(10)]),
+                OverdueSummary = ObjectMapper.Map<List<OverdueStat>, List<OverdueStatDto>>(overdueList),
+                RecentTrend = ObjectMapper.Map<List<TrendStat>, List<TrendStatDto>>([.. trendList.TakeLast(5)])
+            };
+        }
+
+        private static (DateTime start, DateTime end) ResolveTimeRange(StatsQueryInput? input)
+        {
+            var now = DateTime.UtcNow;
+            var start = input?.StartTime ?? new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var end = input?.EndTime ?? new DateTime(now.Year, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+            return (start, end);
+        }
+
         /// <summary>
         /// 解析候选人参数字符串，支持英文逗号分隔的多个 GUID。
         /// </summary>

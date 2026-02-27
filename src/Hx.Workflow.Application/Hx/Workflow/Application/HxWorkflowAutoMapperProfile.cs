@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
@@ -41,6 +41,16 @@ namespace Hx.Workflow.Application
             CreateMap<ApplicationFormGroup, ApplicationFormGroupDto>(MemberList.Destination);
 
             CreateMap<ProcessTypeStat, ProcessTypeStatDto>(MemberList.Destination);
+
+            CreateMap<InstanceOverviewStat, InstanceOverviewStatDto>(MemberList.Destination);
+            CreateMap<DurationStat, DurationStatDto>(MemberList.Destination);
+            CreateMap<OverdueStat, OverdueStatDto>(MemberList.Destination);
+            CreateMap<DefinitionStat, DefinitionStatDto>(MemberList.Destination);
+            CreateMap<CreatorStat, CreatorStatDto>(MemberList.Destination);
+            CreateMap<ErrorStat, ErrorStatDto>(MemberList.Destination);
+            CreateMap<ErrorByStepStat, ErrorByStepStatDto>(MemberList.Destination);
+            CreateMap<StepDurationStat, StepDurationStatDto>(MemberList.Destination);
+            CreateMap<TrendStat, TrendStatDto>(MemberList.Destination);
         }
         public static IDictionary<string,object?> ToDic(ICollection<WkExtensionAttribute> source)
         {

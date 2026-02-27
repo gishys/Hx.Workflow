@@ -1,4 +1,5 @@
-﻿using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Persistence;
+using Hx.Workflow.Domain.Stats;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,5 +20,7 @@ namespace Hx.Workflow.Domain.Repositories
         Task UpdateDataAsync(Guid id, Dictionary<string, string> data);
         Task RetryAsync(Guid id);
         Task<List<WkExecutionPointer>> GetListAsync(Guid wkInstanceId, CancellationToken cancellationToken = default);
+        /// <summary>节点/步骤处理时长统计</summary>
+        Task<List<StepDurationStat>> GetStepDurationStatListAsync(Guid definitionId, int version, DateTime? startTime, DateTime? endTime, Guid? tenantId);
     }
 }
