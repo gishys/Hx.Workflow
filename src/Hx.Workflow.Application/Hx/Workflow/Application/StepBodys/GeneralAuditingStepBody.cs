@@ -149,7 +149,7 @@ namespace Hx.Workflow.Application.StepBodys
                     var candidates = dcandidate.ToCandidates();
                     var (instanceId, pointerId) = (instance.Id, executionPointer.Id);
 
-                    // 当存在前置节点时处理特殊逻辑
+                    // 当存在前置节点时处理特殊逻辑：仅当只有一个候选人时默认指定其为接收人并设为待完成；多人时全部保持待接收
                     if (executionPointer.PredecessorId != null)
                     {
                         var preNode = instance.ExecutionPointers.FirstOrDefault(
@@ -159,9 +159,9 @@ namespace Hx.Workflow.Application.StepBodys
                             ? definition.Nodes.FirstOrDefault(x => x.Name == preNode.StepName)
                             : null;
 
-                        if (preStep?.StepNodeType == StepNodeType.Start)
+                        if (preStep?.StepNodeType == StepNodeType.Start && candidates.Count == 1)
                         {
-                            var firstCandidate = candidates.FirstOrDefault() ?? throw new UserFriendlyException(message: "候选人列表不能为空");
+                            var firstCandidate = candidates.First();
                             firstCandidate.SetParentState(ExeCandidateState.Pending);
                             await _wkInstance.UpdateCandidateAsync(
                                 instanceId, pointerId, candidates, ExePersonnelOperateType.Host);
