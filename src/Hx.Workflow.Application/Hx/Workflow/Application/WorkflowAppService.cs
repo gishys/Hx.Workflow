@@ -689,14 +689,20 @@ namespace Hx.Workflow.Application
             var overview = await _wkInstanceRepository.GetInstanceOverviewStatAsync(start, end, tenantId);
             var definitionList = await _wkInstanceRepository.GetDefinitionStatListAsync(start, end, tenantId);
             var overdueList = await _wkInstanceRepository.GetOverdueStatListAsync(start, end, null, tenantId);
-            var trendList = await _wkInstanceRepository.GetTrendStatListAsync(start, end, "month", tenantId);
+
+            // 近期趋势：取“截止到当前日期”的最近 5 个月，而非时间范围内的最后 5 个月
+            var now = DateTime.UtcNow;
+            var recentStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-5);
+            var recentEnd = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(1).AddSeconds(-1);
+            var trendList = await _wkInstanceRepository.GetTrendStatListAsync(recentStart, recentEnd, "month", tenantId);
+            var recentTrend = trendList.Where(t => t.PeriodStart <= now).OrderBy(t => t.PeriodStart).TakeLast(5).ToList();
 
             return new DashboardStatDto
             {
                 Overview = ObjectMapper.Map<InstanceOverviewStat, InstanceOverviewStatDto>(overview),
                 DefinitionTopN = ObjectMapper.Map<List<DefinitionStat>, List<DefinitionStatDto>>([.. definitionList.OrderByDescending(x => x.TotalCount).Take(10)]),
                 OverdueSummary = ObjectMapper.Map<List<OverdueStat>, List<OverdueStatDto>>(overdueList),
-                RecentTrend = ObjectMapper.Map<List<TrendStat>, List<TrendStatDto>>([.. trendList.TakeLast(5)])
+                RecentTrend = ObjectMapper.Map<List<TrendStat>, List<TrendStatDto>>(recentTrend)
             };
         }
 

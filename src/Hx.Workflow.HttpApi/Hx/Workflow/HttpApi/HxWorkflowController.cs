@@ -21,7 +21,7 @@ namespace Hx.Workflow.HttpApi
         }
         [HttpPost]
         [Route("workflow/activity")]
-        public Task StartActivity(WkActivityInputDto input)
+        public Task StartActivity([FromBody] WkActivityInputDto input)
         {
             return _workflowAppService.StartActivityAsync(input.ActivityName, input.WorkflowId, input.Data);
         }
