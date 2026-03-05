@@ -20,7 +20,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    //[Authorize]
+    [Authorize]
     public class WorkflowAppService(
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
@@ -140,7 +140,7 @@ namespace Hx.Workflow.Application
         /// <param name="workflowId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null)
         {
             var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(data));
