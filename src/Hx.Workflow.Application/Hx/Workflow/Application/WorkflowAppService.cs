@@ -67,7 +67,20 @@ namespace Hx.Workflow.Application
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：版本号必须大于0，当前提供的版本号为 {input.Version}。");
                 }
-                
+
+                // 处理外部传入的受理编号（Reference）
+                if (!string.IsNullOrWhiteSpace(input.Reference))
+                {
+                    var reference = input.Reference.Trim();
+                    var existed = await _wkInstanceRepository.GetByReferenceAsync(reference);
+                    if (existed != null)
+                    {
+                        throw new UserFriendlyException(message: $"受理编号已存在：[{reference}]");
+                    }
+
+                    input.Inputs["Reference"] = reference;
+                }
+
                 // 验证候选人参数（支持英文逗号分隔的多个 GUID）
                 var candidateKeyValue = input.Inputs.FirstOrDefault(kv => kv.Key == "Candidates");
                 if (candidateKeyValue.Equals(default(KeyValuePair<string, object>)))
@@ -83,27 +96,27 @@ namespace Hx.Workflow.Application
                 }
 
                 // 查询流程模板定义
-                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version) 
+                var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version)
                     ?? throw new UserFriendlyException(message: $"流程启动失败：未找到流程模板。模板ID：{input.Id}，版本号：{input.Version}。请确认模板ID和版本号是否正确。");
-                
+
                 // 检查版本是否已归档
                 if (entity.IsArchived)
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：流程模板版本已归档。模板ID：{input.Id}，版本号：{input.Version}。已归档的版本仅用于服务已创建的实例，无法用于创建新实例。请使用未归档的版本。");
                 }
-                
+
                 // 检查版本是否已注册到工作流引擎
                 if (!_hxWorkflowManager.IsRegistered(input.Id, input.Version))
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：流程模板未注册到工作流引擎。模板ID：{input.Id}，版本号：{input.Version}。请确保模板已正确创建并注册到工作流引擎。");
                 }
-                
+
                 // 检查用户权限：至少有一个候选人在模板的启动候选人列表中
                 if (!entity.WkCandidates.Any(d => candidateIds.Contains(d.CandidateId)))
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：当前用户无权限启动此流程。提供的候选人ID均未在模板中配置，模板ID：{input.Id}，版本号：{input.Version}。请在流程定义中配置对应用户的权限。");
                 }
-                
+
                 // 将当前用户信息添加到工作流数据中，以便在 StepBody 中获取
                 if (CurrentUser.Id.HasValue)
                 {
@@ -119,7 +132,7 @@ namespace Hx.Workflow.Application
                         input.Inputs["CurrentUserName"] = CurrentUser.UserName;
                     }
                 }
-                
+
                 return await _hxWorkflowManager.StartWorkflowAsync(input.Id, input.Version, input.Inputs);
             }
             catch (UserFriendlyException)

@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.BusinessModule;
+using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using System;
@@ -68,7 +68,30 @@ namespace Hx.Workflow.Domain
         public async Task<string> CreateNewWorkflow(WorkflowInstance workflow, CancellationToken cancellationToken = default)
         {
             workflow.Id = _guidGenerator.Create().ToString();
-            workflow.Reference = await ReferenceManager.GetMaxNumber();
+            // 如果工作流数据中包含 Reference（来自启动入参的 Inputs["Reference"]），优先使用该值
+            if (string.IsNullOrWhiteSpace(workflow.Reference) && workflow.Data is IDictionary<string, object> data
+                && data.TryGetValue("Reference", out var refObj) && refObj != null)
+            {
+                var externalReference = refObj.ToString();
+                if (!string.IsNullOrWhiteSpace(externalReference))
+                {
+                    workflow.Reference = externalReference;
+                }
+            }
+
+            // 如果外部未提供受理编号，则自动生成
+            if (string.IsNullOrWhiteSpace(workflow.Reference))
+            {
+                workflow.Reference = await ReferenceManager.GetMaxNumber();
+            }
+
+            // 在插入前按 reference 做一次唯一性校验
+            var existed = await _wkInstanceRepository.GetByReferenceAsync(workflow.Reference);
+            if (existed != null)
+            {
+                throw new UserFriendlyException(message: $"受理编号已存在：[{workflow.Reference}]");
+            }
+
             var wkInstance = await workflow.ToPersistable();
             if (wkInstance.ExecutionPointers.Count > 0)
             {
