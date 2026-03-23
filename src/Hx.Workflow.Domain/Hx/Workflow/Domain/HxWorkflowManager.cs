@@ -321,6 +321,7 @@ namespace Hx.Workflow.Domain
                 .GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
+            var setAny = false;
             foreach (var prop in props)
             {
                 if (!prop.CanWrite) continue;
@@ -346,6 +347,7 @@ namespace Hx.Workflow.Domain
                     }
 
                     prop.SetValue(definitionSource, valueToSet);
+                    setAny = true;
                     _logger.LogDebug("WorkflowCore Genesis/Start 已写入定义源字段: {FieldName}={Value}",
                         prop.Name, valueToSet);
                     return;
@@ -354,6 +356,13 @@ namespace Hx.Workflow.Domain
                 {
                     _logger.LogWarning(ex, "写入 Genesis/Start 定义字段失败: {FieldName}", prop.Name);
                 }
+            }
+
+            if (!setAny)
+            {
+                _logger.LogWarning("未能通过反射写入 WorkflowCore Genesis/Start 字段。可能的字段候选: {Candidates}，实际 JDefinitionSource 类型: {Type}",
+                    string.Join(", ", candidates),
+                    definitionSource.GetType().FullName);
             }
         }
 
