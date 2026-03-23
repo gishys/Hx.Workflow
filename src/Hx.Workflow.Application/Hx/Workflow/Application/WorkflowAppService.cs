@@ -60,6 +60,7 @@ namespace Hx.Workflow.Application
         /// <returns></returns>
         public virtual async Task<string> StartAsync(StartWorkflowInput input)
         {
+            var stage = "初始化";
             try
             {
                 if (input is null)
@@ -68,15 +69,18 @@ namespace Hx.Workflow.Application
                 }
 
                 // 验证版本号
+                stage = "校验版本号";
                 if (input.Version <= 0)
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：版本号必须大于0，当前提供的版本号为 {input.Version}。");
                 }
 
                 // JSON 中若显式传入 "inputs": null，反序列化后 Inputs 会为 null，此处归一化避免 NRE
+                stage = "归一化输入参数";
                 input.Inputs ??= [];
 
                 // 处理外部传入的受理编号（Reference）
+                stage = "校验受理编号唯一性";
                 if (!string.IsNullOrWhiteSpace(input.Reference))
                 {
                     var reference = input.Reference.Trim();
@@ -90,6 +94,7 @@ namespace Hx.Workflow.Application
                 }
 
                 // 验证候选人参数（支持英文逗号分隔的多个 GUID；键名不区分大小写）
+                stage = "解析候选人参数";
                 var candidateKeyValue = input.Inputs.FirstOrDefault(kv =>
                     string.Equals(kv.Key, "Candidates", StringComparison.OrdinalIgnoreCase));
                 if (candidateKeyValue.Key is null)
@@ -105,6 +110,7 @@ namespace Hx.Workflow.Application
                 }
 
                 // 查询流程模板定义
+                stage = "读取流程模板";
                 var entity = await _wkDefinition.GetDefinitionAsync(new Guid(input.Id), input.Version)
                     ?? throw new UserFriendlyException(message: $"流程启动失败：未找到流程模板。模板ID：{input.Id}，版本号：{input.Version}。请确认模板ID和版本号是否正确。");
 
@@ -115,12 +121,14 @@ namespace Hx.Workflow.Application
                 }
 
                 // 检查版本是否已注册到工作流引擎
+                stage = "检查流程引擎注册状态";
                 if (!_hxWorkflowManager.IsRegistered(input.Id, input.Version))
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：流程模板未注册到工作流引擎。模板ID：{input.Id}，版本号：{input.Version}。请确保模板已正确创建并注册到工作流引擎。");
                 }
 
                 // 检查用户权限：至少有一个候选人在模板的启动候选人列表中
+                stage = "检查启动权限";
                 var definitionCandidates = entity.WkCandidates ?? [];
                 if (definitionCandidates.Count == 0)
                 {
@@ -133,6 +141,7 @@ namespace Hx.Workflow.Application
                 }
 
                 // 将当前用户信息添加到工作流数据中，以便在 StepBody 中获取
+                stage = "写入启动用户上下文";
                 if (CurrentUser.Id.HasValue)
                 {
                     input.Inputs["StartUserId"] = CurrentUser.Id.Value;
@@ -148,6 +157,7 @@ namespace Hx.Workflow.Application
                     }
                 }
 
+                stage = "调用工作流引擎启动实例";
                 return await _hxWorkflowManager.StartWorkflowAsync(input.Id, input.Version, input.Inputs);
             }
             catch (UserFriendlyException)
@@ -157,8 +167,15 @@ namespace Hx.Workflow.Application
             }
             catch (Exception ex)
             {
-                // 对于其他异常，包装为用户友好异常
-                throw new UserFriendlyException(message: $"流程启动失败：{ex.Message}");
+                Logger.LogError(
+                    ex,
+                    "流程启动异常。阶段: {Stage}, DefinitionId: {DefinitionId}, Version: {Version}, Reference: {Reference}",
+                    stage,
+                    input?.Id,
+                    input?.Version,
+                    input?.Reference);
+                // 对于其他异常，包装为用户友好异常，并附带阶段，便于快速定位
+                throw new UserFriendlyException(message: $"流程启动失败：{ex.Message}（阶段：{stage}）");
             }
         }
         /// <summary>
