@@ -62,6 +62,11 @@ namespace Hx.Workflow.Application
         {
             try
             {
+                if (input is null)
+                {
+                    throw new UserFriendlyException(message: "流程启动失败：请求体不能为空。");
+                }
+
                 // 验证版本号
                 if (input.Version <= 0)
                 {
@@ -84,14 +89,15 @@ namespace Hx.Workflow.Application
                     input.Inputs["Reference"] = reference;
                 }
 
-                // 验证候选人参数（支持英文逗号分隔的多个 GUID）
-                var candidateKeyValue = input.Inputs.FirstOrDefault(kv => kv.Key == "Candidates");
-                if (candidateKeyValue.Equals(default(KeyValuePair<string, object>)))
+                // 验证候选人参数（支持英文逗号分隔的多个 GUID；键名不区分大小写）
+                var candidateKeyValue = input.Inputs.FirstOrDefault(kv =>
+                    string.Equals(kv.Key, "Candidates", StringComparison.OrdinalIgnoreCase));
+                if (candidateKeyValue.Key is null)
                 {
                     throw new UserFriendlyException(message: "流程启动失败：启动参数中缺少候选人信息（Candidates）。请确保在输入参数中包含候选人ID（多个时使用英文逗号分隔）。");
                 }
 
-                var candidateIds = ParseCandidateIds(candidateKeyValue.Value?.ToString());
+                var candidateIds = ParseCandidateIds(NormalizeInputString(candidateKeyValue.Value));
                 if (candidateIds.Count == 0)
                 {
                     var candidateValue = candidateKeyValue.Value?.ToString() ?? "null";
@@ -115,12 +121,13 @@ namespace Hx.Workflow.Application
                 }
 
                 // 检查用户权限：至少有一个候选人在模板的启动候选人列表中
-                if (entity.WkCandidates == null || entity.WkCandidates.Count == 0)
+                var definitionCandidates = entity.WkCandidates ?? [];
+                if (definitionCandidates.Count == 0)
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：流程模板缺少启动候选人配置。模板ID：{input.Id}，版本号：{input.Version}。");
                 }
 
-                if (!entity.WkCandidates.Any(d => candidateIds.Contains(d.CandidateId)))
+                if (!definitionCandidates.Any(d => d != null && candidateIds.Contains(d.CandidateId)))
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：当前用户无权限启动此流程。提供的候选人ID均未在模板中配置，模板ID：{input.Id}，版本号：{input.Version}。请在流程定义中配置对应用户的权限。");
                 }
@@ -751,6 +758,19 @@ namespace Hx.Workflow.Application
                     return []; // 任一无效则视为格式错误，由调用方统一报错
             }
             return list;
+        }
+
+        /// <summary>
+        /// 将 Inputs 中的值规范为字符串（兼容 System.Text.Json 反序列化后的 JsonElement）。
+        /// </summary>
+        private static string? NormalizeInputString(object? value)
+        {
+            if (value is null) return null;
+            if (value is JsonElement je)
+            {
+                return je.ValueKind == JsonValueKind.String ? je.GetString() : je.ToString();
+            }
+            return value.ToString();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Domain.BusinessModule;
+using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Shared;
 using Newtonsoft.Json;
@@ -73,9 +73,12 @@ namespace Hx.Workflow.Domain
                     pointer.Scope = new List<string>(ep.Scope.Split(';', StringSplitOptions.RemoveEmptyEntries));
                 }
 
-                foreach (var attr in ep.ExtensionAttributes)
+                if (ep.ExtensionAttributes != null)
                 {
-                    pointer.ExtensionAttributes[attr.AttributeKey] = JsonConvert.DeserializeObject(attr.AttributeValue, SerializerSettings);
+                    foreach (var attr in ep.ExtensionAttributes)
+                    {
+                        pointer.ExtensionAttributes[attr.AttributeKey] = JsonConvert.DeserializeObject(attr.AttributeValue, SerializerSettings);
+                    }
                 }
 
                 result.ExecutionPointers.Add(pointer);
@@ -221,16 +224,19 @@ namespace Hx.Workflow.Domain
                     var eventData = exe.EventData as ActivityResult;
                     await epTemp.SetCommitmentDeadline(eventPointerEventData?.CommitmentDeadline);
                 }
-                foreach (var attr in exe.ExtensionAttributes)
+                if (exe.ExtensionAttributes != null)
                 {
-                    var persistedAttr = epTemp.ExtensionAttributes.FirstOrDefault(x => x.AttributeKey == attr.Key);
-                    persistedAttr ??= new WkExtensionAttribute(
-                            attr.Key,
-                            JsonConvert.SerializeObject(attr.Value, SerializerSettings)
-                            );
-                    await persistedAttr.SetAttributeKey(attr.Key);
-                    await persistedAttr.SetAttributeValue(JsonConvert.SerializeObject(attr.Value, SerializerSettings));
-                    await epTemp.SetExtensionAttributes(persistedAttr);
+                    foreach (var attr in exe.ExtensionAttributes)
+                    {
+                        var persistedAttr = epTemp.ExtensionAttributes.FirstOrDefault(x => x.AttributeKey == attr.Key);
+                        persistedAttr ??= new WkExtensionAttribute(
+                                attr.Key,
+                                JsonConvert.SerializeObject(attr.Value, SerializerSettings)
+                                );
+                        await persistedAttr.SetAttributeKey(attr.Key);
+                        await persistedAttr.SetAttributeValue(JsonConvert.SerializeObject(attr.Value, SerializerSettings));
+                        await epTemp.SetExtensionAttributes(persistedAttr);
+                    }
                 }
             }
             return persistable;

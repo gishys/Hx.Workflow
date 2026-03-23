@@ -98,6 +98,7 @@ namespace Hx.Workflow.Application.StepBodys
                 var pointer = definition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                 if (pointer.LimitTime != null)
                 {
+                    context.ExecutionPointer.ExtensionAttributes ??= new Dictionary<string, object>();
                     context.ExecutionPointer.ExtensionAttributes.Remove("CommitmentDeadline");
                     context.ExecutionPointer.ExtensionAttributes.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
                 }
@@ -115,7 +116,7 @@ namespace Hx.Workflow.Application.StepBodys
                             var tempCandidates = Candidates.Split(',');
                             if (tempCandidates?.Length > 0)
                             {
-                                dcandidate = [.. pointer.WkCandidates.Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId))];
+                                dcandidate = [.. (pointer.WkCandidates ?? []).Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId))];
                             }
                             else
                             {
@@ -132,7 +133,7 @@ namespace Hx.Workflow.Application.StepBodys
                         var candidateIds = ParseCandidateIds(Candidates);
                         if (candidateIds.Count == 0) throw new UserFriendlyException(message: "未传入正确的接收者！");
                         var defCandidates = candidateIds
-                            .Select(id => definition.WkCandidates.FirstOrDefault(d => d.CandidateId == id))
+                            .Select(id => (definition.WkCandidates ?? []).FirstOrDefault(d => d.CandidateId == id))
                             .ToList();
                         if (defCandidates.Any(d => d == null))
                         {
