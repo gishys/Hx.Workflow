@@ -13,6 +13,9 @@ namespace Hx.Workflow.Application.Contracts
         /// 如果不提供，则由系统自动生成。
         /// </summary>
         public string? Reference { get; set; }
+        /// <summary>
+        /// 工作流启动输入数据。请勿在 JSON 中传 <c>null</c>（会覆盖默认值并导致服务端需归一化）；至少传空对象 <c>{}</c>。
+        /// </summary>
         public Dictionary<string, object> Inputs { get; set; } = [];
     }
 }

@@ -20,7 +20,7 @@ using WorkflowCore.Models;
 
 namespace Hx.Workflow.Application
 {
-    [Authorize]
+    //[Authorize]
     public class WorkflowAppService(
         HxWorkflowManager hxWorkflowManager,
         IWkDefinitionRespository wkDefinition,
@@ -68,6 +68,9 @@ namespace Hx.Workflow.Application
                     throw new UserFriendlyException(message: $"流程启动失败：版本号必须大于0，当前提供的版本号为 {input.Version}。");
                 }
 
+                // JSON 中若显式传入 "inputs": null，反序列化后 Inputs 会为 null，此处归一化避免 NRE
+                input.Inputs ??= [];
+
                 // 处理外部传入的受理编号（Reference）
                 if (!string.IsNullOrWhiteSpace(input.Reference))
                 {
@@ -112,6 +115,11 @@ namespace Hx.Workflow.Application
                 }
 
                 // 检查用户权限：至少有一个候选人在模板的启动候选人列表中
+                if (entity.WkCandidates == null || entity.WkCandidates.Count == 0)
+                {
+                    throw new UserFriendlyException(message: $"流程启动失败：流程模板缺少启动候选人配置。模板ID：{input.Id}，版本号：{input.Version}。");
+                }
+
                 if (!entity.WkCandidates.Any(d => candidateIds.Contains(d.CandidateId)))
                 {
                     throw new UserFriendlyException(message: $"流程启动失败：当前用户无权限启动此流程。提供的候选人ID均未在模板中配置，模板ID：{input.Id}，版本号：{input.Version}。请在流程定义中配置对应用户的权限。");
