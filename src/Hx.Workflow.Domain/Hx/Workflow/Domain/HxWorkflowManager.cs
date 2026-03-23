@@ -14,6 +14,7 @@ using Volo.Abp.Uow;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 using WorkflowCore.Services.DefinitionStorage;
+using System.Reflection;
 
 namespace Hx.Workflow.Domain
 {
@@ -196,6 +197,15 @@ namespace Hx.Workflow.Domain
             {
                 throw new AbpException($"the workflow {input.Id} has ben defined!");
             }
+
+            // WorkflowCore 在启动时会构建 Genesis 指针，这通常依赖定义源里的“起始步骤/Genesis 配置”。
+            // 我们从业务节点里找出真正的 Start 节点，并在加载前尝试补齐 WorkflowCore 需要的字段。
+            var startNode = input.Nodes?.FirstOrDefault(n => n.StepNodeType == StepNodeType.Start);
+            if (startNode == null)
+            {
+                throw new BusinessException(message: $"流程定义缺少开始节点(Start)。模板ID: {input.Id}, 版本号: {input.Version}");
+            }
+
             var definitionSource = new JDefinitionSource
             {
                 Id = input.Id.ToString(),
@@ -203,7 +213,10 @@ namespace Hx.Workflow.Domain
                 Description = input.Title,
                 DataType = $"{typeof(Dictionary<string, object>).FullName}, {typeof(Dictionary<string, object>).Assembly.FullName}"
             };
-            BuildWorkflowStep(input.Nodes, definitionSource);
+            BuildWorkflowStep(input.Nodes ?? Enumerable.Empty<WkNode>(), definitionSource);
+
+            TrySetWorkflowCoreGenesisStart(definitionSource, startNode.Id);
+
             string json = System.Text.Json.JsonSerializer.Serialize(definitionSource);
             return _definitionLoader.LoadDefinition(json, Deserializers.Json);
         }
@@ -231,6 +244,13 @@ namespace Hx.Workflow.Domain
                 Id = step.Id.ToString(),
                 Name = step.Name
             };
+
+            // 将 Start 节点标记给 WorkflowCore（不同版本的字段名可能不同，故用反射兜底）
+            if (step.StepNodeType == StepNodeType.Start)
+            {
+                TryMarkStepAsGenesisOrStart(stepSource);
+            }
+
             var stepBody = step.StepBody;
             stepBody ??= new WkStepBody(
                     "",
@@ -279,6 +299,81 @@ namespace Hx.Workflow.Domain
             else
             {
                 _logger.LogDebug("步骤 {StepName} 没有后续节点", step.Name);
+            }
+        }
+
+        private void TrySetWorkflowCoreGenesisStart(JDefinitionSource definitionSource, Guid startStepId)
+        {
+            // WorkflowCore v3.x 的 JDefinitionSource 内部字段名在不同版本/反序列化实现中可能略有差异。
+            // 这里用“可能的字段名集合 + 类型兼容”做兜底设置，避免遗漏导致 Genesis 构建 NRE。
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "StartStepId",
+                "StartNodeId",
+                "GenesisStepId",
+                "GenesisId",
+                "GenesisStep",
+                "StartStep",
+                "Start"
+            };
+
+            var props = definitionSource
+                .GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var prop in props)
+            {
+                if (!prop.CanWrite) continue;
+                if (!candidates.Contains(prop.Name)) continue;
+
+                try
+                {
+                    var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+                    object? valueToSet = null;
+
+                    if (targetType == typeof(string))
+                    {
+                        valueToSet = startStepId.ToString();
+                    }
+                    else if (targetType == typeof(Guid))
+                    {
+                        valueToSet = startStepId;
+                    }
+                    else
+                    {
+                        // 其它类型（例如 int/long）无法从 Guid 得到安全值，直接跳过
+                        continue;
+                    }
+
+                    prop.SetValue(definitionSource, valueToSet);
+                    _logger.LogDebug("WorkflowCore Genesis/Start 已写入定义源字段: {FieldName}={Value}",
+                        prop.Name, valueToSet);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "写入 Genesis/Start 定义字段失败: {FieldName}", prop.Name);
+                }
+            }
+        }
+
+        private static void TryMarkStepAsGenesisOrStart(JStepSource stepSource)
+        {
+            // 同理：JStepSource 中可能存在 IsGenesis/IsStart/Start 等布尔字段。
+            var props = stepSource
+                .GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanWrite && p.PropertyType == typeof(bool));
+
+            foreach (var prop in props)
+            {
+                var name = prop.Name ?? string.Empty;
+                if (name.Contains("Genesis", StringComparison.OrdinalIgnoreCase) ||
+                    (name.Contains("Start", StringComparison.OrdinalIgnoreCase) && name.Contains("Step", StringComparison.OrdinalIgnoreCase)) ||
+                    name.Equals("Start", StringComparison.OrdinalIgnoreCase))
+                {
+                    prop.SetValue(stepSource, true);
+                }
             }
         }
 
