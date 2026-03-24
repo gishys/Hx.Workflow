@@ -68,18 +68,31 @@ namespace Hx.Workflow.Application
                     entity.WkCandidates.Add(newCandidate);
                 }
             }
-            var nodeEntitys = input.Nodes?.ToWkNodes(GuidGenerator);
+
+            // 创建时允许不传节点：作为草稿保存（禁用），不发布到引擎。
+            // 如果传了节点，则必须通过完整性校验后才允许发布。
+            var validatedNodes = ValidateAndFilterNodes(input.Nodes ?? []);
+            var nodeEntitys = validatedNodes.ToWkNodes(GuidGenerator);
             if (nodeEntitys != null)
             {
                 foreach (var node in nodeEntitys)
                 {
-                    var wkStepBodyId = input.Nodes?.FirstOrDefault(d => d.Name == node.Name)?.WkStepBodyId ?? throw new UserFriendlyException(message: $"节点：{node.Name}的WkStepBodyId不存在！");
+                    var wkStepBodyId = validatedNodes.FirstOrDefault(d => d.Name == node.Name)?.WkStepBodyId ?? throw new UserFriendlyException(message: $"节点：{node.Name}的WkStepBodyId不存在！");
                     await node.SetWkStepBody(await GetStepBodyByIdAsync(wkStepBodyId, node.StepNodeType));
                     await entity.AddWkNode(node);
                 }
             }
             entity.ExtraProperties.Clear();
             input.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
+
+            if (entity.Nodes.Count == 0)
+            {
+                // 草稿模板：不发布到工作流引擎，避免“无节点模板”注册失败。
+                await entity.SetEnabled(false);
+                await _definitionRespository.InsertAsync(entity);
+                return;
+            }
+
             await _hxWorkflowManager.CreateAsync(entity);
         }
         /// <summary>
@@ -122,6 +135,10 @@ namespace Hx.Workflow.Application
             
             if (entity.IsEnabled != input.IsEnabled)
             {
+                if (input.IsEnabled && !CanPublishTemplate(entity))
+                {
+                    throw new UserFriendlyException(message: "模板未满足发布条件，无法启用。请先补全流程节点（至少一个开始节点且节点关系完整）后再启用。");
+                }
                 await entity.SetEnabled(input.IsEnabled);
             }
             
@@ -147,8 +164,11 @@ namespace Hx.Workflow.Application
             // 保存更新
             await _definitionRespository.UpdateAsync(entity);
             
-            // 重新注册到工作流引擎（因为基本信息可能影响显示）
-            await _hxWorkflowManager.UpdateAsync(entity);
+            // 仅对可发布模板重新注册到工作流引擎；草稿模板不注册。
+            if (CanPublishTemplate(entity))
+            {
+                await _hxWorkflowManager.UpdateAsync(entity);
+            }
             
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
@@ -920,6 +940,17 @@ namespace Hx.Workflow.Application
             
             // 6. 返回所有节点（因为都已经验证通过）
             return [.. nodes];
+        }
+
+        private static bool CanPublishTemplate(WkDefinition definition)
+        {
+            if (definition.Nodes == null || definition.Nodes.Count == 0)
+            {
+                return false;
+            }
+
+            var startNodeCount = definition.Nodes.Count(n => n.StepNodeType == StepNodeType.Start);
+            return startNodeCount == 1;
         }
         
         /// <summary>

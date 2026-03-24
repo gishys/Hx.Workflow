@@ -120,6 +120,13 @@ namespace Hx.Workflow.Domain
         public virtual async Task CreateAsync(WkDefinition entity)
         {
             var rEntity = await _wkDefinitionRespository.InsertAsync(entity);
+            if (!CanRegisterToEngine(rEntity))
+            {
+                _logger.LogInformation("模板未满足发布条件，已保存为草稿（未注册到引擎）。模板ID: {TemplateId}, 版本: {Version}",
+                    rEntity.Id, rEntity.Version);
+                return;
+            }
+
             LoadDefinitionByJson(rEntity);
         }
         /// <summary>
@@ -129,6 +136,13 @@ namespace Hx.Workflow.Domain
         /// <returns></returns>
         public virtual Task UpdateAsync(WkDefinition entity)
         {
+            if (!CanRegisterToEngine(entity))
+            {
+                _logger.LogInformation("模板未满足发布条件，跳过引擎注册。模板ID: {TemplateId}, 版本: {Version}",
+                    entity.Id, entity.Version);
+                return Task.CompletedTask;
+            }
+
             // 对于新版本，直接注册到工作流引擎
             if (_registry.IsRegistered(entity.Id.ToString(), entity.Version))
             {
@@ -146,6 +160,13 @@ namespace Hx.Workflow.Domain
         public virtual async Task UpdateExistingVersionAsync(WkDefinition entity)
         {
             var wkDefinitionSource = await _wkDefinitionRespository.UpdateAsync(entity);
+            if (!CanRegisterToEngine(wkDefinitionSource))
+            {
+                _logger.LogInformation("模板未满足发布条件，跳过引擎注册。模板ID: {TemplateId}, 版本: {Version}",
+                    wkDefinitionSource.Id, wkDefinitionSource.Version);
+                return;
+            }
+
             if (_registry.IsRegistered(entity.Id.ToString(), entity.Version))
             {
                 _registry.DeregisterWorkflow(entity.Id.ToString(), entity.Version);
@@ -198,10 +219,9 @@ namespace Hx.Workflow.Domain
                 throw new AbpException($"the workflow {input.Id} has ben defined!");
             }
 
-            // WorkflowCore 在启动时会构建 Genesis 指针，这通常依赖定义源里的“起始步骤/Genesis 配置”。
-            // 我们从业务节点里找出真正的 Start 节点，并在加载前尝试补齐 WorkflowCore 需要的字段。
-            var startNode = input.Nodes?.FirstOrDefault(n => n.StepNodeType == StepNodeType.Start);
-            if (startNode == null)
+            // WorkflowCore 3.x 的 DSL（DefinitionSourceV1）没有单独的 Genesis/Start 根字段；引擎按 Steps 的顺序与
+            // NextStepId/Outcomes 解析入口步骤。此处从 Start 节点做 DFS 构建 Steps，保证首项即为起始步骤。
+            if (input.Nodes == null || !input.Nodes.Any(n => n.StepNodeType == StepNodeType.Start))
             {
                 throw new BusinessException(message: $"流程定义缺少开始节点(Start)。模板ID: {input.Id}, 版本号: {input.Version}");
             }
@@ -214,8 +234,6 @@ namespace Hx.Workflow.Domain
                 DataType = $"{typeof(Dictionary<string, object>).FullName}, {typeof(Dictionary<string, object>).Assembly.FullName}"
             };
             BuildWorkflowStep(input.Nodes ?? Enumerable.Empty<WkNode>(), definitionSource);
-
-            TrySetWorkflowCoreGenesisStart(definitionSource, startNode.Id);
 
             string json = System.Text.Json.JsonSerializer.Serialize(definitionSource);
             return _definitionLoader.LoadDefinition(json, Deserializers.Json);
@@ -299,70 +317,6 @@ namespace Hx.Workflow.Domain
             else
             {
                 _logger.LogDebug("步骤 {StepName} 没有后续节点", step.Name);
-            }
-        }
-
-        private void TrySetWorkflowCoreGenesisStart(JDefinitionSource definitionSource, Guid startStepId)
-        {
-            // WorkflowCore v3.x 的 JDefinitionSource 内部字段名在不同版本/反序列化实现中可能略有差异。
-            // 这里用“可能的字段名集合 + 类型兼容”做兜底设置，避免遗漏导致 Genesis 构建 NRE。
-            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "StartStepId",
-                "StartNodeId",
-                "GenesisStepId",
-                "GenesisId",
-                "GenesisStep",
-                "StartStep",
-                "Start"
-            };
-
-            var props = definitionSource
-                .GetType()
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-            var setAny = false;
-            foreach (var prop in props)
-            {
-                if (!prop.CanWrite) continue;
-                if (!candidates.Contains(prop.Name)) continue;
-
-                try
-                {
-                    var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
-                    object? valueToSet = null;
-
-                    if (targetType == typeof(string))
-                    {
-                        valueToSet = startStepId.ToString();
-                    }
-                    else if (targetType == typeof(Guid))
-                    {
-                        valueToSet = startStepId;
-                    }
-                    else
-                    {
-                        // 其它类型（例如 int/long）无法从 Guid 得到安全值，直接跳过
-                        continue;
-                    }
-
-                    prop.SetValue(definitionSource, valueToSet);
-                    setAny = true;
-                    _logger.LogDebug("WorkflowCore Genesis/Start 已写入定义源字段: {FieldName}={Value}",
-                        prop.Name, valueToSet);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "写入 Genesis/Start 定义字段失败: {FieldName}", prop.Name);
-                }
-            }
-
-            if (!setAny)
-            {
-                _logger.LogWarning("未能通过反射写入 WorkflowCore Genesis/Start 字段。可能的字段候选: {Candidates}，实际 JDefinitionSource 类型: {Type}",
-                    string.Join(", ", candidates),
-                    definitionSource.GetType().FullName);
             }
         }
 
@@ -592,6 +546,17 @@ namespace Hx.Workflow.Domain
                     dics.TryAdd(input.Key, value);
                 }
             }
+        }
+
+        private static bool CanRegisterToEngine(WkDefinition definition)
+        {
+            if (definition.Nodes == null || definition.Nodes.Count == 0)
+            {
+                return false;
+            }
+
+            var startNodeCount = definition.Nodes.Count(n => n.StepNodeType == StepNodeType.Start);
+            return startNodeCount == 1;
         }
     }
 }
