@@ -161,14 +161,7 @@ namespace Hx.Workflow.Application
                 }
             }
             
-            // 保存更新
-            await _definitionRespository.UpdateAsync(entity);
-            
-            // 仅对可发布模板重新注册到工作流引擎；草稿模板不注册。
-            if (CanPublishTemplate(entity))
-            {
-                await _hxWorkflowManager.UpdateAsync(entity);
-            }
+            await PersistCurrentVersionAndSyncEngineAsync(entity);
             
             return ObjectMapper.Map<WkDefinition, WkDefinitionDto>(entity);
         }
@@ -822,8 +815,7 @@ namespace Hx.Workflow.Application
                     validatedInput.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
                 }
                 
-                await _definitionRespository.UpdateAsync(entity);
-                await _hxWorkflowManager.UpdateAsync(entity);
+                await PersistCurrentVersionAndSyncEngineAsync(entity);
                 
                 return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. entity.Nodes]);
             }
@@ -866,8 +858,7 @@ namespace Hx.Workflow.Application
                     validatedInput.ExtraProperties.ForEach(item => entity.ExtraProperties.TryAdd(item.Key, item.Value));
                 }
                 
-                await _definitionRespository.UpdateAsync(entity);
-                await _hxWorkflowManager.UpdateAsync(entity);
+                await PersistCurrentVersionAndSyncEngineAsync(entity);
                 
                 return ObjectMapper.Map<List<WkNode>, List<WkNodeDto>>([.. entity.Nodes]);
             }
@@ -951,6 +942,22 @@ namespace Hx.Workflow.Application
 
             var startNodeCount = definition.Nodes.Count(n => n.StepNodeType == StepNodeType.Start);
             return startNodeCount == 1;
+        }
+
+        /// <summary>
+        /// 持久化当前版本，并在满足发布条件时同步到工作流引擎。
+        /// 对已有版本统一走 HxWorkflowManager.UpdateExistingVersionAsync，避免出现
+        /// “数据库已更新，但引擎未注册/未刷新”的状态不一致。
+        /// </summary>
+        private async Task PersistCurrentVersionAndSyncEngineAsync(WkDefinition entity)
+        {
+            if (!CanPublishTemplate(entity))
+            {
+                await _definitionRespository.UpdateAsync(entity);
+                return;
+            }
+
+            await _hxWorkflowManager.UpdateExistingVersionAsync(entity);
         }
         
         /// <summary>
