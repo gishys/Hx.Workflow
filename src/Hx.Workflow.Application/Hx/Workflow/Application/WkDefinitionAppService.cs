@@ -1150,6 +1150,42 @@ namespace Hx.Workflow.Application
                             }
                         }
                     }
+                    else
+                    {
+                        // 新增节点（常见于首次配置流程节点时，输入没有 Id）
+                        var inputNode = input.Nodes.FirstOrDefault(d => d.Id == newNode.Id)
+                            ?? input.Nodes.FirstOrDefault(d => string.Equals(d.Name, newNode.Name, StringComparison.OrdinalIgnoreCase));
+                        if (inputNode == null)
+                        {
+                            continue;
+                        }
+
+                        // Activity 节点必须显式指定步骤体
+                        if (inputNode.StepNodeType == StepNodeType.Activity && string.IsNullOrWhiteSpace(inputNode.WkStepBodyId))
+                        {
+                            throw new UserFriendlyException(message: $"节点 [{inputNode.Name}] 是 Activity 类型，必须提供有效的 WkStepBodyId。");
+                        }
+
+                        await newNode.SetWkStepBody(await GetStepBodyByIdAsync(inputNode.WkStepBodyId, inputNode.StepNodeType));
+
+                        // 同步扩展属性
+                        if (inputNode.ExtraProperties != null)
+                        {
+                            newNode.ExtraProperties.Clear();
+                            inputNode.ExtraProperties.ForEach(item => newNode.ExtraProperties.TryAdd(item.Key, item.Value));
+                        }
+
+                        // 新增节点时需要绑定候选人的 NodeId
+                        if (newNode.WkCandidates != null && newNode.WkCandidates.Count > 0)
+                        {
+                            foreach (var candidate in newNode.WkCandidates)
+                            {
+                                await candidate.SetNodeId(newNode.Id);
+                            }
+                        }
+
+                        await entity.AddWkNode(newNode);
+                    }
                 }
             }
             
