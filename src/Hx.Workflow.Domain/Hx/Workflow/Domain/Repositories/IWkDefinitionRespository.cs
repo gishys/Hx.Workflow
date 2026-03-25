@@ -17,6 +17,7 @@ namespace Hx.Workflow.Domain.Repositories
         /// <returns></returns>
         Task<WkDefinition?> GetDefinitionAsync(Guid id, int version, CancellationToken cancellation = default);
         Task<WkDefinition?> GetDefinitionAsync(string name, bool includeDetails = true, CancellationToken cancellationToken = default);
+        Task<List<WkDefinition>> GetListForRegistrationAsync(CancellationToken cancellationToken = default);
         Task<WkDefinition?> UpdateCandidatesAsync(
             Guid wkDefinitionId,
             Guid userId,

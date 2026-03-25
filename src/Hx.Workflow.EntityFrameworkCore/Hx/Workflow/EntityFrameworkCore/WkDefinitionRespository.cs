@@ -87,6 +87,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Where(d => d.IsEnabled)
                 .ToListAsync(GetCancellationToken(cancellationToken));
         }
+        public virtual async Task<List<WkDefinition>> GetListForRegistrationAsync(CancellationToken cancellationToken = default)
+        {
+            return await (await GetDbSetAsync())
+                .IncludeDetails(true)
+                .ToListAsync(GetCancellationToken(cancellationToken));
+        }
         public async Task<List<WkDefinition>> GetListHasPermissionAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await (await GetDbSetAsync())

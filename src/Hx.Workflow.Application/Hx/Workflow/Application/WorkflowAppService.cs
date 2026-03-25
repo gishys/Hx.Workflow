@@ -124,7 +124,11 @@ namespace Hx.Workflow.Application
                 stage = "检查流程引擎注册状态";
                 if (!_hxWorkflowManager.IsRegistered(input.Id, input.Version))
                 {
-                    throw new UserFriendlyException(message: $"流程启动失败：流程模板未注册到工作流引擎。模板ID：{input.Id}，版本号：{input.Version}。请确保模板已正确创建并注册到工作流引擎。");
+                    var registered = await _hxWorkflowManager.EnsureRegisteredAsync(entity.Id, entity.Version);
+                    if (!registered)
+                    {
+                        throw new UserFriendlyException(message: $"流程启动失败：流程模板未注册到工作流引擎。模板ID：{input.Id}，版本号：{input.Version}。请确保模板已正确创建并注册到工作流引擎。");
+                    }
                 }
 
                 // 检查用户权限：至少有一个候选人在模板的启动候选人列表中

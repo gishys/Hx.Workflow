@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Volo.Abp.Data;
 using Volo.Abp;
 using Volo.Abp.Domain.Services;
+using Volo.Abp.MultiTenancy;
 using Volo.Abp.Uow;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
@@ -24,6 +26,7 @@ namespace Hx.Workflow.Domain
         IDefinitionLoader definitionLoader,
         IWorkflowController workflowService,
         IUnitOfWorkManager unitOfWorkManager,
+        IDataFilter dataFilter,
         IWkDefinitionRespository wkDefinitionRespository,
         IWorkflowHost workflowHost,
         IWkInstanceRepository instanceRepository,
@@ -34,6 +37,7 @@ namespace Hx.Workflow.Domain
         private readonly IDefinitionLoader _definitionLoader = definitionLoader;
         protected readonly IWorkflowController _workflowService = workflowService;
         private readonly IUnitOfWorkManager _unitOfWorkManager = unitOfWorkManager;
+        private readonly IDataFilter _dataFilter = dataFilter;
         private readonly IWkDefinitionRespository _wkDefinitionRespository = wkDefinitionRespository;
         protected readonly IWorkflowHost _workflowHost = workflowHost;
         private readonly ILogger<HxWorkflowManager> _logger = logger;
@@ -89,10 +93,22 @@ namespace Hx.Workflow.Domain
             using var uow = _unitOfWorkManager.Begin(
                 requiresNew: true, isTransactional: false
             );
-            var workflows = await _wkDefinitionRespository.GetListAsync(includeDetails: true);
-            foreach (var workflow in workflows)
+            using (_dataFilter.Disable<IMultiTenant>())
             {
-                LoadDefinitionByJson(workflow);
+                var workflows = await _wkDefinitionRespository.GetListForRegistrationAsync();
+                foreach (var workflow in workflows.OrderBy(d => d.TenantId).ThenBy(d => d.Id).ThenBy(d => d.Version))
+                {
+                    try
+                    {
+                        await EnsureRegisteredAsync(workflow, throwIfUnpublishable: false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,
+                            "初始化注册工作流定义失败。模板ID: {TemplateId}, 版本: {Version}, TenantId: {TenantId}",
+                            workflow.Id, workflow.Version, workflow.TenantId);
+                    }
+                }
             }
             await uow.CompleteAsync();
         }
@@ -182,6 +198,26 @@ namespace Hx.Workflow.Domain
         public virtual bool IsRegistered(string id, int version)
         {
             return _registry.IsRegistered(id, version);
+        }
+
+        /// <summary>
+        /// 确保指定版本已注册到工作流引擎。
+        /// 当引擎内存定义丢失但数据库记录仍存在时，可按需自动补注册。
+        /// </summary>
+        public virtual async Task<bool> EnsureRegisteredAsync(Guid id, int version, bool throwIfUnpublishable = true)
+        {
+            if (_registry.IsRegistered(id.ToString(), version))
+            {
+                return true;
+            }
+
+            var definition = await _wkDefinitionRespository.GetDefinitionAsync(id, version);
+            if (definition == null)
+            {
+                return false;
+            }
+
+            return await EnsureRegisteredAsync(definition, throwIfUnpublishable);
         }
         
         /// <summary>
@@ -557,6 +593,43 @@ namespace Hx.Workflow.Domain
 
             var startNodeCount = definition.Nodes.Count(n => n.StepNodeType == StepNodeType.Start);
             return startNodeCount == 1;
+        }
+
+        private Task<bool> EnsureRegisteredAsync(WkDefinition definition, bool throwIfUnpublishable)
+        {
+            if (_registry.IsRegistered(definition.Id.ToString(), definition.Version))
+            {
+                return Task.FromResult(true);
+            }
+
+            if (!CanRegisterToEngine(definition))
+            {
+                _logger.LogInformation(
+                    "模板未满足引擎注册条件，跳过注册。模板ID: {TemplateId}, 版本: {Version}, TenantId: {TenantId}",
+                    definition.Id, definition.Version, definition.TenantId);
+
+                if (throwIfUnpublishable)
+                {
+                    throw new UserFriendlyException(
+                        $"流程模板未满足引擎注册条件。模板ID：{definition.Id}，版本号：{definition.Version}。请检查是否存在且仅存在一个开始节点，并确保流程节点已正确保存。");
+                }
+
+                return Task.FromResult(false);
+            }
+
+            try
+            {
+                LoadDefinitionByJson(definition);
+                _logger.LogInformation(
+                    "工作流定义已补注册到引擎。模板ID: {TemplateId}, 版本: {Version}, TenantId: {TenantId}",
+                    definition.Id, definition.Version, definition.TenantId);
+            }
+            catch (AbpException) when (_registry.IsRegistered(definition.Id.ToString(), definition.Version))
+            {
+                // 并发补注册时，如果已被其它线程注册，则视为成功。
+            }
+
+            return Task.FromResult(_registry.IsRegistered(definition.Id.ToString(), definition.Version));
         }
     }
 }
