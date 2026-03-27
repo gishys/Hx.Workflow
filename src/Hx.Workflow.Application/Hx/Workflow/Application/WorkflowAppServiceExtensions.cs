@@ -207,11 +207,32 @@ namespace Hx.Workflow.Application
                     });
                 }
             }
-            var currentCandidateInfo = pointer.WkCandidates.FirstOrDefault();
+            // 优先取当前用户自己的候选人记录（用于前端展示操作类型等信息）；
+            // 若当前用户不在候选人列表中（如管理员旁观视角），则回退取第一条
+            var currentCandidateInfo = (currentUserId.HasValue
+                ? pointer.WkCandidates.FirstOrDefault(d => d.CandidateId == currentUserId.Value)
+                : null)
+                ?? pointer.WkCandidates.FirstOrDefault();
             if (currentCandidateInfo != null)
             {
                 currentPointerDto.CurrentCandidateInfo = ObjectMapper.Map<ExePointerCandidate, WkPointerCandidateDto>(currentCandidateInfo);
             }
+
+            // 仅主办（Host）和会签（Countersign）角色的候选人可以提交审批决定；
+            // 抄送（CarbonCopy）、通知（Notify）、委托（Entrusted）角色为信息接收方，不具备办理权限。
+            // 同时要求：流程运行中 + 节点等待人工事件 + 当前用户候选人状态为"待完成（Pending）"。
+            static bool IsHandlableOperateType(ExePersonnelOperateType t) =>
+                t == ExePersonnelOperateType.Host || t == ExePersonnelOperateType.Countersign;
+
+            var canHandle =
+                instance.Status == WorkflowStatus.Runnable
+                && pointer.Status == PointerStatus.WaitingForEvent
+                && currentUserId.HasValue
+                && pointer.WkCandidates.Any(d =>
+                    d.CandidateId == currentUserId.Value
+                    && d.ParentState == ExeCandidateState.Pending
+                    && IsHandlableOperateType(d.ExeOperateType));
+
             return new WkCurrentInstanceDetailsDto()
             {
                 Id = instance.Id,
@@ -225,10 +246,7 @@ namespace Hx.Workflow.Application
                 BusinessType = instance.WkDefinition.BusinessType,
                 ProcessType = instance.WkDefinition.ProcessType,
                 WkAuditors = ObjectMapper.Map<ICollection<WkAuditor>, ICollection<WkAuditorDto>>(instance.WkAuditors),
-                CanHandle =
-                instance.Status == WorkflowStatus.Runnable
-                && pointer.Status == PointerStatus.WaitingForEvent
-                && currentUserId.HasValue && pointer.WkCandidates.Any(d => d.CandidateId == currentUserId.Value && d.ParentState == ExeCandidateState.Pending),
+                CanHandle = canHandle,
                 Data = businessData,
             };
         }
