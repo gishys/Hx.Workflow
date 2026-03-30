@@ -201,7 +201,8 @@ namespace Hx.Workflow.Application.StepBodys
                     else
                     {
                         //回退逻辑
-                        WkExecutionPointer beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.StepName == eventPointerEventData.DecideBranching) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到Id为({executionPointer.PredecessorId})的节点！");
+                        WkExecutionPointer beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.StepName == eventPointerEventData.DecideBranching)
+                            ?? throw new UserFriendlyException(message: $"驳回失败：在流程实例（{instance.Id}）中未找到步骤名称为「{eventPointerEventData.DecideBranching}」的执行记录，驳回目标节点必须是该实例已执行过的节点。");
                         NextCandidates = string.Join(",", beRolledBackNode.WkCandidates.Select(d => d.CandidateId).ToList());
                         await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
                     }
