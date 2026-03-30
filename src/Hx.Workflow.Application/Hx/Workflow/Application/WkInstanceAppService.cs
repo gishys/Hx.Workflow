@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
 using Hx.Workflow.Application.LocalEvents;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
@@ -131,6 +131,39 @@ namespace Hx.Workflow.Application
         {
             var errors = await _errorRepository.GetListByIdAsync(wkInstanceId, executionPointerId);
             return ObjectMapper.Map<List<WkExecutionError>, List<WkExecutionErrorDto>>(errors);
+        }
+        /// <summary>
+        /// 通知外部系统并删除流程实例。
+        /// 若通知事件（<see cref="WkInstanceDeleteEventData"/>）执行失败，则抛出异常并中止删除。
+        /// </summary>
+        public virtual async Task NotifyAndDeleteAsync(WkNotifyAndDeleteInput input)
+        {
+            var entity = await _wkInstanceRepository.FindAsync(input.WorkflowId, false);
+            if (entity == null) return;
+
+            if (entity.Status == WorkflowStatus.Complete)
+                throw new UserFriendlyException("已完成的实例无法删除");
+
+            var entityDetails = await _wkInstanceRepository.FindNoTrackAsync(input.WorkflowId, true);
+            if (entityDetails != null)
+            {
+                try
+                {
+                    await _localEventBus.PublishAsync(new WkInstanceDeleteEventData(
+                        entityDetails.Id,
+                        entityDetails.Reference,
+                        entityDetails.WkDefinition.Title,
+                        entityDetails.WkDefinition.BusinessType,
+                        entityDetails.WkDefinition.ProcessType,
+                        input.ExtraData));
+                }
+                catch (Exception ex)
+                {
+                    throw new UserFriendlyException("通知外部系统失败，实例未删除，请稍后重试", innerException: ex);
+                }
+            }
+
+            await _wkInstanceRepository.HardDeleteAsync(entity, true);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -13,6 +13,15 @@ namespace Hx.Workflow.HttpApi
         public Task DeleteAsync(Guid workflowId)
         {
             return _instance.DeleteAsync(workflowId);
+        }
+        /// <summary>
+        /// 通知外部系统并删除流程实例；若通知失败则中止删除
+        /// </summary>
+        [HttpPost]
+        [Route("notify-delete")]
+        public Task NotifyAndDeleteAsync([FromBody] WkNotifyAndDeleteInput input)
+        {
+            return _instance.NotifyAndDeleteAsync(input);
         }
         [HttpDelete]
         [Route("deletes")]

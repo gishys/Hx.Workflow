@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,12 +12,17 @@ namespace Hx.Workflow.Application.LocalEvents
         string reference,
         string title,
         string businessType,
-        string processType)
+        string processType,
+        Dictionary<string, string>? extraData = null)
     {
         public Guid InstanceId { get; set; } = instanceId;
         public string Reference { get; set; } = reference;
         public string Title { get; set; } = title;
         public string BusinessType { get; set; } = businessType;
         public string ProcessType { get; set; } = processType;
+        /// <summary>
+        /// 附加扩展数据，例如 App 端传入的驳回原因、驳回人等
+        /// </summary>
+        public Dictionary<string, string> ExtraData { get; set; } = extraData ?? [];
     }
 }
