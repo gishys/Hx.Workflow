@@ -179,7 +179,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             string? reference,
             MyWorkState? state,
             int skipCount,
-            int maxResultCount)
+            int maxResultCount,
+            string? keyword = null)
         {
 #pragma warning disable CS8604 // 引用类型参数可能为 null。
 #pragma warning disable CS8602 // 解引用可能出现空引用。
@@ -214,10 +215,12 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(!string.IsNullOrEmpty(reference), d => d.Reference.Contains(reference))
+                .WhereIf(!string.IsNullOrEmpty(keyword), d =>
+                    d.Reference.Contains(keyword) ||
+                    (d.WkDefinition != null && d.WkDefinition.Title != null && d.WkDefinition.Title.Contains(keyword)))
                 .WhereIf(creatorIds != null, a => creatorIds.Any(c => c == a.CreatorId))
                 .WhereIf(definitionIds != null, a => definitionIds.Any(d => d == a.WkDefinition.Id))
-                .WhereIf(instanceData != null && instanceData.Count > 0, a => instanceData.Any(d => d.Value != null && !string.IsNullOrEmpty(d.Value.ToString()) && d.Value.ToString().Contains(a.Data)))
-                .OrderByDescending(d => d.CreateTime);
+                .WhereIf(instanceData != null && instanceData.Count > 0, a => instanceData.Any(d => d.Value != null && !string.IsNullOrEmpty(d.Value.ToString()) && d.Value.ToString().Contains(a.Data)));
 #pragma warning restore CS8602 // 解引用可能出现空引用。
 #pragma warning restore CS8604 // 引用类型参数可能为 null。
             return await queryable.OrderByDescending(d => d.CreationTime).PageBy(skipCount, maxResultCount).ToListAsync();
@@ -228,7 +231,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             IDictionary<string, object>? instanceData,
             ICollection<Guid> ids,
             string? reference,
-            MyWorkState? state)
+            MyWorkState? state,
+            string? keyword = null)
         {
 #pragma warning disable CS8604 // 引用类型参数可能为 null。
 #pragma warning disable CS8602 // 解引用可能出现空引用。
@@ -255,7 +259,10 @@ namespace Hx.Workflow.EntityFrameworkCore
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.CarbonCopy)))
                 .WhereIf(state == MyWorkState.Abnormal, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.Failed && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
-                .WhereIf(reference != null, d => d.Reference.Contains(reference))
+                .WhereIf(!string.IsNullOrEmpty(reference), d => d.Reference.Contains(reference))
+                .WhereIf(!string.IsNullOrEmpty(keyword), d =>
+                    d.Reference.Contains(keyword) ||
+                    (d.WkDefinition != null && d.WkDefinition.Title != null && d.WkDefinition.Title.Contains(keyword)))
                 .WhereIf(creatorIds != null, a => creatorIds.Any(c => c == a.CreatorId))
                 .WhereIf(definitionIds != null, a => definitionIds.Any(d => d == a.WkDefinition.Id))
                 .WhereIf(instanceData != null && instanceData.Count > 0, a => instanceData.Any(d => d.Value != null && !string.IsNullOrEmpty(d.Value.ToString()) && d.Value.ToString().Contains(a.Data)));
@@ -420,7 +427,8 @@ namespace Hx.Workflow.EntityFrameworkCore
             string? reference,
             MyWorkState? state,
             int skipCount,
-            int maxResultCount)
+            int maxResultCount,
+            string? keyword = null)
         {
             var queryable = (await GetDbSetAsync())
                 .Include(x => x.ExecutionPointers)
@@ -439,19 +447,16 @@ namespace Hx.Workflow.EntityFrameworkCore
             {
                 if (definitionVersions != null && definitionVersions.Count != 0)
                 {
-                    // 同时过滤模板ID和版本号
                     queryable = queryable.Where(x => 
                         definitionIds.Contains(x.WkDifinitionId) && 
                         definitionVersions.Contains(x.Version));
                 }
                 else
                 {
-                    // 只过滤模板ID，不限制版本
                     queryable = queryable.Where(x => definitionIds.Contains(x.WkDifinitionId));
                 }
             }
 
-            // 其他过滤条件保持不变
             if (creatorIds != null && creatorIds.Count != 0)
             {
 #pragma warning disable CS8629 // 可为 null 的值类型可为 null。
@@ -459,9 +464,18 @@ namespace Hx.Workflow.EntityFrameworkCore
 #pragma warning restore CS8629 // 可为 null 的值类型可为 null。
             }
 
+            // 精确匹配业务编号（reference 用于精确定位）
             if (!string.IsNullOrEmpty(reference))
             {
-                queryable = queryable.Where(x => x.Reference == reference);
+                queryable = queryable.Where(x => x.Reference.Contains(reference));
+            }
+
+            // 关键字模糊搜索：匹配业务编号或流程类型名称
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                queryable = queryable.Where(x =>
+                    x.Reference.Contains(keyword) ||
+                    (x.WkDefinition != null && x.WkDefinition.Title != null && x.WkDefinition.Title.Contains(keyword)));
             }
 
             if (state.HasValue)
@@ -489,28 +503,25 @@ namespace Hx.Workflow.EntityFrameworkCore
             IDictionary<string, object>? instanceData,
             ICollection<Guid> ids,
             string? reference,
-            MyWorkState? state)
+            MyWorkState? state,
+            string? keyword = null)
         {
             var queryable = (await GetDbSetAsync()).AsQueryable();
 
-            // 添加版本过滤条件
             if (definitionIds != null && definitionIds.Count != 0)
             {
                 if (definitionVersions != null && definitionVersions.Count != 0)
                 {
-                    // 同时过滤模板ID和版本号
                     queryable = queryable.Where(x => 
                         definitionIds.Contains(x.WkDifinitionId) && 
                         definitionVersions.Contains(x.Version));
                 }
                 else
                 {
-                    // 只过滤模板ID，不限制版本
                     queryable = queryable.Where(x => definitionIds.Contains(x.WkDifinitionId));
                 }
             }
 
-            // 其他过滤条件保持不变
             if (creatorIds != null && creatorIds.Count != 0)
             {
 #pragma warning disable CS8629 // 可为 null 的值类型可为 null。
@@ -520,7 +531,14 @@ namespace Hx.Workflow.EntityFrameworkCore
 
             if (!string.IsNullOrEmpty(reference))
             {
-                queryable = queryable.Where(x => x.Reference == reference);
+                queryable = queryable.Where(x => x.Reference.Contains(reference));
+            }
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                queryable = queryable.Where(x =>
+                    x.Reference.Contains(keyword) ||
+                    (x.WkDefinition != null && x.WkDefinition.Title != null && x.WkDefinition.Title.Contains(keyword)));
             }
 
             if (state.HasValue)

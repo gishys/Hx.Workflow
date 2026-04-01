@@ -19,7 +19,8 @@ namespace Hx.Workflow.Application.Contracts
             ICollection<Guid>? userIds = null,
             string? queryType = null,
             int skipCount = 0,
-            int maxResultCount = 20);
+            int maxResultCount = 20,
+            string? keyword = null);
             
         /// <summary>
         /// 查询我的办理件（支持版本控制）
@@ -45,7 +46,8 @@ namespace Hx.Workflow.Application.Contracts
             ICollection<Guid>? userIds = null,
             string? queryType = null,
             int skipCount = 0,
-            int maxResultCount = 20);
+            int maxResultCount = 20,
+            string? keyword = null);
             
         /// <summary>
         /// 获取指定模板版本的实例

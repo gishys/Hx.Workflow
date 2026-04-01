@@ -227,7 +227,8 @@ namespace Hx.Workflow.Application
             ICollection<Guid>? userIds = null,
             string? queryType = null,
             int skipCount = 0,
-            int maxResultCount = 20)
+            int maxResultCount = 20,
+            string? keyword = null)
         {
             var canGetAll = _authorizationService != null ? await _authorizationService.AuthorizeAsync("Workflow.Instance.List") : null;
             if ((userIds == null || userIds.Count == 0) && CurrentUser.Id.HasValue)
@@ -239,7 +240,6 @@ namespace Hx.Workflow.Application
                 userIds = null;
             }
             Logger.LogInformation("Name:{CurrentUser.Name}",CurrentTenant.Name);
-            //userIds = [new Guid("3a1a2bff-b3cd-d1f8-97e4-3ee9d66a1f59")];
             List<WkProcessInstanceDto> result = [];
             var instances = await _hxWorkflowManager.WkInstanceRepository.GetMyInstancesAsync(
                 creatorIds,
@@ -249,13 +249,16 @@ namespace Hx.Workflow.Application
                 reference,
                 status,
                 skipCount,
-                maxResultCount);
+                maxResultCount,
+                keyword);
             var count = await _wkInstanceRepository.GetMyInstancesCountAsync(
                 creatorIds,
                 definitionIds,
                 instanceData,
                 userIds ?? [],
-                reference, status);
+                reference,
+                status,
+                keyword);
             foreach (var instance in instances)
             {
                 var processInstance = instance.ToProcessInstanceDto();
@@ -287,7 +290,8 @@ namespace Hx.Workflow.Application
             ICollection<Guid>? userIds = null,
             string? queryType = null,
             int skipCount = 0,
-            int maxResultCount = 20)
+            int maxResultCount = 20,
+            string? keyword = null)
         {
             var canGetAll = _authorizationService != null ? await _authorizationService.AuthorizeAsync("Workflow.Instance.List") : null;
             if ((userIds == null || userIds.Count == 0) && CurrentUser.Id.HasValue)
@@ -310,14 +314,17 @@ namespace Hx.Workflow.Application
                 reference,
                 status,
                 skipCount,
-                maxResultCount);
+                maxResultCount,
+                keyword);
             var count = await _wkInstanceRepository.GetMyInstancesCountWithVersionAsync(
                 creatorIds,
                 definitionIds,
                 definitionVersions,
                 instanceData,
                 userIds ?? [],
-                reference, status);
+                reference,
+                status,
+                keyword);
             foreach (var instance in instances)
             {
                 var processInstance = instance.ToProcessInstanceDto();

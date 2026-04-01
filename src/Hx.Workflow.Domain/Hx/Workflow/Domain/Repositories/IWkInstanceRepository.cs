@@ -26,7 +26,8 @@ namespace Hx.Workflow.Domain.Repositories
             string? reference,
             MyWorkState? state,
             int skipCount,
-            int maxResultCount);
+            int maxResultCount,
+            string? keyword = null);
             
         /// <summary>
         /// 获取我的实例（支持版本控制）
@@ -50,7 +51,8 @@ namespace Hx.Workflow.Domain.Repositories
             string? reference,
             MyWorkState? state,
             int skipCount,
-            int maxResultCount);
+            int maxResultCount,
+            string? keyword = null);
             
         /// <summary>
         /// 获取我的实例数量（支持版本控制）
@@ -70,7 +72,8 @@ namespace Hx.Workflow.Domain.Repositories
             IDictionary<string, object>? instanceData,
             ICollection<Guid> ids,
             string? reference,
-            MyWorkState? state);
+            MyWorkState? state,
+            string? keyword = null);
             
         /// <summary>
         /// 获取指定模板版本的实例
@@ -109,7 +112,8 @@ namespace Hx.Workflow.Domain.Repositories
             IDictionary<string, object>? instanceData,
             ICollection<Guid> ids,
             string? reference,
-            MyWorkState? state);
+            MyWorkState? state,
+            string? keyword = null);
         Task<ICollection<ExePointerCandidate>> GetCandidatesAsync(Guid wkInstanceId);
         Task<WkInstance> UpdateCandidateAsync(
             Guid wkinstanceId, Guid executionPointerId, ICollection<ExePointerCandidate> wkCandidates, ExePersonnelOperateType type);

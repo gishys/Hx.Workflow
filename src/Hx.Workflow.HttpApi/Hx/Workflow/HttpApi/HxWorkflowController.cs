@@ -33,7 +33,8 @@ namespace Hx.Workflow.HttpApi
             string? reference = null,
             string? queryType = null,
             int skipCount = 0,
-            int maxResultCount = 20)
+            int maxResultCount = 20,
+            string? keyword = null)
         {
             return _workflowAppService.GetMyWkInstanceAsync(
                 input?.CreatorIds,
@@ -43,7 +44,8 @@ namespace Hx.Workflow.HttpApi
                 input?.userIds,
                 queryType,
                 skipCount,
-                maxResultCount);
+                maxResultCount,
+                keyword);
         }
         
         /// <summary>
@@ -64,7 +66,8 @@ namespace Hx.Workflow.HttpApi
             string? reference = null,
             string? queryType = null,
             int skipCount = 0,
-            int maxResultCount = 20)
+            int maxResultCount = 20,
+            string? keyword = null)
         {
             return _workflowAppService.GetMyWkInstanceWithVersionAsync(
                 input?.CreatorIds,
@@ -75,7 +78,8 @@ namespace Hx.Workflow.HttpApi
                 input?.userIds,
                 queryType,
                 skipCount,
-                maxResultCount);
+                maxResultCount,
+                keyword);
         }
         
         /// <summary>
