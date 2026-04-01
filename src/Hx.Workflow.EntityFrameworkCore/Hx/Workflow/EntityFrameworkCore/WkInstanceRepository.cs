@@ -149,16 +149,26 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync()
         {
             var dbSet = await GetDbSetAsync();
-            var result = await dbSet.GroupBy(d => new
-            {
-                d.WkDefinition.ProcessType,
-                Mouth = d.CreateTime.Month.ToString().PadLeft(2, '0'),
-            }).Select(d => new ProcessTypeStat()
-            {
-                Count = d.Count(),
-                PClassification = d.Key.ProcessType,
-                SClassification = d.Key.Mouth
-            }).ToListAsync();
+            var currentYear = DateTime.UtcNow.Year;
+            // 仅统计当年数据，并按年+月分组避免跨年数据混入同一月份桶
+            var rawData = await dbSet
+                .Where(d => d.CreateTime.Year == currentYear)
+                .Select(d => new
+                {
+                    d.WkDefinition.ProcessType,
+                    d.CreateTime.Month
+                })
+                .ToListAsync();
+
+            var result = rawData
+                .GroupBy(d => new { d.ProcessType, d.Month })
+                .Select(g => new ProcessTypeStat
+                {
+                    Count = g.Count(),
+                    PClassification = g.Key.ProcessType,
+                    SClassification = g.Key.Month.ToString().PadLeft(2, '0')
+                })
+                .ToList();
             return result;
         }
         public virtual async Task<List<WkInstance>> GetMyInstancesAsync(
@@ -234,7 +244,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .WhereIf(state == MyWorkState.Entrusted, d =>
                 d.ExecutionPointers.Any(a => a.Status == PointerStatus.WaitingForEvent && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.ExeOperateType == ExePersonnelOperateType.Entrusted)))
                 .WhereIf(state == MyWorkState.Handled, d =>
-                d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))) && (d.Status == WorkflowStatus.Runnable || d.Status == WorkflowStatus.Suspended))
+                d.ExecutionPointers.Any(a => a.StepId == 0 && a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId))))
                 .WhereIf(state == MyWorkState.Follow, d =>
                 d.ExecutionPointers.Any(a => a.WkCandidates.Any(c => ids.Any(id => id == c.CandidateId) && c.Follow == true)))
                 .WhereIf(state == MyWorkState.Suspended, d =>
@@ -572,19 +582,19 @@ namespace Hx.Workflow.EntityFrameworkCore
             if (endTime.HasValue)
                 query = query.Where(x => x.CreateTime <= endTime.Value);
 
-            var total = await query.CountAsync();
-            var running = await query.CountAsync(x => x.Status == WorkflowStatus.Runnable);
-            var complete = await query.CountAsync(x => x.Status == WorkflowStatus.Complete);
-            var terminated = await query.CountAsync(x => x.Status == WorkflowStatus.Terminated);
-            var suspended = await query.CountAsync(x => x.Status == WorkflowStatus.Suspended);
+            // 单次 GroupBy 查询替代 5 次独立 COUNT，避免竞态条件且性能更优
+            var groups = await query
+                .GroupBy(x => x.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
 
             return new InstanceOverviewStat
             {
-                TotalCount = total,
-                RunningCount = running,
-                CompleteCount = complete,
-                TerminatedCount = terminated,
-                SuspendedCount = suspended
+                TotalCount = groups.Sum(g => g.Count),
+                RunningCount = groups.FirstOrDefault(g => g.Status == WorkflowStatus.Runnable)?.Count ?? 0,
+                CompleteCount = groups.FirstOrDefault(g => g.Status == WorkflowStatus.Complete)?.Count ?? 0,
+                TerminatedCount = groups.FirstOrDefault(g => g.Status == WorkflowStatus.Terminated)?.Count ?? 0,
+                SuspendedCount = groups.FirstOrDefault(g => g.Status == WorkflowStatus.Suspended)?.Count ?? 0
             };
         }
 
@@ -598,43 +608,81 @@ namespace Hx.Workflow.EntityFrameworkCore
                 .Where(x => !startTime.HasValue || x.CompleteTime >= startTime)
                 .Where(x => !endTime.HasValue || x.CompleteTime <= endTime);
 
+            // 拉取最小字段集到内存，统一在内存中计算均值和中位数（避免 SQL 不可翻译问题）
+            var rawData = await query
+                .Select(x => new
+                {
+                    x.WkDifinitionId,
+                    x.Version,
+                    Title = x.WkDefinition.Title,
+                    BusinessType = x.WkDefinition.BusinessType,
+                    x.CreateTime,
+                    x.CompleteTime
+                })
+                .ToListAsync();
+
+            var withDuration = rawData
+                .Select(x => new
+                {
+                    x.WkDifinitionId,
+                    x.Version,
+                    x.Title,
+                    x.BusinessType,
+                    DurationMinutes = (x.CompleteTime!.Value - x.CreateTime).TotalMinutes
+                }).ToList();
+
+            static double CalcMedian(List<double> sorted) =>
+                sorted.Count == 0 ? 0 :
+                sorted.Count % 2 == 1 ? sorted[sorted.Count / 2] :
+                (sorted[sorted.Count / 2 - 1] + sorted[sorted.Count / 2]) / 2.0;
+
             List<DurationStat> result;
             if (groupBy == "Definition" || string.IsNullOrEmpty(groupBy))
             {
-                result = await query
-                    .GroupBy(x => new { x.WkDifinitionId, x.Version, x.WkDefinition.Title, x.WkDefinition.BusinessType })
-                    .Select(g => new DurationStat
+                result = withDuration
+                    .GroupBy(x => new { x.WkDifinitionId, x.Version, x.Title, x.BusinessType })
+                    .Select(g =>
                     {
-                        DefinitionId = g.Key.WkDifinitionId,
-                        DefinitionTitle = g.Key.Title,
-                        BusinessType = g.Key.BusinessType,
-                        AvgDurationMinutes = g.Average(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes),
-                        MedianDurationMinutes = 0,
-                        CompletedCount = g.Count()
+                        var sorted = g.Select(x => x.DurationMinutes).OrderBy(x => x).ToList();
+                        return new DurationStat
+                        {
+                            DefinitionId = g.Key.WkDifinitionId,
+                            DefinitionTitle = g.Key.Title,
+                            BusinessType = g.Key.BusinessType,
+                            AvgDurationMinutes = sorted.Count > 0 ? sorted.Average() : 0,
+                            MedianDurationMinutes = CalcMedian(sorted),
+                            CompletedCount = sorted.Count
+                        };
                     })
-                    .ToListAsync();
+                    .ToList();
             }
             else if (groupBy == "BusinessType")
             {
-                result = await query
-                    .GroupBy(x => x.WkDefinition.BusinessType)
-                    .Select(g => new DurationStat
+                result = withDuration
+                    .GroupBy(x => x.BusinessType)
+                    .Select(g =>
                     {
-                        DefinitionTitle = g.Key,
-                        BusinessType = g.Key,
-                        AvgDurationMinutes = g.Average(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes),
-                        MedianDurationMinutes = 0,
-                        CompletedCount = g.Count()
+                        var sorted = g.Select(x => x.DurationMinutes).OrderBy(x => x).ToList();
+                        return new DurationStat
+                        {
+                            DefinitionTitle = g.Key,
+                            BusinessType = g.Key,
+                            AvgDurationMinutes = sorted.Count > 0 ? sorted.Average() : 0,
+                            MedianDurationMinutes = CalcMedian(sorted),
+                            CompletedCount = sorted.Count
+                        };
                     })
-                    .ToListAsync();
+                    .ToList();
             }
             else
             {
-                var all = await query.ToListAsync();
-                var avg = all.Count > 0 ? all.Average(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes) : 0;
-                var sorted = all.Select(x => (x.CompleteTime!.Value - x.CreateTime).TotalMinutes).OrderBy(x => x).ToList();
-                var median = sorted.Count > 0 ? (sorted.Count % 2 == 1 ? sorted[sorted.Count / 2] : (sorted[sorted.Count / 2 - 1] + sorted[sorted.Count / 2]) / 2) : 0;
-                result = [new DurationStat { AvgDurationMinutes = avg, MedianDurationMinutes = median, CompletedCount = all.Count }];
+                var sorted = withDuration.Select(x => x.DurationMinutes).OrderBy(x => x).ToList();
+                result = [new DurationStat
+                {
+                    AvgDurationMinutes = sorted.Count > 0 ? sorted.Average() : 0,
+                    MedianDurationMinutes = CalcMedian(sorted),
+                    CompletedCount = sorted.Count
+                }];
             }
             return result;
         }
@@ -694,7 +742,8 @@ namespace Hx.Workflow.EntityFrameworkCore
                     TotalCount = g.Count(),
                     RunningCount = g.Count(x => x.Status == WorkflowStatus.Runnable),
                     CompleteCount = g.Count(x => x.Status == WorkflowStatus.Complete),
-                    TerminatedCount = g.Count(x => x.Status == WorkflowStatus.Terminated)
+                    TerminatedCount = g.Count(x => x.Status == WorkflowStatus.Terminated),
+                    SuspendedCount = g.Count(x => x.Status == WorkflowStatus.Suspended)
                 })
                 .ToListAsync();
             return list;
@@ -757,24 +806,29 @@ namespace Hx.Workflow.EntityFrameworkCore
             }
             else if (granularity == "week")
             {
-                var start = startTime.Date;
-                var end = endTime.Date;
-                var createdByWeek = await query
-                    .GroupBy(x => StartOfWeek(x.CreateTime))
-                    .Select(g => new { Period = g.Key, Created = g.Count() })
+                // StartOfWeek 是自定义方法，EF Core 无法翻译为 SQL，须先拉取时间戳到内存再分组
+                var createdTimes = await query
+                    .Select(x => x.CreateTime)
                     .ToListAsync();
-                var completedByWeek = await dbSet
+                var completedTimes = await dbSet
                     .Where(x => !tenantId.HasValue || x.TenantId == tenantId.Value)
                     .Where(x => x.CompleteTime >= startTime && x.CompleteTime <= endTime)
-                    .GroupBy(x => StartOfWeek(x.CompleteTime!.Value))
-                    .Select(g => new { Period = g.Key, Completed = g.Count() })
+                    .Select(x => x.CompleteTime!.Value)
                     .ToListAsync();
-                var periods = createdByWeek.Select(x => x.Period).Union(completedByWeek.Select(x => x.Period)).Distinct().OrderBy(x => x).ToList();
+
+                var createdByWeek = createdTimes
+                    .GroupBy(d => StartOfWeek(d))
+                    .ToDictionary(g => g.Key, g => g.Count());
+                var completedByWeek = completedTimes
+                    .GroupBy(d => StartOfWeek(d))
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                var periods = createdByWeek.Keys.Union(completedByWeek.Keys).OrderBy(x => x).ToList();
                 result = [.. periods.Select(p => new TrendStat
                 {
                     PeriodStart = p,
-                    CreatedCount = createdByWeek.FirstOrDefault(x => x.Period == p)?.Created ?? 0,
-                    CompletedCount = completedByWeek.FirstOrDefault(x => x.Period == p)?.Completed ?? 0
+                    CreatedCount = createdByWeek.GetValueOrDefault(p, 0),
+                    CompletedCount = completedByWeek.GetValueOrDefault(p, 0)
                 })];
             }
             else

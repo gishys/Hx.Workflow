@@ -29,12 +29,14 @@ namespace Hx.Workflow.EntityFrameworkCore
             var dbContext = await GetDbContextAsync();
             var errors = dbContext.WkExecutionErrors.AsQueryable();
             var instances = dbContext.WkInstances.AsQueryable();
+            // 统一按实例的 CreateTime 过滤，保证错误率分子（AffectedInstanceCount）
+            // 与分母（TotalCount by CreateTime）口径一致，避免 ErrorRate > 1
             var joined = from e in errors
                          join i in instances on e.WkInstanceId equals i.Id
                          where (!tenantId.HasValue || i.TenantId == tenantId.Value)
                                && (!definitionId.HasValue || i.WkDifinitionId == definitionId.Value)
-                               && (!startTime.HasValue || e.ErrorTime >= startTime.Value)
-                               && (!endTime.HasValue || e.ErrorTime <= endTime.Value)
+                               && (!startTime.HasValue || i.CreateTime >= startTime.Value)
+                               && (!endTime.HasValue || i.CreateTime <= endTime.Value)
                          select e;
             var totalErrors = await joined.CountAsync();
             var affectedInstances = await joined.Select(x => x.WkInstanceId).Distinct().CountAsync();
@@ -46,12 +48,13 @@ namespace Hx.Workflow.EntityFrameworkCore
             var dbContext = await GetDbContextAsync();
             var errors = dbContext.WkExecutionErrors.AsQueryable();
             var instances = dbContext.WkInstances.Include(i => i.WkDefinition).AsQueryable();
+            // 统一按实例的 CreateTime 过滤，与概览统计口径保持一致
             var joined = from e in errors
                          join i in instances on e.WkInstanceId equals i.Id
                          where (!tenantId.HasValue || i.TenantId == tenantId.Value)
                                && (!definitionId.HasValue || i.WkDifinitionId == definitionId.Value)
-                               && (!startTime.HasValue || e.ErrorTime >= startTime.Value)
-                               && (!endTime.HasValue || e.ErrorTime <= endTime.Value)
+                               && (!startTime.HasValue || i.CreateTime >= startTime.Value)
+                               && (!endTime.HasValue || i.CreateTime <= endTime.Value)
                          select new { e, i };
             var list = await joined
                 .GroupBy(x => new { x.i.WkDifinitionId, x.i.WkDefinition.Title })
@@ -71,13 +74,14 @@ namespace Hx.Workflow.EntityFrameworkCore
             var errors = dbContext.WkExecutionErrors.AsQueryable();
             var instances = dbContext.WkInstances.AsQueryable();
             var pointers = dbContext.WkExecutionPointers.AsQueryable();
+            // 统一按实例的 CreateTime 过滤，与概览统计口径保持一致
             var joined = from e in errors
                          join i in instances on e.WkInstanceId equals i.Id
                          join p in pointers on e.WkExecutionPointerId equals p.Id
                          where (!tenantId.HasValue || i.TenantId == tenantId.Value)
                                && (!definitionId.HasValue || i.WkDifinitionId == definitionId.Value)
-                               && (!startTime.HasValue || e.ErrorTime >= startTime.Value)
-                               && (!endTime.HasValue || e.ErrorTime <= endTime.Value)
+                               && (!startTime.HasValue || i.CreateTime >= startTime.Value)
+                               && (!endTime.HasValue || i.CreateTime <= endTime.Value)
                          select new { p.StepId, p.StepName };
             var list = await joined
                 .GroupBy(x => new { x.StepId, x.StepName })

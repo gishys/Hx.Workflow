@@ -201,46 +201,91 @@ namespace Hx.Workflow.HttpApi
             return _workflowAppService.GetProcessTypeStatListAsync();
         }
 
+        /// <summary>
+        /// 实例概览统计：总数、运行中、已完成、已终止、已挂起
+        /// </summary>
+        /// <param name="input">统计查询参数（时间范围等），为空时默认当年</param>
+        /// <returns>概览统计结果</returns>
         [HttpGet]
         [Route("workflow/stats/overview")]
         public Task<InstanceOverviewStatDto> GetStatsOverviewAsync([FromQuery] StatsQueryInput? input = null)
             => _workflowAppService.GetInstanceOverviewStatAsync(input);
 
+        /// <summary>
+        /// 流程耗时统计：各模板/业务类型的平均和中位数完成时长
+        /// </summary>
+        /// <param name="input">支持按模板ID（DefinitionId）和分组方式（GroupBy：Definition/BusinessType）过滤</param>
+        /// <returns>耗时统计列表</returns>
         [HttpGet]
         [Route("workflow/stats/duration")]
         public Task<List<DurationStatDto>> GetStatsDurationAsync([FromQuery] StatsQueryInput? input = null)
             => _workflowAppService.GetDurationStatListAsync(input);
 
+        /// <summary>
+        /// 超期/SLA 统计：按模板分项，返回各模板的超期数量和超期率
+        /// </summary>
+        /// <param name="input">支持按模板ID（DefinitionId）和时间范围过滤</param>
+        /// <returns>超期统计列表</returns>
         [HttpGet]
         [Route("workflow/stats/overdue")]
         public Task<List<OverdueStatDto>> GetStatsOverdueAsync([FromQuery] StatsQueryInput? input = null)
             => _workflowAppService.GetOverdueStatListAsync(input);
 
+        /// <summary>
+        /// 按流程模板统计：各模板的实例总数、运行中、已完成、已终止数量
+        /// </summary>
+        /// <param name="input">支持时间范围过滤</param>
+        /// <returns>按模板分组的统计列表</returns>
         [HttpGet]
         [Route("workflow/stats/by-definition")]
         public Task<List<DefinitionStatDto>> GetStatsByDefinitionAsync([FromQuery] StatsQueryInput? input = null)
             => _workflowAppService.GetDefinitionStatListAsync(input);
 
+        /// <summary>
+        /// 按发起人统计：各发起人的发起数量、完成数量和完成率
+        /// </summary>
+        /// <param name="input">支持按发起人ID（CreatorId）和时间范围过滤</param>
+        /// <returns>按发起人分组的统计列表</returns>
         [HttpGet]
         [Route("workflow/stats/by-creator")]
         public Task<List<CreatorStatDto>> GetStatsByCreatorAsync([FromQuery] StatsQueryInput? input = null)
             => _workflowAppService.GetCreatorStatListAsync(input);
 
+        /// <summary>
+        /// 错误统计：错误总数、涉及实例数、错误率，以及按模板和步骤的分项统计
+        /// </summary>
+        /// <param name="input">支持按模板ID（DefinitionId）和时间范围过滤</param>
+        /// <returns>错误统计汇总结果</returns>
         [HttpGet]
         [Route("workflow/stats/errors")]
         public Task<ErrorsStatResultDto> GetStatsErrorsAsync([FromQuery] StatsQueryInput? input = null)
             => _workflowAppService.GetErrorsStatAsync(input);
 
+        /// <summary>
+        /// 步骤处理时长统计：指定模板各步骤的平均处理时长和经过次数
+        /// </summary>
+        /// <param name="input">必须提供 DefinitionId 和 Version，支持时间范围过滤</param>
+        /// <returns>按步骤分组的时长统计列表</returns>
         [HttpGet]
         [Route("workflow/stats/step-duration")]
         public Task<List<StepDurationStatDto>> GetStatsStepDurationAsync([FromQuery] StepDurationQueryInput input)
             => _workflowAppService.GetStepDurationStatListAsync(input);
 
+        /// <summary>
+        /// 趋势统计（时间序列）：按指定时间粒度统计创建数和完成数的变化趋势
+        /// </summary>
+        /// <param name="input">支持时间范围和粒度（Granularity：day/week/month，默认 month）过滤</param>
+        /// <returns>趋势统计列表</returns>
         [HttpGet]
         [Route("workflow/stats/trend")]
         public Task<List<TrendStatDto>> GetStatsTrendAsync([FromQuery] StatsQueryInput? input = null)
             => _workflowAppService.GetTrendStatListAsync(input);
 
+        /// <summary>
+        /// 仪表盘汇总统计：概览 + 按模板 Top10 + 超期汇总 + 近5个月趋势
+        /// </summary>
+        /// <param name="input">支持时间范围过滤，近期趋势固定取截止当前日期的最近5个月</param>
+        /// <returns>仪表盘汇总数据</returns>
         [HttpGet]
         [Route("workflow/stats/dashboard")]
         public Task<DashboardStatDto> GetStatsDashboardAsync([FromQuery] StatsQueryInput? input = null)

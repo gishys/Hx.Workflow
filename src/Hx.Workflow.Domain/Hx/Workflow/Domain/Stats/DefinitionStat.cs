@@ -3,7 +3,7 @@ using System;
 namespace Hx.Workflow.Domain.Stats
 {
     /// <summary>
-    /// 按模板（定义）统计：各定义的实例总数、运行中、完成、终止数
+    /// 按模板（定义）统计：各定义的实例总数、运行中、完成、终止、挂起数
     /// </summary>
     public class DefinitionStat
     {
@@ -14,5 +14,6 @@ namespace Hx.Workflow.Domain.Stats
         public int RunningCount { get; set; }
         public int CompleteCount { get; set; }
         public int TerminatedCount { get; set; }
+        public int SuspendedCount { get; set; }
     }
 }
