@@ -59,21 +59,18 @@ namespace Hx.Workflow.Application.StepBodys
                 var currentUserId = await _workflowUserContext.GetCurrentUserIdAsync(context);
                 var currentUserName = WorkflowUserContext.GetCurrentUserName(context);
                 
-                if (string.IsNullOrEmpty(Candidates))
+                if (string.IsNullOrWhiteSpace(Candidates))
                 {
                     const string key = "Candidates";
 
-                    if (!dataDict.TryGetValue(key, out object? candidatesValue))
+                    if (dataDict.TryGetValue(key, out object? candidatesValue))
                     {
-                        throw new UserFriendlyException(message: "必须提供接收者参数 [Candidates]");
+                        string? candidatesStr = candidatesValue?.ToString();
+                        if (!string.IsNullOrWhiteSpace(candidatesStr))
+                        {
+                            Candidates = candidatesStr;
+                        }
                     }
-                    string? candidatesStr = candidatesValue?.ToString();
-                    if (string.IsNullOrEmpty(candidatesStr))
-                    {
-                        throw new UserFriendlyException(message: $"接收者参数格式无效，应为非空字符串 [实际值类型: {candidatesValue?.GetType().Name}]");
-                    }
-
-                    Candidates = candidatesStr;
                 }
                 var instance = await _wkInstance.FindAsync(new Guid(context.Workflow.Id)) ?? throw new UserFriendlyException(message: $"Id为：{context.Workflow.Id}的实例不存在！");
                 try
@@ -111,21 +108,30 @@ namespace Hx.Workflow.Application.StepBodys
                     List<WkNodeCandidate>? dcandidate = null;
                     if (pointer.StepNodeType == StepNodeType.Activity || pointer.StepNodeType == StepNodeType.End)
                     {
-                        if (!string.IsNullOrEmpty(Candidates))
+                        var nodeCandidates = pointer.WkCandidates ?? [];
+                        if (nodeCandidates.Count == 0)
                         {
-                            var tempCandidates = Candidates.Split(',');
-                            if (tempCandidates?.Length > 0)
+                            throw new UserFriendlyException(message: "当前流程节点未配置接收人。");
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(Candidates))
+                        {
+                            var candidateIds = ParseCandidateIds(Candidates);
+                            if (candidateIds.Count == 0)
                             {
-                                dcandidate = [.. (pointer.WkCandidates ?? []).Where(d => tempCandidates.Any(f => new Guid(f) == d.CandidateId))];
+                                throw new UserFriendlyException(message: "接收人参数格式无效。");
                             }
-                            else
+
+                            var candidateIdSet = candidateIds.ToHashSet();
+                            dcandidate = [.. nodeCandidates.Where(d => candidateIdSet.Contains(d.CandidateId))];
+                            if (dcandidate.Count == 0)
                             {
-                                throw new UserFriendlyException(message: "未传入正确的接收者！");
+                                throw new UserFriendlyException(message: "传入的接收人不在当前流程节点配置的接收人范围内。");
                             }
                         }
                         else
                         {
-                            throw new UserFriendlyException(message: "未传入正确的接收者！");
+                            dcandidate = [.. nodeCandidates];
                         }
                     }
                     else if (pointer.StepNodeType == StepNodeType.Start)
@@ -196,7 +202,6 @@ namespace Hx.Workflow.Application.StepBodys
                     if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
                     {
                         auditStatus = EnumAuditStatus.Pass;
-                        await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.Completed);
                     }
                     else
                     {
@@ -204,7 +209,6 @@ namespace Hx.Workflow.Application.StepBodys
                         WkExecutionPointer beRolledBackNode = instance.ExecutionPointers.FirstOrDefault(d => d.StepName == eventPointerEventData.DecideBranching)
                             ?? throw new UserFriendlyException(message: $"驳回失败：在流程实例（{instance.Id}）中未找到步骤名称为「{eventPointerEventData.DecideBranching}」的执行记录，驳回目标节点必须是该实例已执行过的节点。");
                         NextCandidates = string.Join(",", beRolledBackNode.WkCandidates.Select(d => d.CandidateId).ToList());
-                        await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.BeRolledBack);
                     }
                     // 优先从工作流数据中获取当前操作用户ID，如果获取不到则使用 Candidates（支持逗号分隔的多个 GUID，取第一个匹配或第一个作为当前操作人）
                     Guid candidateId;
@@ -240,7 +244,9 @@ namespace Hx.Workflow.Application.StepBodys
                     }
                     
                     await Audit(eventData.Data, instance.Id, executionPointer, candidateId, auditStatus);
-                    var candidateIdSet = candidateIdsForAudit.ToHashSet();
+                    var candidateIdSet = candidateIdsForAudit.Count > 0
+                        ? candidateIdsForAudit.ToHashSet()
+                        : new HashSet<Guid> { candidateId };
                     foreach (var item in executionPointer.WkCandidates.Where(d => candidateIdSet.Contains(d.CandidateId)))
                     {
                         if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
@@ -252,6 +258,7 @@ namespace Hx.Workflow.Application.StepBodys
                             item.SetParentState(ExeCandidateState.BeRolledBack);
                         }
                     }
+                    await _wkInstance.UpdateAsync(instance);
                     if (executionPointer.WkCandidates.Any(d =>
                     (d.ExeOperateType == ExePersonnelOperateType.Countersign ||
                     d.ExeOperateType == ExePersonnelOperateType.Host) &&
