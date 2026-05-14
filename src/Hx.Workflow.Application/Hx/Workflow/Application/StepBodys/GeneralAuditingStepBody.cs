@@ -137,7 +137,17 @@ namespace Hx.Workflow.Application.StepBodys
                     else if (pointer.StepNodeType == StepNodeType.Start)
                     {
                         var candidateIds = ParseCandidateIds(Candidates);
-                        if (candidateIds.Count == 0) throw new UserFriendlyException(message: "未传入正确的接收者！");
+                        if (candidateIds.Count == 0)
+                        {
+                            var currentCandidateId = await _workflowUserContext.GetCurrentUserIdAsync(context);
+                            if (!currentCandidateId.HasValue)
+                            {
+                                throw new UserFriendlyException(message: "未传入正确的接收者！");
+                            }
+
+                            candidateIds = [currentCandidateId.Value];
+                        }
+
                         var defCandidates = candidateIds
                             .Select(id => (definition.WkCandidates ?? []).FirstOrDefault(d => d.CandidateId == id))
                             .ToList();
@@ -210,39 +220,9 @@ namespace Hx.Workflow.Application.StepBodys
                             ?? throw new UserFriendlyException(message: $"驳回失败：在流程实例（{instance.Id}）中未找到步骤名称为「{eventPointerEventData.DecideBranching}」的执行记录，驳回目标节点必须是该实例已执行过的节点。");
                         NextCandidates = string.Join(",", beRolledBackNode.WkCandidates.Select(d => d.CandidateId).ToList());
                     }
-                    // 优先从工作流数据中获取当前操作用户ID，如果获取不到则使用 Candidates（支持逗号分隔的多个 GUID，取第一个匹配或第一个作为当前操作人）
-                    Guid candidateId;
                     var candidateIdsForAudit = ParseCandidateIds(Candidates);
-                    var currentUserIdFromData = await _workflowUserContext.GetCurrentUserIdAsync(context);
-                    if (currentUserIdFromData.HasValue)
-                    {
-                        // 验证该用户是否在执行指针的候选人列表中
-                        if (executionPointer.WkCandidates.Any(d => d.CandidateId == currentUserIdFromData.Value))
-                        {
-                            candidateId = currentUserIdFromData.Value;
-                        }
-                        else if (candidateIdsForAudit.Count > 0 && candidateIdsForAudit.Contains(currentUserIdFromData.Value))
-                        {
-                            candidateId = currentUserIdFromData.Value;
-                        }
-                        else if (candidateIdsForAudit.Count > 0)
-                        {
-                            candidateId = candidateIdsForAudit[0];
-                        }
-                        else
-                        {
-                            throw new UserFriendlyException(message: "未传入正确的接收者！");
-                        }
-                    }
-                    else if (candidateIdsForAudit.Count > 0)
-                    {
-                        candidateId = candidateIdsForAudit[0];
-                    }
-                    else
-                    {
-                        throw new UserFriendlyException(message: "未传入正确的接收者！");
-                    }
-                    
+                    var candidateId = await ResolveAuditCandidateIdAsync(context, executionPointer, candidateIdsForAudit);
+
                     await Audit(eventData.Data, instance.Id, executionPointer, candidateId, auditStatus);
                     var candidateIdSet = candidateIdsForAudit.Count > 0
                         ? candidateIdsForAudit.ToHashSet()
@@ -335,6 +315,45 @@ namespace Hx.Workflow.Application.StepBodys
                 await entity.Audit(auditStatus);
                 await _wkAuditor.UpdateAsync(entity);
             }
+        }
+
+        private async Task<Guid> ResolveAuditCandidateIdAsync(
+            IStepExecutionContext context,
+            WkExecutionPointer executionPointer,
+            IReadOnlyCollection<Guid> candidateIdsForAudit)
+        {
+            var currentUserId = await _workflowUserContext.GetCurrentUserIdAsync(context);
+            if (currentUserId.HasValue && executionPointer.WkCandidates.Any(d => d.CandidateId == currentUserId.Value))
+            {
+                return currentUserId.Value;
+            }
+
+            if (candidateIdsForAudit.Count > 0)
+            {
+                var candidateId = candidateIdsForAudit.FirstOrDefault(id =>
+                    executionPointer.WkCandidates.Any(d => d.CandidateId == id));
+                if (candidateId != Guid.Empty)
+                {
+                    return candidateId;
+                }
+
+                throw new UserFriendlyException(message: "未传入正确的接收者！");
+            }
+
+            var pendingCandidates = executionPointer.WkCandidates
+                .Where(d => d.ParentState == ExeCandidateState.Pending)
+                .ToList();
+            if (pendingCandidates.Count == 1)
+            {
+                return pendingCandidates[0].CandidateId;
+            }
+
+            if (executionPointer.WkCandidates.Count == 1)
+            {
+                return executionPointer.WkCandidates.First().CandidateId;
+            }
+
+            throw new UserFriendlyException(message: "未传入正确的接收者！");
         }
 
         /// <summary>

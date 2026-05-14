@@ -97,17 +97,26 @@ namespace Hx.Workflow.Application
                 stage = "解析候选人参数";
                 var candidateKeyValue = input.Inputs.FirstOrDefault(kv =>
                     string.Equals(kv.Key, "Candidates", StringComparison.OrdinalIgnoreCase));
-                if (candidateKeyValue.Key is null)
-                {
-                    throw new UserFriendlyException(message: "流程启动失败：启动参数中缺少候选人信息（Candidates）。请确保在输入参数中包含候选人ID（多个时使用英文逗号分隔）。");
-                }
-
-                var candidateIds = ParseCandidateIds(NormalizeInputString(candidateKeyValue.Value));
+                var candidateValue = candidateKeyValue.Key is null
+                    ? null
+                    : NormalizeInputString(candidateKeyValue.Value);
+                var candidateIds = ParseCandidateIds(candidateValue);
                 if (candidateIds.Count == 0)
                 {
-                    var candidateValue = candidateKeyValue.Value?.ToString() ?? "null";
-                    throw new UserFriendlyException(message: $"流程启动失败：候选人ID格式无效。提供的值：{candidateValue}，期望格式：有效的GUID，多个时使用英文逗号分隔（例如：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx 或 id1,id2,id3）。");
+                    if (!string.IsNullOrWhiteSpace(candidateValue))
+                    {
+                        throw new UserFriendlyException(message: $"流程启动失败：候选人ID格式无效。提供的值：{candidateValue}，期望格式：有效的GUID，多个时使用英文逗号分隔（例如：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx 或 id1,id2,id3）。");
+                    }
+
+                    if (!CurrentUser.Id.HasValue)
+                    {
+                        throw new UserFriendlyException(message: "流程启动失败：启动参数中缺少候选人信息（Candidates），且未获取到当前登录用户。");
+                    }
+
+                    candidateIds = [CurrentUser.Id.Value];
                 }
+
+                input.Inputs["Candidates"] = string.Join(",", candidateIds);
 
                 // 查询流程模板定义
                 stage = "读取流程模板";
