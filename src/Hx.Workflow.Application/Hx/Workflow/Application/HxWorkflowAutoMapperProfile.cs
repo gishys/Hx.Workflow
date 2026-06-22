@@ -51,6 +51,7 @@ namespace Hx.Workflow.Application
             CreateMap<ErrorByStepStat, ErrorByStepStatDto>(MemberList.Destination);
             CreateMap<StepDurationStat, StepDurationStatDto>(MemberList.Destination);
             CreateMap<TrendStat, TrendStatDto>(MemberList.Destination);
+            CreateMap<BusinessStat, BusinessStatDto>(MemberList.Destination);
         }
         public static IDictionary<string,object?> ToDic(ICollection<WkExtensionAttribute> source)
         {
