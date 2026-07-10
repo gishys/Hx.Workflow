@@ -1125,7 +1125,30 @@ namespace Hx.Workflow.Application
                             // 更新 ApplicationForms（表单集合）
                             if (inputNode.ApplicationForms != null)
                             {
-                                existingNode.ApplicationForms.Clear();
+                                var duplicateApplicationFormIds = inputNode.ApplicationForms
+                                    .GroupBy(form => form.ApplicationFormId)
+                                    .Where(group => group.Count() > 1)
+                                    .Select(group => group.Key)
+                                    .ToList();
+                                if (duplicateApplicationFormIds.Count > 0)
+                                {
+                                    throw new UserFriendlyException(
+                                        message: $"节点 [{inputNode.Name}] 的表单不能重复：{string.Join("、", duplicateApplicationFormIds)}。");
+                                }
+
+                                var incomingApplicationFormIds = inputNode.ApplicationForms
+                                    .Select(form => form.ApplicationFormId)
+                                    .ToHashSet();
+                                var existingApplicationForms = existingNode.ApplicationForms
+                                    .ToDictionary(form => form.ApplicationId);
+
+                                foreach (var form in existingApplicationForms.Values
+                                    .Where(form => !incomingApplicationFormIds.Contains(form.ApplicationId))
+                                    .ToList())
+                                {
+                                    existingNode.ApplicationForms.Remove(form);
+                                }
+
                                 foreach (var formDto in inputNode.ApplicationForms)
                                 {
                                     var ps = new List<WkParam>();
@@ -1136,7 +1159,15 @@ namespace Hx.Workflow.Application
                                             ps.Add(new WkParam(paramDto.WkParamKey, paramDto.Name, paramDto.DisplayName, paramDto.Value));
                                         }
                                     }
-                                    await existingNode.AddApplicationForms(formDto.ApplicationFormId, formDto.SequenceNumber, ps);
+
+                                    if (existingApplicationForms.TryGetValue(formDto.ApplicationFormId, out var existingForm))
+                                    {
+                                        existingForm.Update(formDto.SequenceNumber, ps);
+                                    }
+                                    else
+                                    {
+                                        await existingNode.AddApplicationForms(formDto.ApplicationFormId, formDto.SequenceNumber, ps);
+                                    }
                                 }
                             }
                             

@@ -29,6 +29,15 @@ namespace Hx.Workflow.Domain
         public virtual ApplicationForm ApplicationForm { get; protected set; }
         public virtual int SequenceNumber { get; protected set; }
         public virtual ICollection<WkParam> Params { get; protected set; } = [];
+        public void Update(int sequenceNumber, ICollection<WkParam> parameters)
+        {
+            SequenceNumber = sequenceNumber;
+            Params.Clear();
+            foreach (var parameter in parameters)
+            {
+                Params.Add(parameter);
+            }
+        }
         public override object?[] GetKeys()
         {
             return [NodeId, ApplicationId];
