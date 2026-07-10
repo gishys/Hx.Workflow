@@ -1070,24 +1070,55 @@ namespace Hx.Workflow.Application
                                 }
                             }
                             
-                            // 更新 WkCandidates（避免主键冲突）
+                            // 按 CandidateId 差异更新候选人。不能 Clear 后全量重建：
+                            // 已加载的候选人仍被 EF 跟踪，重新添加相同 (NodeId, CandidateId)
+                            // 会导致“同一键已被跟踪”的异常。
                             if (inputNode.WkCandidates != null)
                             {
-                                // 清除现有的候选人
-                                existingNode.WkCandidates.Clear();
-                                
-                                // 添加新的候选人（确保 NodeId 和 Version 正确设置）
+                                var duplicateCandidateIds = inputNode.WkCandidates
+                                    .GroupBy(candidate => candidate.CandidateId)
+                                    .Where(group => group.Count() > 1)
+                                    .Select(group => group.Key)
+                                    .ToList();
+                                if (duplicateCandidateIds.Count > 0)
+                                {
+                                    throw new UserFriendlyException(
+                                        message: $"节点 [{inputNode.Name}] 的候选人不能重复：{string.Join("、", duplicateCandidateIds)}。");
+                                }
+
+                                var incomingCandidates = inputNode.WkCandidates
+                                    .ToDictionary(candidate => candidate.CandidateId);
+                                var existingCandidates = existingNode.WkCandidates
+                                    .ToDictionary(candidate => candidate.CandidateId);
+
+                                foreach (var candidate in existingCandidates.Values
+                                    .Where(candidate => !incomingCandidates.ContainsKey(candidate.CandidateId))
+                                    .ToList())
+                                {
+                                    existingNode.WkCandidates.Remove(candidate);
+                                }
+
                                 foreach (var candidateDto in inputNode.WkCandidates)
                                 {
-                                    var candidate = new WkNodeCandidate(
-                                        candidateDto.CandidateId,
-                                        candidateDto.UserName,
-                                        candidateDto.DisplayUserName,
-                                        candidateDto.ExecutorType,
-                                        candidateDto.DefaultSelection);
-                                    // 设置 NodeId（使用现有节点的 ID）
-                                    await candidate.SetNodeId(existingNode.Id);
-                                    existingNode.WkCandidates.Add(candidate);
+                                    if (existingCandidates.TryGetValue(candidateDto.CandidateId, out var existingCandidate))
+                                    {
+                                        await existingCandidate.Update(
+                                            candidateDto.UserName,
+                                            candidateDto.DisplayUserName,
+                                            candidateDto.ExecutorType,
+                                            candidateDto.DefaultSelection);
+                                    }
+                                    else
+                                    {
+                                        var candidate = new WkNodeCandidate(
+                                            candidateDto.CandidateId,
+                                            candidateDto.UserName,
+                                            candidateDto.DisplayUserName,
+                                            candidateDto.ExecutorType,
+                                            candidateDto.DefaultSelection);
+                                        await candidate.SetNodeId(existingNode.Id);
+                                        existingNode.WkCandidates.Add(candidate);
+                                    }
                                 }
                             }
                             

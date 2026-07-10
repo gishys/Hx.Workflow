@@ -65,6 +65,18 @@ namespace Hx.Workflow.Domain
             DefaultSelection = selection;
             return Task.CompletedTask;
         }
+        public Task Update(
+            string userName,
+            string displayUserName,
+            WkParticipantType executorType,
+            bool defaultSelection)
+        {
+            UserName = userName;
+            DisplayUserName = displayUserName;
+            ExecutorType = executorType;
+            DefaultSelection = defaultSelection;
+            return Task.CompletedTask;
+        }
     }
 }
 
