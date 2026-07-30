@@ -297,6 +297,13 @@ namespace Hx.Workflow.Application.StepBodys
             {
                 throw new UserFriendlyException(message: "无权限，请在流程定义中配置此人权限！");
             }
+            // 审核记录中的用户就是本次节点的实际办理人。未签收直接办理时补齐接收人，
+            // 并统一记录提交人，避免流程轨迹退回展示全部候选人。
+            if (!execution.RecipientId.HasValue)
+            {
+                await execution.SetRecipientInfo(user.UserName, user.CandidateId);
+            }
+            await execution.SetSubmitterInfo(user.UserName, user.CandidateId);
             var entity = await _wkAuditor.GetAuditorAsync(execution.Id, user.CandidateId);
             if (entity == null)
             {
