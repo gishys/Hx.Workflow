@@ -28,11 +28,29 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual async Task<List<WkSubscription>> GetSubscriptionAsync(
             string eventName, string eventKey, DateTime eventTime)
         {
-            return await (await GetDbSetAsync()).Where(
-                d => d.EventName == eventName &&
-                d.EventKey == eventKey &&
-                d.SubscribeAsOf <= eventTime && d.ExternalToken == null)
+            return await (await GetDbSetAsync())
+                .Where(WkSubscriptionQueries.OpenForEvent(eventName, eventKey, eventTime))
+                .OrderBy(d => d.SubscribeAsOf)
                 .ToListAsync();
+        }
+        public virtual async Task<bool> TrySetTokenAsync(
+            Guid id,
+            string token,
+            string workerId,
+            DateTime expiry,
+            DateTime asOf,
+            CancellationToken cancellationToken = default)
+        {
+            var affectedRows = await (await GetDbSetAsync())
+                .Where(d => d.Id == id &&
+                    (d.ExternalToken == null ||
+                     (d.ExternalTokenExpiry.HasValue && d.ExternalTokenExpiry <= asOf)))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(d => d.ExternalToken, token)
+                    .SetProperty(d => d.ExternalWorkerId, workerId)
+                    .SetProperty(d => d.ExternalTokenExpiry, expiry), cancellationToken);
+
+            return affectedRows == 1;
         }
         public virtual async Task<bool> AnyAsync(Guid id)
         {

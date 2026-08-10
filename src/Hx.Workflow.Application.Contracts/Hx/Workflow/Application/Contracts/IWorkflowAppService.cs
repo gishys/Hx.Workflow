@@ -9,7 +9,8 @@ namespace Hx.Workflow.Application.Contracts
     public interface IWorkflowAppService
     {
         Task<string> StartAsync(StartWorkflowInput input);
-        Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null);
+        Task<WkActivitySubmissionResultDto> StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null);
+        Task<WkActivitySubmissionResultDto?> GetActivitySubmissionAsync(Guid workflowId, string activityName);
         Task<PagedResultDto<WkProcessInstanceDto>> GetMyWkInstanceAsync(
             ICollection<Guid>? creatorIds = null,
             ICollection<Guid>? definitionIds = null,

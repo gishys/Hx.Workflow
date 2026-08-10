@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hx.Workflow.EntityFramework
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hx.Workflow.HttpApi", "src\Hx.Workflow.HttpApi\Hx.Workflow.HttpApi.csproj", "{DD23C242-1FFA-4CA5-8C09-13CB61F298D2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hx.Workflow.Tests", "tests\Hx.Workflow.Tests\Hx.Workflow.Tests.csproj", "{A14B87C1-15A7-4C4D-924D-6EAA51DBCF27}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{DD23C242-1FFA-4CA5-8C09-13CB61F298D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD23C242-1FFA-4CA5-8C09-13CB61F298D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD23C242-1FFA-4CA5-8C09-13CB61F298D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A14B87C1-15A7-4C4D-924D-6EAA51DBCF27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A14B87C1-15A7-4C4D-924D-6EAA51DBCF27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A14B87C1-15A7-4C4D-924D-6EAA51DBCF27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A14B87C1-15A7-4C4D-924D-6EAA51DBCF27}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

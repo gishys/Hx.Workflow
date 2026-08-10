@@ -205,8 +205,11 @@ namespace Hx.Workflow.Application.StepBodys
                         NextCandidates = eventPointerEventData.Candidates;
                     if (step.StepNodeType != StepNodeType.End)
                     {
-                        if (!step.NextNodes.Any(d => d.Rules.Any(d => d.Value == eventPointerEventData.DecideBranching)))
-                            throw new UserFriendlyException(message: "参数DecideBranching的值不在下一步节点中！");
+                        if (!BranchDecisionValidator.CanTransition(step, eventPointerEventData.DecideBranching))
+                        {
+                            throw new UserFriendlyException(
+                                message: $"分支值“{eventPointerEventData.DecideBranching}”无法从节点“{step.Name}”到达下一节点。");
+                        }
                     }
                     EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;
                     if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)

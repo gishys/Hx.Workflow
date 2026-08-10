@@ -236,6 +236,7 @@ namespace Hx.Workflow.Domain
         public virtual async Task StartActivityAsync(
             string actName, string workflowId, object? data = null)
         {
+            await ValidateActivityOwnershipAsync(actName, workflowId);
 
             var activity = await _workflowHost.GetPendingActivity(actName, workflowId);
             if (activity != null)
@@ -247,6 +248,49 @@ namespace Hx.Workflow.Domain
             {
                 throw new UserFriendlyException(message: $"{actName} was not found.");
             }
+        }
+
+        public virtual async Task<WkExecutionPointer> ValidateActivityOwnershipAsync(
+            string actName,
+            string workflowId)
+        {
+            if (!Guid.TryParse(workflowId, out var workflowGuid))
+            {
+                throw new BusinessException("Workflow.InvalidWorkflowId", "workflowId 不是有效的 GUID。");
+            }
+            if (!Guid.TryParse(actName, out var activityGuid))
+            {
+                throw new BusinessException("Workflow.InvalidActivityName", "activityName 不是有效的 GUID。");
+            }
+
+            var instance = await WkInstanceRepository.FindAsync(workflowGuid, false);
+            if (instance == null)
+            {
+                throw new BusinessException("Workflow.InstanceNotFound", $"流程实例 [{workflowId}] 不存在。");
+            }
+
+            var pointer = await WkInstanceRepository.GetPointerAsync(activityGuid);
+            if (pointer == null || pointer.WkInstanceId != workflowGuid)
+            {
+                throw new BusinessException(
+                    "Workflow.ActivityOwnershipConflict",
+                    $"活动 [{actName}] 不属于流程实例 [{workflowId}]。");
+            }
+            if (!string.Equals(pointer.EventName, "WorkflowCore.Activity", StringComparison.Ordinal) ||
+                !string.Equals(pointer.EventKey, actName, StringComparison.Ordinal))
+            {
+                throw new BusinessException(
+                    "Workflow.ActivityEventConflict",
+                    $"活动 [{actName}] 不是当前指针等待的外部活动。");
+            }
+            if (pointer.Status != PointerStatus.WaitingForEvent)
+            {
+                throw new BusinessException(
+                    "Workflow.ActivityStateConflict",
+                    $"活动 [{actName}] 当前状态为 {pointer.Status}，不可提交。");
+            }
+
+            return pointer;
         }
         internal virtual WorkflowDefinition LoadDefinitionByJson(WkDefinition input)
         {

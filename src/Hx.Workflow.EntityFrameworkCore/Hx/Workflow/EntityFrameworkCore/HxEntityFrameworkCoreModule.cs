@@ -36,6 +36,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                     options.AddRepository<ApplicationForm, WkApplicationFormRepository>();
                     options.AddRepository<WkStepBody, WkStepBodyRespository>();
                     options.AddRepository<BusinessStat, BusinessStatRepository>();
+                    options.AddRepository<WkActivitySubmission, WkActivitySubmissionRepository>();
                 });
             Configure<AbpDbContextOptions>(options =>
             {

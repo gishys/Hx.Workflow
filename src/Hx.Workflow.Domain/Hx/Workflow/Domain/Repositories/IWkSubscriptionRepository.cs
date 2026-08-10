@@ -1,6 +1,7 @@
 ﻿using Hx.Workflow.Domain.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp.Domain.Repositories;
 
@@ -17,6 +18,13 @@ namespace Hx.Workflow.Domain.Repositories
         /// <returns></returns>
         Task<List<WkSubscription>> GetSubscriptionAsync(
             string eventName, string eventKey, DateTime eventTime);
+        Task<bool> TrySetTokenAsync(
+            Guid id,
+            string token,
+            string workerId,
+            DateTime expiry,
+            DateTime asOf,
+            CancellationToken cancellationToken = default);
         Task<bool> AnyAsync(Guid id);
         Task<List<WkSubscription>> GetSubscriptionsByExecutionPointerAsync(Guid exeId);
     }

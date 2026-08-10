@@ -28,6 +28,7 @@ namespace Hx.Workflow.Application
         IWkErrorRepository errorRepository,
         IWkExecutionPointerRepository wkExecutionPointerRepository,
         IWkAuditorRespository wkAuditor,
+        IWkActivitySubmissionRepository activitySubmissionRepository,
         IServiceProvider serviceProvider) : HxWorkflowAppServiceBase, IWorkflowAppService
     {
         private readonly HxWorkflowManager _hxWorkflowManager = hxWorkflowManager;
@@ -36,6 +37,7 @@ namespace Hx.Workflow.Application
         private readonly IWkErrorRepository _errorRepository = errorRepository;
         private readonly IWkExecutionPointerRepository _wkExecutionPointerRepository = wkExecutionPointerRepository;
         private readonly IWkAuditorRespository _wkAuditor = wkAuditor;
+        private readonly IWkActivitySubmissionRepository _activitySubmissionRepository = activitySubmissionRepository;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly IAuthorizationService? _authorizationService = serviceProvider.GetService<IAuthorizationService>();
 
@@ -199,11 +201,18 @@ namespace Hx.Workflow.Application
         /// <param name="data"></param>
         /// <returns></returns>
         //[AllowAnonymous]
-        public virtual async Task StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null)
+        public virtual async Task<WkActivitySubmissionResultDto> StartActivityAsync(string actName, string workflowId, Dictionary<string, object>? data = null)
         {
+            if (!Guid.TryParse(workflowId, out var workflowGuid))
+            {
+                return Rejected(Guid.Empty, actName, "workflowId 不是有效的 GUID。");
+            }
+
             var eventPointerEventData = JsonSerializer.Deserialize<WkPointerEventData>(JsonSerializer.Serialize(data));
             if (string.IsNullOrEmpty(eventPointerEventData?.DecideBranching))
-                throw new UserFriendlyException(message: "提交必须携带分支节点名称！");
+            {
+                return Rejected(workflowGuid, actName, "提交必须携带分支节点名称。");
+            }
             
             // 将当前用户信息添加到活动数据中，以便在 StepBody 中获取
             data ??= [];
@@ -216,8 +225,64 @@ namespace Hx.Workflow.Application
                 }
             }
             
-            await _hxWorkflowManager.StartActivityAsync(actName, workflowId, data);
+            var payload = JsonSerializer.Serialize(data);
+            var requestHash = WkActivitySubmissionPolicies.ComputeRequestHash(payload);
+            var existing = await _activitySubmissionRepository.FindByKeyAsync(workflowGuid, actName);
+            if (existing != null)
+            {
+                return existing.RequestHash == requestHash
+                    ? ToResult(existing)
+                    : Rejected(workflowGuid, actName, "相同 workflowId + activityName 已使用不同请求数据提交。");
+            }
+
+            try
+            {
+                await _hxWorkflowManager.ValidateActivityOwnershipAsync(actName, workflowId);
+            }
+            catch (BusinessException ex)
+            {
+                return Rejected(workflowGuid, actName, ex.Message);
+            }
+
+            var now = DateTime.UtcNow;
+            var submission = new WkActivitySubmission(
+                GuidGenerator.Create(), workflowGuid, actName, payload, requestHash, now, CurrentTenant.Id);
+            var result = await _activitySubmissionRepository.GetOrCreateAsync(submission);
+            if (result.Submission.RequestHash != requestHash)
+            {
+                return Rejected(workflowGuid, actName, "相同 workflowId + activityName 已使用不同请求数据提交。");
+            }
+            return ToResult(result.Submission);
         }
+
+        public virtual async Task<WkActivitySubmissionResultDto?> GetActivitySubmissionAsync(
+            Guid workflowId,
+            string activityName)
+        {
+            var submission = await _activitySubmissionRepository.FindByKeyAsync(workflowId, activityName);
+            return submission == null ? null : ToResult(submission);
+        }
+
+        private static WkActivitySubmissionResultDto ToResult(WkActivitySubmission submission)
+            => new()
+            {
+                SubmissionId = submission.Id,
+                WorkflowId = submission.WorkflowId,
+                ActivityName = submission.ActivityName,
+                Status = submission.Status,
+                Error = submission.Error,
+                LastModificationTime = submission.LastModificationTime
+            };
+
+        private static WkActivitySubmissionResultDto Rejected(Guid workflowId, string activityName, string error)
+            => new()
+            {
+                WorkflowId = workflowId,
+                ActivityName = activityName,
+                Status = WkActivitySubmissionStatus.Rejected,
+                Error = error,
+                LastModificationTime = DateTime.UtcNow
+            };
         /// <summary>
         /// 查询我的办理件（在办、废弃、已完成、挂起），如果为空则查询所有
         /// </summary>

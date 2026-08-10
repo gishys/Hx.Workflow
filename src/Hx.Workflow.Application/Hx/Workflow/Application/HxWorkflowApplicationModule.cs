@@ -32,6 +32,7 @@ namespace Hx.Workflow.Application
             });
 
             context.Services.AddAutoMapperObjectMapper<HxWorkflowApplicationModule>();
+            context.Services.AddHostedService<WkActivitySubmissionProcessor>();
             Configure<AbpAutoMapperOptions>(options =>
             {
                 options.AddProfile<HxWorkflowAutoMapperProfile>(validate: true);

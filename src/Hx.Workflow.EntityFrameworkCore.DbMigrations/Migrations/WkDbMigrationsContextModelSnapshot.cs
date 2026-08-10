@@ -842,6 +842,76 @@ namespace Migrations
                         });
                 });
 
+            modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkActivitySubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("ID");
+
+                    b.Property<string>("ActivityName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("ACTIVITYNAME");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("ATTEMPTCOUNT");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CREATIONTIME");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("ERROR");
+
+                    b.Property<DateTime>("LastModificationTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LASTMODIFICATIONTIME");
+
+                    b.Property<DateTime?>("LockedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LOCKEDUNTIL");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("PAYLOAD");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("REQUESTHASH");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("STATUS");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TENANTID");
+
+                    b.Property<Guid>("WorkflowId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("WORKFLOWID");
+
+                    b.HasKey("Id")
+                        .HasName("PK_WKACTIVITYSUBMISSIONS");
+
+                    b.HasIndex("Status", "LockedUntil")
+                        .HasDatabaseName("IX_WKACTIVITYSUBMISSIONS_PROCESSABLE");
+
+                    b.HasIndex("WorkflowId", "ActivityName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_WKACTIVITYSUBMISSIONS_WORKFLOW_ACTIVITY");
+
+                    b.ToTable("HXWKACTIVITYSUBMISSIONS", (string)null);
+                });
+
             modelBuilder.Entity("Hx.Workflow.Domain.Persistence.WkSubscription", b =>
                 {
                     b.Property<Guid>("Id")

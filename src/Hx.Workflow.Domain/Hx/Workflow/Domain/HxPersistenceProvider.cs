@@ -177,7 +177,7 @@ namespace Hx.Workflow.Domain
         {
             var raw = await _wkSubscriptionRepository.GetSubscriptionAsync(eventName, eventKey, asOf);
             if (raw.Count <= 0)
-                throw new UserFriendlyException(message: $"符合条件：[eventName:{eventName},eventKey:{eventKey},asOf:{asOf}]的流程描述不存在！");
+                return null!;
             return raw.First().ToEventSubscription();
         }
         //public async Task<WkExecutionPointer> GetPersistedExecutionPointer(string id)
@@ -334,14 +334,10 @@ namespace Hx.Workflow.Domain
         {
             _ = await _wkInstanceRepository.FindAsync(new Guid(workerId), true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{workerId}]流程实例不存在！");
             var uid = new Guid(eventSubscriptionId);
-            var existingEntity = await _wkSubscriptionRepository.GetAsync(uid, true, cancellationToken);
-            await existingEntity.SetExternalToken(token);
-            await existingEntity.SetExternalWorkerId(workerId);
             if (expiry > new DateTime(9999, 12, 31))
                 expiry = new DateTime(9999, 12, 31);
-            await existingEntity.SetExternalTokenExpiry(expiry);
-            await _wkSubscriptionRepository.UpdateAsync(existingEntity, false, cancellationToken);
-            return true;
+            return await _wkSubscriptionRepository.TrySetTokenAsync(
+                uid, token, workerId, expiry, DateTime.UtcNow, cancellationToken);
         }
         public async Task TerminateSubscription(string eventSubscriptionId, CancellationToken cancellationToken = default)
         {

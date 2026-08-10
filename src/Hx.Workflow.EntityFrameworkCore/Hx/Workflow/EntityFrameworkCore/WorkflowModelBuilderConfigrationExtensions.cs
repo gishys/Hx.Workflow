@@ -542,6 +542,29 @@ namespace Hx.Workflow.EntityFrameworkCore
                 t.Property(d => d.ExternalTokenExpiry).HasColumnName("EXTERNALTOKENEXPIRY").HasColumnType("timestamp with time zone");
                 t.Property(d => d.TenantId).HasColumnName("TENANTID");
             });
+            builder.Entity<WkActivitySubmission>(t =>
+            {
+                t.ToTable(model.TablePrefix + "WKACTIVITYSUBMISSIONS", model.Schema);
+                t.HasKey(x => x.Id).HasName("PK_WKACTIVITYSUBMISSIONS");
+                t.HasIndex(x => new { x.WorkflowId, x.ActivityName })
+                    .IsUnique()
+                    .HasDatabaseName("UX_WKACTIVITYSUBMISSIONS_WORKFLOW_ACTIVITY");
+                t.HasIndex(x => new { x.Status, x.LockedUntil })
+                    .HasDatabaseName("IX_WKACTIVITYSUBMISSIONS_PROCESSABLE");
+
+                t.Property(x => x.Id).HasColumnName("ID");
+                t.Property(x => x.WorkflowId).HasColumnName("WORKFLOWID");
+                t.Property(x => x.ActivityName).HasColumnName("ACTIVITYNAME").HasMaxLength(64).IsRequired();
+                t.Property(x => x.Payload).HasColumnName("PAYLOAD").HasColumnType("text").IsRequired();
+                t.Property(x => x.RequestHash).HasColumnName("REQUESTHASH").HasMaxLength(64).IsRequired();
+                t.Property(x => x.Status).HasColumnName("STATUS");
+                t.Property(x => x.Error).HasColumnName("ERROR").HasMaxLength(2000);
+                t.Property(x => x.CreationTime).HasColumnName("CREATIONTIME").HasColumnType("timestamp with time zone");
+                t.Property(x => x.LastModificationTime).HasColumnName("LASTMODIFICATIONTIME").HasColumnType("timestamp with time zone");
+                t.Property(x => x.LockedUntil).HasColumnName("LOCKEDUNTIL").HasColumnType("timestamp with time zone");
+                t.Property(x => x.AttemptCount).HasColumnName("ATTEMPTCOUNT");
+                t.Property(x => x.TenantId).HasColumnName("TENANTID");
+            });
             builder.Entity<BusinessStat>(t =>
             {
                 t.ToTable(model.TablePrefix + "BUSINESSSTAT", model.Schema, tb => { tb.HasComment("统计"); });

@@ -21,9 +21,28 @@ namespace Hx.Workflow.HttpApi
         }
         [HttpPost]
         [Route("workflow/activity")]
-        public Task StartActivity([FromBody] WkActivityInputDto input)
+        public async Task<IActionResult> StartActivity([FromBody] WkActivityInputDto input)
         {
-            return _workflowAppService.StartActivityAsync(input.ActivityName, input.WorkflowId, input.Data);
+            var result = await _workflowAppService.StartActivityAsync(input.ActivityName, input.WorkflowId, input.Data);
+            return result.Status switch
+            {
+                WkActivitySubmissionStatus.Succeeded => Ok(result),
+                WkActivitySubmissionStatus.Accepted or
+                WkActivitySubmissionStatus.Processing or
+                WkActivitySubmissionStatus.EventPublished => AcceptedAtAction(
+                    nameof(GetActivitySubmissionAsync),
+                    new { workflowId = result.WorkflowId, activityName = result.ActivityName },
+                    result),
+                _ => Conflict(result)
+            };
+        }
+
+        [HttpGet]
+        [Route("workflow/activity/{workflowId:guid}/{activityName}")]
+        public async Task<IActionResult> GetActivitySubmissionAsync(Guid workflowId, string activityName)
+        {
+            var result = await _workflowAppService.GetActivitySubmissionAsync(workflowId, activityName);
+            return result == null ? NotFound() : Ok(result);
         }
         [HttpGet]
         [Route("workflow/mywkinstances")]

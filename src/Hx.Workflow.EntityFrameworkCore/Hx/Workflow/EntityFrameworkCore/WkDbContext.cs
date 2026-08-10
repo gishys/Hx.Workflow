@@ -21,6 +21,7 @@ namespace Hx.Workflow.EntityFrameworkCore
         public virtual DbSet<WkExecutionPointer> WkExecutionPointers { get; set; }
         public virtual DbSet<WkInstance> WkInstances { get; set; }
         public virtual DbSet<WkSubscription> WkSubscriptions { get; set; }
+        public virtual DbSet<WkActivitySubmission> WkActivitySubmissions { get; set; }
         public virtual DbSet<WkAuditor> WkAuditors { get; set; }
         public virtual DbSet<WkDefinitionGroup> WkDefinitionGroups { get; set; }
         public virtual DbSet<ApplicationFormGroup> ApplicationFormGroups { get; set; }

@@ -94,7 +94,7 @@ namespace Hx.Workflow.Domain
                 EventKey = instance.Key,
                 EventName = instance.Name
             };
-            result.EventTime = result.EventTime;
+            result.EventTime = instance.Time;
             result.IsProcessed = instance.IsProcessed;
             result.EventData = JsonConvert.DeserializeObject(instance.Data, SerializerSettings);
             return result;
@@ -137,7 +137,7 @@ namespace Hx.Workflow.Domain
                 ExecutionPointerId = instance.ExecutionPointerId.ToString(),
                 WorkflowId = instance.WorkflowId.ToString()
             };
-            result.SubscribeAsOf = result.SubscribeAsOf;
+            result.SubscribeAsOf = instance.SubscribeAsOf;
             result.SubscriptionData = JsonConvert.DeserializeObject(instance.SubscriptionData ?? string.Empty, SerializerSettings);
             result.ExternalToken = instance.ExternalToken;
             result.ExternalTokenExpiry = instance.ExternalTokenExpiry;
