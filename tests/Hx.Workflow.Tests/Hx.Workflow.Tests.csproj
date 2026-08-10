@@ -18,5 +18,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Hx.Workflow.Application\Hx.Workflow.Application.csproj" />
     <ProjectReference Include="..\..\src\Hx.Workflow.Domain\Hx.Workflow.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Hx.Workflow.EntityFrameworkCore\Hx.Workflow.EntityFrameworkCore.csproj" />
   </ItemGroup>
 </Project>

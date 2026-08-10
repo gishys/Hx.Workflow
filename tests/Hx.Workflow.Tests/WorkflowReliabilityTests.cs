@@ -4,7 +4,9 @@ using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.EntityFrameworkCore;
 using System;
+using System.Data;
 using System.Threading.Tasks;
 using WorkflowCore.Models;
 using Xunit;
@@ -79,6 +81,15 @@ namespace Hx.Workflow.Tests
 
             Assert.True(BranchDecisionValidator.CanTransition(step, "登簿"));
             Assert.False(BranchDecisionValidator.CanTransition(step, "缮证"));
+        }
+
+        [Fact]
+        public void NullTenantId_UsesTypedPostgreSqlUuidParameter()
+        {
+            var parameter = WkActivitySubmissionParameterFactory.GetTenantParameterSpecification(null);
+
+            Assert.Equal(DbType.Guid, parameter.DbType);
+            Assert.Equal(DBNull.Value, parameter.Value);
         }
 
         private static WkSubscription Subscription(DateTime expiry)

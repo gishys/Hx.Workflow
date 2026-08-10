@@ -47,6 +47,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                 VALUES
                     ({{0}}, {{1}}, {{2}}, {{3}}, {{4}}, {{5}}, {{6}}, {{7}}, {{8}}, {{9}})
                 ON CONFLICT (""WORKFLOWID"", ""ACTIVITYNAME"") DO NOTHING";
+            var tenantParameter = WkActivitySubmissionParameterFactory.CreateTenantParameter(submission.TenantId);
             var affectedRows = await dbContext.Database.ExecuteSqlRawAsync(
                 commandText,
                 [
@@ -59,7 +60,7 @@ namespace Hx.Workflow.EntityFrameworkCore
                     submission.CreationTime,
                     submission.LastModificationTime,
                     submission.AttemptCount,
-                    submission.TenantId ?? (object)DBNull.Value
+                    tenantParameter
                 ],
                 cancellationToken);
 
