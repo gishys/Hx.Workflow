@@ -80,6 +80,23 @@ namespace Hx.Workflow.Tests
         }
 
         [Fact]
+        public async Task LegacyInfiniteSubscriptionTime_CanBeRepairedFromEventTime()
+        {
+            var eventTime = DateTime.UtcNow.AddMinutes(-1);
+            var subscription = new WkSubscription(
+                Guid.NewGuid(), Guid.NewGuid(), 1, Guid.NewGuid(),
+                "WorkflowCore.Activity", "activity", DateTime.MinValue,
+                null, null, null, null);
+
+            Assert.True(WkSubscriptionQueries.NeedsSubscribeAsOfRepair(subscription.SubscribeAsOf));
+
+            await subscription.SetSubscribeAsOf(eventTime);
+
+            Assert.Equal(eventTime, subscription.SubscribeAsOf);
+            Assert.False(WkSubscriptionQueries.NeedsSubscribeAsOfRepair(subscription.SubscribeAsOf));
+        }
+
+        [Fact]
         public async Task UnconditionalForwardEdge_UsesNextNodeNameAsDecision()
         {
             var step = new WkNode("核定", "核定", StepNodeType.Activity, 1);

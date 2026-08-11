@@ -6,6 +6,9 @@ namespace Hx.Workflow.Domain.Repositories
 {
     public static class WkSubscriptionQueries
     {
+        public static bool NeedsSubscribeAsOfRepair(DateTime subscribeAsOf)
+            => subscribeAsOf == DateTime.MinValue || subscribeAsOf.Year <= 1;
+
         public static Expression<Func<WkSubscription, bool>> ForEvent(
             string eventName,
             string eventKey,

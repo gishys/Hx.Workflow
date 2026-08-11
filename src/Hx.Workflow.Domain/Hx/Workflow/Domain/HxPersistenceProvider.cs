@@ -236,6 +236,15 @@ namespace Hx.Workflow.Domain
         public async Task<EventSubscription> GetSubscription(string eventSubscriptionId, CancellationToken cancellationToken = default)
         {
             var raw = await _wkSubscriptionRepository.FindAsync(new Guid(eventSubscriptionId), true, cancellationToken);
+            if (raw != null && WkSubscriptionQueries.NeedsSubscribeAsOfRepair(raw.SubscribeAsOf))
+            {
+                var workflowEvent = await _wkEventRepository.GetByEventKeyAsync(raw.EventKey);
+                if (workflowEvent != null)
+                {
+                    await raw.SetSubscribeAsOf(workflowEvent.Time);
+                    await _wkSubscriptionRepository.UpdateAsync(raw, true, cancellationToken);
+                }
+            }
             return raw?.ToEventSubscription()!;
         }
         public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)

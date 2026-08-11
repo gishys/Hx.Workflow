@@ -54,6 +54,11 @@ namespace Hx.Workflow.Domain.Persistence
             ExternalToken = externalToken;
             return Task.CompletedTask;
         }
+        public Task SetSubscribeAsOf(DateTime subscribeAsOf)
+        {
+            SubscribeAsOf = subscribeAsOf;
+            return Task.CompletedTask;
+        }
         public Task SetExternalWorkerId(string? externalWorkerId)
         {
             ExternalWorkerId = externalWorkerId;
