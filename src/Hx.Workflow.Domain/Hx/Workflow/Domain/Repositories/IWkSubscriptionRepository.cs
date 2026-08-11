@@ -16,7 +16,9 @@ namespace Hx.Workflow.Domain.Repositories
         /// <param name="eventKey"></param>
         /// <param name="eventTime"></param>
         /// <returns></returns>
-        Task<List<WkSubscription>> GetSubscriptionAsync(
+        Task<List<WkSubscription>> GetSubscriptionsAsync(
+            string eventName, string eventKey, DateTime eventTime);
+        Task<List<WkSubscription>> GetOpenSubscriptionsAsync(
             string eventName, string eventKey, DateTime eventTime);
         Task<bool> TrySetTokenAsync(
             Guid id,

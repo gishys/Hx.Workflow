@@ -5,10 +5,10 @@ using Hx.Workflow.Domain.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -101,7 +101,7 @@ namespace Hx.Workflow.Application
                         }
                     }
 
-                    var data = JsonSerializer.Deserialize<Dictionary<string, object>>(submission.Payload);
+                    var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(submission.Payload);
                     await manager.StartActivityAsync(
                         submission.ActivityName,
                         submission.WorkflowId.ToString(),

@@ -6,6 +6,7 @@ using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using WorkflowCore.Models;
 
@@ -101,14 +102,61 @@ namespace Hx.Workflow.Domain
         }
         internal static WkEvent ToPersistable(this Event instance)
         {
+            var eventData = instance.EventData;
+            if (eventData is ActivityResult activityResult)
+            {
+                eventData = new ActivityResult
+                {
+                    Status = activityResult.Status,
+                    SubscriptionId = activityResult.SubscriptionId,
+                    Data = NormalizeJsonValue(activityResult.Data)
+                };
+            }
+
             return new WkEvent(
                     new Guid(instance.Id),
                     instance.EventName,
                     instance.EventKey,
-                    JsonConvert.SerializeObject(instance.EventData, SerializerSettings),
+                    JsonConvert.SerializeObject(eventData, SerializerSettings),
                     instance.EventTime,
                     instance.IsProcessed
                     );
+        }
+
+        private static object? NormalizeJsonValue(object? value)
+        {
+            if (value is JsonElement element)
+            {
+                return element.ValueKind switch
+                {
+                    JsonValueKind.Object => element.EnumerateObject()
+                        .ToDictionary(property => property.Name, property => NormalizeJsonValue(property.Value)),
+                    JsonValueKind.Array => element.EnumerateArray()
+                        .Select(item => NormalizeJsonValue(item)).ToList(),
+                    JsonValueKind.String => element.GetString(),
+                    JsonValueKind.Number when element.TryGetInt64(out var integer) => integer,
+                    JsonValueKind.Number when element.TryGetDecimal(out var number) => number,
+                    JsonValueKind.Number => element.GetDouble(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.Null or JsonValueKind.Undefined => null,
+                    _ => element.GetRawText()
+                };
+            }
+
+            if (value is IDictionary<string, object> dictionary)
+            {
+                return dictionary.ToDictionary(
+                    item => item.Key,
+                    item => NormalizeJsonValue(item.Value));
+            }
+
+            if (value is IEnumerable<object> collection && value is not string)
+            {
+                return collection.Select(NormalizeJsonValue).ToList();
+            }
+
+            return value;
         }
         internal static WkSubscription ToPersistable(this EventSubscription instance)
         {

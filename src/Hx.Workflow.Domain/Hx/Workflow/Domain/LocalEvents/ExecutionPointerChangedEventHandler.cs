@@ -186,7 +186,7 @@ namespace Hx.Workflow.Domain.LocalEvents
             if (statEntity != null)
             {
                 await statEntity.SetStatistics(statEntity.Statistics + 1);
-                await _wkExecutionPointer.UpdateAsync(pointer);
+                await _businessStatRepository.UpdateAsync(statEntity);
             }
         }
     }

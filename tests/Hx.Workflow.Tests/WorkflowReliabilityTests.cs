@@ -1,12 +1,15 @@
 using Hx.Workflow.Application;
 using Hx.Workflow.Application.StepBodys;
 using Hx.Workflow.Domain;
+using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.EntityFrameworkCore;
 using System;
 using System.Data;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using WorkflowCore.Models;
 using Xunit;
@@ -53,6 +56,9 @@ namespace Hx.Workflow.Tests
 
             Assert.True(predicate(expired));
             Assert.False(predicate(active));
+            Assert.True(WkSubscriptionQueries
+                .ForEvent("WorkflowCore.Activity", "activity", now)
+                .Compile()(active));
         }
 
         [Fact]
@@ -90,6 +96,34 @@ namespace Hx.Workflow.Tests
 
             Assert.Equal(DbType.Guid, parameter.DbType);
             Assert.Equal(DBNull.Value, parameter.Value);
+        }
+
+        [Fact]
+        public void ActivityPayload_JsonElements_SurviveEventPersistence()
+        {
+            const string payload = "{\"DecideBranching\":\"核定\",\"ExecutionType\":1,\"Remark\":\"同意\"}";
+            var data = JsonSerializer.Deserialize<Dictionary<string, object>>(payload)!;
+            var activity = new ActivityResult
+            {
+                Status = ActivityResult.StatusType.Success,
+                SubscriptionId = Guid.NewGuid().ToString(),
+                Data = data
+            };
+            var workflowEvent = new Event
+            {
+                Id = Guid.NewGuid().ToString(),
+                EventName = "WorkflowCore.Activity",
+                EventKey = Guid.NewGuid().ToString(),
+                EventTime = DateTime.UtcNow,
+                EventData = activity
+            };
+
+            var restored = (ActivityResult)workflowEvent.ToPersistable().ToEvent().EventData;
+            var restoredData = JsonSerializer.Deserialize<WkPointerEventData>(
+                JsonSerializer.Serialize(restored.Data));
+
+            Assert.Equal("核定", restoredData!.DecideBranching);
+            Assert.Equal(StepExecutionType.Forward, restoredData.ExecutionType);
         }
 
         private static WkSubscription Subscription(DateTime expiry)

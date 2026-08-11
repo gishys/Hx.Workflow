@@ -25,7 +25,16 @@ namespace Hx.Workflow.EntityFrameworkCore
         /// <param name="eventKey"></param>
         /// <param name="eventTime"></param>
         /// <returns></returns>
-        public virtual async Task<List<WkSubscription>> GetSubscriptionAsync(
+        public virtual async Task<List<WkSubscription>> GetSubscriptionsAsync(
+            string eventName, string eventKey, DateTime eventTime)
+        {
+            return await (await GetDbSetAsync())
+                .Where(WkSubscriptionQueries.ForEvent(eventName, eventKey, eventTime))
+                .OrderBy(d => d.SubscribeAsOf)
+                .ToListAsync();
+        }
+
+        public virtual async Task<List<WkSubscription>> GetOpenSubscriptionsAsync(
             string eventName, string eventKey, DateTime eventTime)
         {
             return await (await GetDbSetAsync())

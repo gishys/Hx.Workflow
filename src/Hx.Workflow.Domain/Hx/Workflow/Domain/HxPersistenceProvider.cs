@@ -175,7 +175,7 @@ namespace Hx.Workflow.Domain
         }
         public async Task<EventSubscription> GetFirstOpenSubscription(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            var raw = await _wkSubscriptionRepository.GetSubscriptionAsync(eventName, eventKey, asOf);
+            var raw = await _wkSubscriptionRepository.GetOpenSubscriptionsAsync(eventName, eventKey, asOf);
             if (raw.Count <= 0)
                 return null!;
             return raw.First().ToEventSubscription();
@@ -208,12 +208,12 @@ namespace Hx.Workflow.Domain
         }
         public async Task<EventSubscription> GetSubscription(string eventSubscriptionId, CancellationToken cancellationToken = default)
         {
-            var raw = await _wkSubscriptionRepository.FindAsync(new Guid(eventSubscriptionId), true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{eventSubscriptionId}]流程描述不存在！");
-            return raw.ToEventSubscription();
+            var raw = await _wkSubscriptionRepository.FindAsync(new Guid(eventSubscriptionId), true, cancellationToken);
+            return raw?.ToEventSubscription()!;
         }
         public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            var subs = await _wkSubscriptionRepository.GetSubscriptionAsync(eventName, eventKey, asOf);
+            var subs = await _wkSubscriptionRepository.GetSubscriptionsAsync(eventName, eventKey, asOf);
             return from x in subs select x.ToEventSubscription();
         }
         public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)

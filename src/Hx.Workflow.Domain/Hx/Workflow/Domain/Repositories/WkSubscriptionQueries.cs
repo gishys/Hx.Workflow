@@ -6,6 +6,15 @@ namespace Hx.Workflow.Domain.Repositories
 {
     public static class WkSubscriptionQueries
     {
+        public static Expression<Func<WkSubscription, bool>> ForEvent(
+            string eventName,
+            string eventKey,
+            DateTime eventTime)
+            => subscription =>
+                subscription.EventName == eventName &&
+                subscription.EventKey == eventKey &&
+                subscription.SubscribeAsOf <= eventTime;
+
         public static Expression<Func<WkSubscription, bool>> OpenForEvent(
             string eventName,
             string eventKey,
