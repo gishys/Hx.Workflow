@@ -145,6 +145,10 @@ namespace Hx.Workflow.Domain.Repositories
         Task<List<ProcessTypeStat>> GetProcessTypeStatListAsync();
         Task<WkInstance?> FindNoTrackAsync(
     Guid id, bool includeDetails = true, CancellationToken cancellation = default);
+        Task<WkInstance?> GetForWorkflowEngineAsync(
+            Guid id,
+            bool tracking,
+            CancellationToken cancellationToken = default);
 
         /// <summary>实例概览统计</summary>
         Task<InstanceOverviewStat> GetInstanceOverviewStatAsync(DateTime? startTime, DateTime? endTime, Guid? tenantId);

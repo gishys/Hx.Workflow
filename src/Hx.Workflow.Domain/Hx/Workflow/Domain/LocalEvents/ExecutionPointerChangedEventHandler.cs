@@ -51,7 +51,8 @@ namespace Hx.Workflow.Domain.LocalEvents
         public async Task HandleEventAsync(
             EntityChangedEventData<WkExecutionPointer> eventData)
         {
-            if (eventData.Entity.Status == PointerStatus.Complete)
+            if (eventData.Entity.Status == PointerStatus.Complete &&
+                !eventData.Entity.SubmitterId.HasValue)
             {
                 var wkEvent = await _eventRepository.GetByEventKeyAsync($"{eventData.Entity.Id}");
                 if (wkEvent != null && wkEvent.CreatorId != null && wkEvent.CreatorId.HasValue)

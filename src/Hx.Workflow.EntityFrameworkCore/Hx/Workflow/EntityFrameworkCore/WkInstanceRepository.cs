@@ -55,6 +55,28 @@ namespace Hx.Workflow.EntityFrameworkCore
                     .AsNoTracking()
                     .FirstOrDefaultAsync(d => d.Id == id, cancellation);
         }
+        public async Task<WkInstance?> GetForWorkflowEngineAsync(
+            Guid id,
+            bool tracking,
+            CancellationToken cancellationToken = default)
+        {
+            IQueryable<WkInstance> query = (await GetDbSetAsync())
+                .Include(x => x.ExecutionPointers)
+                .ThenInclude(x => x.ExtensionAttributes)
+                .Include(x => x.ExecutionPointers)
+                .ThenInclude(x => x.WkCandidates)
+                .Include(x => x.ExecutionPointers)
+                .ThenInclude(x => x.Materials)
+                .ThenInclude(x => x.Children)
+                .AsSplitQuery();
+
+            if (!tracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        }
         public virtual async Task<WkExecutionPointer?> GetPointerAsync(Guid pointerId)
         {
             var entitys = (await GetDbSetAsync()).IncludeDetails(true);

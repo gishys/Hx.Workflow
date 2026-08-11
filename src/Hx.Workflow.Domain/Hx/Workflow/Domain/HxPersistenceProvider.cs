@@ -1,6 +1,7 @@
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,7 @@ namespace Hx.Workflow.Domain
         IWkInstanceRepository wkInstanceRepository,
         IWkDefinitionRespository wkDefinitionRespository,
         IWkErrorRepository wkErrorRepository,
+        IWkActivitySubmissionRepository wkActivitySubmissionRepository,
         IGuidGenerator guidGenerator,
         ICurrentUser currentUser,
         ReferenceManager referenceManager) : IHxPersistenceProvider, ISingletonDependency
@@ -33,6 +35,7 @@ namespace Hx.Workflow.Domain
         private readonly IWkInstanceRepository _wkInstanceRepository = wkInstanceRepository;
         private readonly IWkDefinitionRespository _wkDefinitionRespository = wkDefinitionRespository;
         private readonly IWkErrorRepository _wkErrorRepository = wkErrorRepository;
+        private readonly IWkActivitySubmissionRepository _wkActivitySubmissionRepository = wkActivitySubmissionRepository;
         private readonly IGuidGenerator _guidGenerator = guidGenerator;
         private readonly ICurrentUser _currentUser = currentUser;
         private readonly ReferenceManager ReferenceManager = referenceManager;
@@ -162,7 +165,31 @@ namespace Hx.Workflow.Domain
         {
             Guid uid = new(id);
             var raw = await _wkEventRepository.FindAsync(uid, true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{uid}]流程事件不存在！");
-            return raw.ToEvent();
+            var result = raw.ToEvent();
+            if (!raw.Data.Contains("System.Text.Json.JsonElement", StringComparison.Ordinal) ||
+                result.EventData is not ActivityResult activityResult ||
+                !Guid.TryParse(activityResult.SubscriptionId, out var subscriptionId))
+            {
+                return result;
+            }
+
+            var subscription = await _wkSubscriptionRepository.FindAsync(
+                subscriptionId, false, cancellationToken);
+            if (subscription?.WorkflowId is not Guid workflowId)
+            {
+                return result;
+            }
+
+            var submission = await _wkActivitySubmissionRepository.FindByKeyAsync(
+                workflowId, raw.Key, cancellationToken);
+            if (submission == null)
+            {
+                return result;
+            }
+
+            activityResult.Data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                submission.Payload);
+            return result;
         }
         public async Task<IEnumerable<string>> GetEvents(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
@@ -218,7 +245,8 @@ namespace Hx.Workflow.Domain
         }
         public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)
         {
-            var entity = await _wkInstanceRepository.FindAsync(new Guid(Id), true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{Id}]流程实例不存在！");
+            var entity = await _wkInstanceRepository.GetForWorkflowEngineAsync(
+                new Guid(Id), false, cancellationToken) ?? throw new UserFriendlyException(message: $"[{Id}]流程实例不存在！");
             return entity.ToWorkflowInstance();
         }
         public async Task<IEnumerable<WorkflowInstance>> GetWorkflowInstances(WorkflowStatus? status, string type, DateTime? createdFrom, DateTime? createdTo, int skip, int take)
@@ -280,7 +308,8 @@ namespace Hx.Workflow.Domain
         {
             using var uow = _unitOfWorkManager.Begin();
             var uid = new Guid(workflow.Id);
-            var existingEntity = await _wkInstanceRepository.FindAsync(uid, true, cancellationToken);
+            var existingEntity = await _wkInstanceRepository.GetForWorkflowEngineAsync(
+                uid, true, cancellationToken);
             if (existingEntity == null)
                 return;
             var persistable = await workflow.ToPersistable(existingEntity);
@@ -292,7 +321,8 @@ namespace Hx.Workflow.Domain
         {
             using var uow = _unitOfWorkManager.Begin();
             var uid = new Guid(workflow.Id);
-            var existingEntity = await _wkInstanceRepository.FindAsync(uid, true, cancellationToken);
+            var existingEntity = await _wkInstanceRepository.GetForWorkflowEngineAsync(
+                uid, true, cancellationToken);
             if (existingEntity == null)
                 return;
             var persistable = await workflow.ToPersistable(existingEntity);
