@@ -107,6 +107,52 @@ namespace Hx.Workflow.Tests
         }
 
         [Fact]
+        public async Task CrossStepActivitySubmission_IsRejectedBeforeIdempotencyReservation()
+        {
+            var definition = Definition();
+            var currentNode = new WkNode("current", "current", StepNodeType.Activity, 1);
+            await currentNode.AddNextNode(new WkNodeRelation("next", WkRoleNodeType.Forward));
+            await definition.AddWkNode(currentNode);
+
+            var error = ActivitySubmissionValidator.Validate(
+                new WkPointerEventData
+                {
+                    Step = "stale-step",
+                    DecideBranching = "wrong-next",
+                    ExecutionType = StepExecutionType.Forward
+                },
+                "current",
+                definition);
+
+            Assert.NotNull(error);
+            Assert.Contains("stale-step", error);
+            Assert.Contains("current", error);
+        }
+
+        [Fact]
+        public async Task InvalidForwardBranch_IsRejectedBeforeIdempotencyReservation()
+        {
+            var definition = Definition();
+            var currentNode = new WkNode("current", "current", StepNodeType.Activity, 1);
+            await currentNode.AddNextNode(new WkNodeRelation("next", WkRoleNodeType.Forward));
+            await definition.AddWkNode(currentNode);
+
+            var error = ActivitySubmissionValidator.Validate(
+                new WkPointerEventData
+                {
+                    Step = "current",
+                    DecideBranching = "wrong-next",
+                    ExecutionType = StepExecutionType.Forward
+                },
+                "current",
+                definition);
+
+            Assert.NotNull(error);
+            Assert.Contains("wrong-next", error);
+            Assert.Contains("current", error);
+        }
+
+        [Fact]
         public void NullTenantId_UsesTypedPostgreSqlUuidParameter()
         {
             var parameter = WkActivitySubmissionParameterFactory.GetTenantParameterSpecification(null);
@@ -148,5 +194,9 @@ namespace Hx.Workflow.Tests
                 Guid.NewGuid(), Guid.NewGuid(), 1, Guid.NewGuid(),
                 "WorkflowCore.Activity", "activity", DateTime.UtcNow.AddHours(-1),
                 null, "token", "worker", expiry);
+
+        private static WkDefinition Definition()
+            => new(
+                Guid.NewGuid(), "test", 1, null, "test", "test");
     }
 }

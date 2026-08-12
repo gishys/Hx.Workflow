@@ -91,12 +91,14 @@ namespace Hx.Workflow.EntityFrameworkCore
 
         public async Task<bool> TryClaimAsync(
             Guid id,
+            string expectedRequestHash,
             DateTime asOf,
             DateTime lockedUntil,
             CancellationToken cancellationToken = default)
         {
             var affectedRows = await (await GetDbSetAsync())
                 .Where(x => x.Id == id &&
+                    x.RequestHash == expectedRequestHash &&
                     (x.Status == WkActivitySubmissionStatus.Accepted ||
                      (x.Status == WkActivitySubmissionStatus.Processing &&
                       (!x.LockedUntil.HasValue || x.LockedUntil <= asOf))))
@@ -105,6 +107,28 @@ namespace Hx.Workflow.EntityFrameworkCore
                     .SetProperty(x => x.LockedUntil, lockedUntil)
                     .SetProperty(x => x.LastModificationTime, asOf)
                     .SetProperty(x => x.AttemptCount, x => x.AttemptCount + 1), cancellationToken);
+            return affectedRows == 1;
+        }
+
+        public async Task<bool> TryReplaceAcceptedAsync(
+            Guid id,
+            string expectedRequestHash,
+            string payload,
+            string requestHash,
+            DateTime asOf,
+            CancellationToken cancellationToken = default)
+        {
+            var affectedRows = await (await GetDbSetAsync())
+                .Where(x =>
+                    x.Id == id &&
+                    x.Status == WkActivitySubmissionStatus.Accepted &&
+                    x.AttemptCount == 0 &&
+                    x.RequestHash == expectedRequestHash)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.Payload, payload)
+                    .SetProperty(x => x.RequestHash, requestHash)
+                    .SetProperty(x => x.Error, (string?)null)
+                    .SetProperty(x => x.LastModificationTime, asOf), cancellationToken);
             return affectedRows == 1;
         }
 

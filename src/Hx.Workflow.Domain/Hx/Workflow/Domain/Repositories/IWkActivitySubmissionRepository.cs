@@ -25,8 +25,17 @@ namespace Hx.Workflow.Domain.Repositories
 
         Task<bool> TryClaimAsync(
             Guid id,
+            string expectedRequestHash,
             DateTime asOf,
             DateTime lockedUntil,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> TryReplaceAcceptedAsync(
+            Guid id,
+            string expectedRequestHash,
+            string payload,
+            string requestHash,
+            DateTime asOf,
             CancellationToken cancellationToken = default);
 
         Task MarkEventPublishedAsync(Guid id, DateTime asOf, CancellationToken cancellationToken = default);

@@ -1,4 +1,5 @@
 using Hx.Workflow.Application.Contracts;
+using Hx.Workflow.Application.StepBodys;
 using Hx.Workflow.Domain;
 using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
@@ -228,20 +229,63 @@ namespace Hx.Workflow.Application
             var payload = JsonSerializer.Serialize(data);
             var requestHash = WkActivitySubmissionPolicies.ComputeRequestHash(payload);
             var existing = await _activitySubmissionRepository.FindByKeyAsync(workflowGuid, actName);
-            if (existing != null)
+            if (existing?.RequestHash == requestHash)
             {
                 return existing.RequestHash == requestHash
                     ? ToResult(existing)
                     : Rejected(workflowGuid, actName, "相同 workflowId + activityName 已使用不同请求数据提交。");
             }
 
+            WkExecutionPointer pointer;
             try
             {
-                await _hxWorkflowManager.ValidateActivityOwnershipAsync(actName, workflowId);
+                pointer = await _hxWorkflowManager.ValidateActivityOwnershipAsync(actName, workflowId);
             }
             catch (BusinessException ex)
             {
                 return Rejected(workflowGuid, actName, ex.Message);
+            }
+
+            var instance = await _wkInstanceRepository.FindNoTrackAsync(workflowGuid, false);
+            if (instance == null)
+            {
+                return Rejected(workflowGuid, actName, $"流程实例 [{workflowId}] 不存在。");
+            }
+            var definition = await _wkDefinition.GetDefinitionAsync(
+                instance.WkDifinitionId,
+                instance.Version);
+            if (definition == null)
+            {
+                return Rejected(
+                    workflowGuid,
+                    actName,
+                    $"流程模板 [{instance.WkDifinitionId}] 版本 [{instance.Version}] 不存在。");
+            }
+
+            var validationError = ActivitySubmissionValidator.Validate(
+                eventPointerEventData,
+                pointer.StepName,
+                definition);
+            if (validationError != null)
+            {
+                return Rejected(workflowGuid, actName, validationError);
+            }
+
+            if (existing != null)
+            {
+                var replaced = await _activitySubmissionRepository.TryReplaceAcceptedAsync(
+                    existing.Id,
+                    existing.RequestHash,
+                    payload,
+                    requestHash,
+                    DateTime.UtcNow);
+                if (replaced)
+                {
+                    var replacement = await _activitySubmissionRepository.FindByKeyAsync(workflowGuid, actName);
+                    return ToResult(replacement!);
+                }
+
+                return Rejected(workflowGuid, actName, "相同 workflowId + activityName 已使用不同请求数据提交。");
             }
 
             var now = DateTime.UtcNow;

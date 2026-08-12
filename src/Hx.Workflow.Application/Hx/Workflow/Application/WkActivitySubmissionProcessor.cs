@@ -141,7 +141,11 @@ namespace Hx.Workflow.Application
                 using var uow = uowManager.Begin(requiresNew: true, isTransactional: true);
                 var now = DateTime.UtcNow;
                 var claimed = await repository.TryClaimAsync(
-                    submission.Id, now, now.Add(ProcessingLease), cancellationToken);
+                    submission.Id,
+                    submission.RequestHash,
+                    now,
+                    now.Add(ProcessingLease),
+                    cancellationToken);
                 await uow.CompleteAsync(cancellationToken);
                 return claimed;
             }
