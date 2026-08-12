@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.SignalR;
 using Volo.Abp.Domain;
@@ -13,17 +16,27 @@ namespace Hx.Workflow.Domain
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
+            var configuration = context.Services.GetConfiguration();
+            Configure<HxWorkflowRuntimeOptions>(
+                configuration.GetSection(HxWorkflowRuntimeOptions.SectionName));
         }
-        public async override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
         {
+            var options = context.ServiceProvider
+                .GetRequiredService<IOptions<HxWorkflowRuntimeOptions>>()
+                .Value;
+
+            if (!options.RunHost)
+            {
+                return;
+            }
+
             var manager = context.ServiceProvider.GetRequiredService<HxWorkflowManager>();
             await manager.Initialize();
             await manager.StartHostAsync();
         }
-        public async override void OnApplicationShutdown(ApplicationShutdownContext context)
+        public override async Task OnApplicationShutdownAsync(ApplicationShutdownContext context)
         {
-            base.OnApplicationShutdown(context);
             var manager = context.ServiceProvider.GetRequiredService<HxWorkflowManager>();
             await manager.StopAsync();
         }

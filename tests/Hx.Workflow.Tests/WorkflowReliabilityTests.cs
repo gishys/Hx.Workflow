@@ -10,6 +10,7 @@ using System;
 using System.Data;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using WorkflowCore.Models;
 using Xunit;
@@ -187,6 +188,66 @@ namespace Hx.Workflow.Tests
 
             Assert.Equal("核定", restoredData!.DecideBranching);
             Assert.Equal(StepExecutionType.Forward, restoredData.ExecutionType);
+        }
+
+        [Fact]
+        public async Task DuplicateRuntimeLifecycleCalls_AreExecutedOnlyOnce()
+        {
+            var guard = new WorkflowRuntimeGuard();
+            var initializeCount = 0;
+            var startCount = 0;
+            var stopCount = 0;
+
+            await Task.WhenAll(
+                guard.InitializeOnceAsync(() => IncrementAsync(() => Interlocked.Increment(ref initializeCount))),
+                guard.InitializeOnceAsync(() => IncrementAsync(() => Interlocked.Increment(ref initializeCount))));
+
+            await Task.WhenAll(
+                guard.StartOnceAsync(() => IncrementAsync(() => Interlocked.Increment(ref startCount))),
+                guard.StartOnceAsync(() => IncrementAsync(() => Interlocked.Increment(ref startCount))));
+
+            await Task.WhenAll(
+                guard.StopOnceAsync(() => IncrementAsync(() => Interlocked.Increment(ref stopCount))),
+                guard.StopOnceAsync(() => IncrementAsync(() => Interlocked.Increment(ref stopCount))));
+
+            Assert.Equal(1, initializeCount);
+            Assert.Equal(1, startCount);
+            Assert.Equal(1, stopCount);
+        }
+
+        [Fact]
+        public async Task FailedRuntimeStart_CanBeRetried()
+        {
+            var guard = new WorkflowRuntimeGuard();
+            var attempts = 0;
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                guard.StartOnceAsync(() =>
+                {
+                    attempts++;
+                    throw new InvalidOperationException("simulated startup failure");
+                }));
+
+            await guard.StartOnceAsync(() =>
+            {
+                attempts++;
+                return Task.CompletedTask;
+            });
+
+            Assert.Equal(2, attempts);
+        }
+
+        [Fact]
+        public void WorkflowHost_IsEnabledByDefaultForBackwardCompatibility()
+        {
+            Assert.True(new HxWorkflowRuntimeOptions().RunHost);
+            Assert.Equal("WorkflowCore", HxWorkflowRuntimeOptions.SectionName);
+        }
+
+        private static async Task IncrementAsync(Action increment)
+        {
+            await Task.Delay(10);
+            increment();
         }
 
         private static WkSubscription Subscription(DateTime expiry)

@@ -30,6 +30,7 @@ namespace Hx.Workflow.Domain
         IWkDefinitionRespository wkDefinitionRespository,
         IWorkflowHost workflowHost,
         IWkInstanceRepository instanceRepository,
+        WorkflowRuntimeGuard runtimeGuard,
         ILogger<HxWorkflowManager> logger) : DomainService
     {
         private readonly IWorkflowRegistry _registry = registry;
@@ -40,6 +41,7 @@ namespace Hx.Workflow.Domain
         private readonly IDataFilter _dataFilter = dataFilter;
         private readonly IWkDefinitionRespository _wkDefinitionRespository = wkDefinitionRespository;
         protected readonly IWorkflowHost _workflowHost = workflowHost;
+        private readonly WorkflowRuntimeGuard _runtimeGuard = runtimeGuard;
         private readonly ILogger<HxWorkflowManager> _logger = logger;
         private List<WkNode>? _WkNodes;
         public IWkInstanceRepository WkInstanceRepository { get; set; } = instanceRepository;
@@ -88,7 +90,12 @@ namespace Hx.Workflow.Domain
         /// <summary>
         ///  initialize process registration
         /// </summary>
-        public async virtual Task Initialize()
+        public virtual Task Initialize()
+        {
+            return _runtimeGuard.InitializeOnceAsync(InitializeCoreAsync);
+        }
+
+        private async Task InitializeCoreAsync()
         {
             using var uow = _unitOfWorkManager.Begin(
                 requiresNew: true, isTransactional: false
@@ -112,13 +119,15 @@ namespace Hx.Workflow.Domain
             }
             await uow.CompleteAsync();
         }
-        public async virtual Task StartHostAsync()
+        public virtual Task StartHostAsync()
         {
-            await _workflowHost.StartAsync(new CancellationToken());
+            return _runtimeGuard.StartOnceAsync(
+                () => _workflowHost.StartAsync(CancellationToken.None));
         }
-        public async virtual Task StopAsync()
+        public virtual Task StopAsync()
         {
-            await _workflowHost.StopAsync(new CancellationToken());
+            return _runtimeGuard.StopOnceAsync(
+                () => _workflowHost.StopAsync(CancellationToken.None));
         }
         public async virtual Task<IEnumerable<WkStepBody>> GetAllStepBodys()
         {
