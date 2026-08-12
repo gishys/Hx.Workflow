@@ -229,7 +229,11 @@ namespace Hx.Workflow.Application
             var payload = JsonSerializer.Serialize(data);
             var requestHash = WkActivitySubmissionPolicies.ComputeRequestHash(payload);
             var existing = await _activitySubmissionRepository.FindByKeyAsync(workflowGuid, actName);
-            if (existing?.RequestHash == requestHash)
+            var isSameRequest = existing?.RequestHash == requestHash;
+            if (isSameRequest && existing!.Status is
+                WkActivitySubmissionStatus.Succeeded or
+                WkActivitySubmissionStatus.Failed or
+                WkActivitySubmissionStatus.Rejected)
             {
                 return existing.RequestHash == requestHash
                     ? ToResult(existing)
@@ -269,6 +273,11 @@ namespace Hx.Workflow.Application
             if (validationError != null)
             {
                 return Rejected(workflowGuid, actName, validationError);
+            }
+
+            if (isSameRequest)
+            {
+                return ToResult(existing!);
             }
 
             if (existing != null)
