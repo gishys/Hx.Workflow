@@ -1,3 +1,4 @@
+using Autofac.Extensions.DependencyInjection;
 using Hx.Workflow.Application;
 using Hx.Workflow.Application.StepBodys;
 using Hx.Workflow.Domain;
@@ -6,12 +7,15 @@ using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
 using Hx.Workflow.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Data;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkflowCore.Interface;
 using WorkflowCore.Models;
 using Xunit;
 
@@ -244,6 +248,96 @@ namespace Hx.Workflow.Tests
             Assert.Equal("WorkflowCore", HxWorkflowRuntimeOptions.SectionName);
         }
 
+        [Fact]
+        public async Task AutofacChildScope_CannotDisposeWorkflowLifeCyclePublisher()
+        {
+            IServiceCollection services = new ServiceCollection();
+            services.AddLogging();
+            services.AddWorkflow();
+
+            var customTaskState = new BackgroundTaskState();
+            var customTaskDescriptor = ServiceDescriptor.Transient<IBackgroundTask>(
+                _ => new TrackingBackgroundTask(customTaskState));
+            services.Add(customTaskDescriptor);
+
+            var workflowCoreAssembly = typeof(IWorkflowHost).Assembly;
+            var originalTaskDescriptorCount = services.Count(
+                descriptor => descriptor.ServiceType == typeof(IBackgroundTask));
+            var workflowCoreWorkerTypes = services
+                .Where(descriptor =>
+                    descriptor.ServiceType == typeof(IBackgroundTask) &&
+                    descriptor.ImplementationType != null)
+                .Select(descriptor => descriptor.ImplementationType!)
+                .ToArray();
+
+            Assert.Single(services.Where(descriptor =>
+                descriptor.ServiceType == typeof(IBackgroundTask) &&
+                descriptor.Lifetime == ServiceLifetime.Transient &&
+                descriptor.ImplementationFactory?.Method.DeclaringType?.Assembly ==
+                    workflowCoreAssembly));
+
+            Assert.True(WorkflowCoreServiceCollectionCompatibility
+                .ReplaceLifeCyclePublisherBackgroundTaskAlias(services));
+
+            Assert.Contains(customTaskDescriptor, services);
+            Assert.Equal(
+                originalTaskDescriptorCount,
+                services.Count(descriptor =>
+                    descriptor.ServiceType == typeof(IBackgroundTask)));
+            Assert.Empty(services.Where(descriptor =>
+                descriptor.ServiceType == typeof(IBackgroundTask) &&
+                descriptor.Lifetime == ServiceLifetime.Transient &&
+                descriptor.ImplementationFactory?.Method.DeclaringType?.Assembly ==
+                    workflowCoreAssembly));
+
+            var providerFactory = new AutofacServiceProviderFactory();
+            var containerBuilder = providerFactory.CreateBuilder(services);
+            var serviceProvider = providerFactory.CreateServiceProvider(containerBuilder);
+
+            try
+            {
+                var publisher = serviceProvider
+                    .GetRequiredService<ILifeCycleEventPublisher>();
+
+                using (var childScope = serviceProvider.CreateScope())
+                {
+                    var childTasks = childScope.ServiceProvider
+                        .GetServices<IBackgroundTask>()
+                        .ToArray();
+
+                    Assert.Equal(originalTaskDescriptorCount, childTasks.Length);
+                    Assert.DoesNotContain(
+                        childTasks,
+                        task => ReferenceEquals(task, publisher));
+                    Assert.Single(childTasks.OfType<TrackingBackgroundTask>());
+                    Assert.Equal(
+                        childTasks.Length,
+                        childTasks.Select(task => task.GetType()).Distinct().Count());
+
+                    foreach (var workerType in workflowCoreWorkerTypes)
+                    {
+                        Assert.Single(childTasks.Where(task =>
+                            task.GetType() == workerType));
+                    }
+                }
+
+                Assert.Same(
+                    publisher,
+                    serviceProvider.GetRequiredService<ILifeCycleEventPublisher>());
+
+                var host = serviceProvider.GetRequiredService<IWorkflowHost>();
+                await host.StartAsync(CancellationToken.None);
+                await host.StopAsync(CancellationToken.None);
+
+                Assert.Equal(1, customTaskState.StartCount);
+                Assert.Equal(1, customTaskState.StopCount);
+            }
+            finally
+            {
+                (serviceProvider as IDisposable)?.Dispose();
+            }
+        }
+
         private static async Task IncrementAsync(Action increment)
         {
             await Task.Delay(10);
@@ -259,5 +353,25 @@ namespace Hx.Workflow.Tests
         private static WkDefinition Definition()
             => new(
                 Guid.NewGuid(), "test", 1, null, "test", "test");
+
+        private sealed class BackgroundTaskState
+        {
+            public int StartCount;
+            public int StopCount;
+        }
+
+        private sealed class TrackingBackgroundTask(BackgroundTaskState state)
+            : IBackgroundTask
+        {
+            public void Start()
+            {
+                Interlocked.Increment(ref state.StartCount);
+            }
+
+            public void Stop()
+            {
+                Interlocked.Increment(ref state.StopCount);
+            }
+        }
     }
 }

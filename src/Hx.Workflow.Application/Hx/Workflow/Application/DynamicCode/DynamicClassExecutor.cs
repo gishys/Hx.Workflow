@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -40,43 +38,29 @@ namespace Hx.Workflow.Application.DynamicCode
             using var scope = _serviceProvider.CreateScope();
             var services = scope.ServiceProvider;
 
-            // 创建新的服务集合
-            var serviceCollection = new ServiceCollection();
-
-            // 添加父容器中的所有服务描述符
-            var parentServiceCollection = services.GetRequiredService<IEnumerable<ServiceDescriptor>>();
-            foreach (var descriptor in parentServiceCollection)
-            {
-                serviceCollection.Add(descriptor);
-            }
-
-            // 注册动态类型
-            serviceCollection.AddTransient(type);
-
-            var childProvider = serviceCollection.BuildServiceProvider();
-
-            // 解析实例
-            var instance = childProvider.GetRequiredService(type);
-
-            // 查找方法
-            MethodInfo? method = null;
-
-            if (genericArguments != null && genericArguments.Length > 0)
-            {
-                method = type.GetMethod(methodName)?.MakeGenericMethod(genericArguments);
-            }
-            else
-            {
-                method = type.GetMethod(methodName);
-            }
-
-            if (method == null)
-            {
-                throw new AbpException($"Method {methodName} not found in type {type.Name}");
-            }
+            // 使用当前 ABP 作用域构造动态类型。复制父容器全部描述符并重新
+            // BuildServiceProvider 会造成 Singleton 所有权重复；临时容器释放时
+            // 可能连正在运行的 WorkflowCore 服务一起释放。
+            var instance = ActivatorUtilities.CreateInstance(services, type);
 
             try
             {
+                // 查找方法也必须处于 finally 保护中，确保绑定失败时释放实例。
+                MethodInfo? method;
+                if (genericArguments != null && genericArguments.Length > 0)
+                {
+                    method = type.GetMethod(methodName)?.MakeGenericMethod(genericArguments);
+                }
+                else
+                {
+                    method = type.GetMethod(methodName);
+                }
+
+                if (method == null)
+                {
+                    throw new AbpException($"Method {methodName} not found in type {type.Name}");
+                }
+
                 // 异步执行方法
                 return await AsyncMethodExecutor.ExecuteAsync(method, instance, parameters);
             }
@@ -86,16 +70,18 @@ namespace Hx.Workflow.Application.DynamicCode
                     methodName, type.Name);
                 throw new AbpException($"Dynamic execution failed: {ex.Message}", ex);
             }
-        }
-    }
-
-    internal static class ServiceProviderExtensions
-    {
-        public static IEnumerable<ServiceDescriptor> GetServiceDescriptors(
-            this IServiceProvider serviceProvider)
-        {
-            // 通过标准方式获取服务描述符
-            return serviceProvider.GetRequiredService<IEnumerable<ServiceDescriptor>>();
+            finally
+            {
+                switch (instance)
+                {
+                    case IAsyncDisposable asyncDisposable:
+                        await asyncDisposable.DisposeAsync();
+                        break;
+                    case IDisposable disposable:
+                        disposable.Dispose();
+                        break;
+                }
+            }
         }
     }
 }

@@ -35,9 +35,8 @@ namespace Hx.Workflow.Domain
             var logger = context.ServiceProvider
                 .GetRequiredService<ILogger<HxWorkflowDomainModule>>();
             logger.LogInformation(
-                "Starting the WorkflowCore host. Do not resolve IBackgroundTask services " +
-                "from child scopes; WorkflowCore 3.10 exposes a disposable singleton " +
-                "publisher through that service type.");
+                "Starting the WorkflowCore host with protected life-cycle publisher " +
+                "background-task registration.");
 
             var manager = context.ServiceProvider.GetRequiredService<HxWorkflowManager>();
             await manager.Initialize();
@@ -50,6 +49,9 @@ namespace Hx.Workflow.Domain
         }
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
+            WorkflowCoreServiceCollectionCompatibility
+                .ReplaceLifeCyclePublisherBackgroundTaskAlias(context.Services);
+
             context.Services.Configure<AbpSignalROptions>(options =>
             {
                 var hubs = options.Hubs.DistinctBy(x => x.HubType).ToList();
