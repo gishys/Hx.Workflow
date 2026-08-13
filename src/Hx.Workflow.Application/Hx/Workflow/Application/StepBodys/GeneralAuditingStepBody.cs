@@ -97,7 +97,9 @@ namespace Hx.Workflow.Application.StepBodys
                 {
                     context.ExecutionPointer.ExtensionAttributes ??= new Dictionary<string, object>();
                     context.ExecutionPointer.ExtensionAttributes.Remove("CommitmentDeadline");
-                    context.ExecutionPointer.ExtensionAttributes.Add("CommitmentDeadline", DateTime.Now.AddMinutes((double)pointer.LimitTime));
+                    context.ExecutionPointer.ExtensionAttributes.Add(
+                        "CommitmentDeadline",
+                        DateTime.UtcNow.AddMinutes((double)pointer.LimitTime));
                 }
                 if (!executionPointer.EventPublished)
                 {

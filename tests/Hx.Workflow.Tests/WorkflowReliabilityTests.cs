@@ -81,7 +81,190 @@ namespace Hx.Workflow.Tests
             EventSubscription restoredSubscription = persistedSubscription.ToEventSubscription();
 
             Assert.Equal(eventTime, restoredEvent.EventTime);
+            Assert.Equal(DateTimeKind.Utc, restoredEvent.EventTime.Kind);
             Assert.Equal(subscribeAsOf, restoredSubscription.SubscribeAsOf);
+            Assert.Equal(DateTimeKind.Utc, restoredSubscription.SubscribeAsOf.Kind);
+        }
+
+        [Fact]
+        public void LegacyLocalEngineTimes_AreNormalizedToUtcWhenRestored()
+        {
+            var expectedEventUtc = new DateTime(
+                2026, 8, 13, 3, 3, 43, DateTimeKind.Utc);
+            var expectedSubscribeUtc = expectedEventUtc.AddMinutes(-1);
+            var expectedExpiryUtc = expectedEventUtc.AddMinutes(5);
+            var legacyEventLocal = expectedEventUtc.ToLocalTime();
+            var legacySubscribeLocal = expectedSubscribeUtc.ToLocalTime();
+            var legacyExpiryLocal = expectedExpiryUtc.ToLocalTime();
+            var persistedEvent = new WkEvent(
+                Guid.NewGuid(), "WorkflowCore.Activity", "activity", "null",
+                legacyEventLocal, false);
+            var persistedSubscription = new WkSubscription(
+                Guid.NewGuid(), Guid.NewGuid(), 1, Guid.NewGuid(),
+                "WorkflowCore.Activity", "activity", legacySubscribeLocal,
+                "null", "token", "worker", legacyExpiryLocal);
+
+            var restoredEvent = persistedEvent.ToEvent();
+            var restoredSubscription = persistedSubscription.ToEventSubscription();
+
+            Assert.Equal(expectedEventUtc, restoredEvent.EventTime);
+            Assert.Equal(DateTimeKind.Utc, restoredEvent.EventTime.Kind);
+            Assert.Equal(expectedSubscribeUtc, restoredSubscription.SubscribeAsOf);
+            Assert.Equal(DateTimeKind.Utc, restoredSubscription.SubscribeAsOf.Kind);
+            Assert.Equal(expectedExpiryUtc, restoredSubscription.ExternalTokenExpiry);
+            Assert.Equal(DateTimeKind.Utc, restoredSubscription.ExternalTokenExpiry?.Kind);
+        }
+
+        [Fact]
+        public void LocalEngineTimes_AreNormalizedToUtcBeforePersistence()
+        {
+            var expectedEventUtc = new DateTime(
+                2026, 8, 13, 3, 3, 43, DateTimeKind.Utc);
+            var expectedSubscribeUtc = expectedEventUtc.AddMinutes(-1);
+            var expectedExpiryUtc = expectedEventUtc.AddMinutes(5);
+            var workflowEvent = new Event
+            {
+                Id = Guid.NewGuid().ToString(),
+                EventName = "WorkflowCore.Activity",
+                EventKey = "activity",
+                EventData = null,
+                EventTime = expectedEventUtc.ToLocalTime()
+            };
+            var subscription = new EventSubscription
+            {
+                Id = Guid.NewGuid().ToString(),
+                WorkflowId = Guid.NewGuid().ToString(),
+                ExecutionPointerId = Guid.NewGuid().ToString(),
+                EventName = "WorkflowCore.Activity",
+                EventKey = "activity",
+                SubscribeAsOf = expectedSubscribeUtc.ToLocalTime(),
+                ExternalTokenExpiry = expectedExpiryUtc.ToLocalTime()
+            };
+
+            var persistedEvent = workflowEvent.ToPersistable();
+            var persistedSubscription = subscription.ToPersistable();
+
+            Assert.Equal(expectedEventUtc, persistedEvent.Time);
+            Assert.Equal(DateTimeKind.Utc, persistedEvent.Time.Kind);
+            Assert.Equal(expectedSubscribeUtc, persistedSubscription.SubscribeAsOf);
+            Assert.Equal(DateTimeKind.Utc, persistedSubscription.SubscribeAsOf.Kind);
+            Assert.Equal(expectedExpiryUtc, persistedSubscription.ExternalTokenExpiry);
+            Assert.Equal(DateTimeKind.Utc, persistedSubscription.ExternalTokenExpiry?.Kind);
+        }
+
+        [Fact]
+        public void UnspecifiedAndInfinityEngineTimes_UseUtcContractWithoutTickChanges()
+        {
+            var unspecified = new DateTime(2026, 8, 13, 3, 3, 43, DateTimeKind.Unspecified);
+
+            var normalizedUnspecified = WorkflowDateTime.NormalizeUtc(unspecified);
+            var normalizedMinimum = WorkflowDateTime.NormalizeUtc(DateTime.MinValue);
+            var normalizedMaximum = WorkflowDateTime.NormalizeUtc(DateTime.MaxValue);
+
+            Assert.Equal(unspecified.Ticks, normalizedUnspecified.Ticks);
+            Assert.Equal(DateTimeKind.Utc, normalizedUnspecified.Kind);
+            Assert.Equal(DateTime.MinValue.Ticks, normalizedMinimum.Ticks);
+            Assert.Equal(DateTimeKind.Utc, normalizedMinimum.Kind);
+            Assert.Equal(DateTime.MaxValue.Ticks, normalizedMaximum.Ticks);
+            Assert.Equal(DateTimeKind.Utc, normalizedMaximum.Kind);
+            Assert.Null(WorkflowDateTime.NormalizeUtc((DateTime?)null));
+        }
+
+        [Fact]
+        public async Task WorkflowControlTimes_AreNormalizedToUtcWhenRestored()
+        {
+            var expectedUtc = new DateTime(2026, 8, 13, 3, 3, 43, DateTimeKind.Utc);
+            var legacyLocal = expectedUtc.ToLocalTime();
+            var persisted = new WkInstance(
+                Guid.NewGuid(), Guid.NewGuid(), 1, "workflow", "reference", null,
+                WorkflowStatus.Runnable, "null", legacyLocal, legacyLocal);
+            await persisted.AddExecutionPointer(new WkExecutionPointer(
+                1,
+                true,
+                legacyLocal,
+                "null",
+                legacyLocal,
+                legacyLocal,
+                "WorkflowCore.Activity",
+                "activity",
+                false,
+                "null",
+                "review",
+                0,
+                null,
+                null,
+                null,
+                "null",
+                PointerStatus.Running,
+                null,
+                legacyLocal));
+
+            var restored = persisted.ToWorkflowInstance();
+            var pointer = Assert.Single(restored.ExecutionPointers);
+
+            Assert.Equal(expectedUtc, restored.CreateTime);
+            Assert.Equal(DateTimeKind.Utc, restored.CreateTime.Kind);
+            Assert.Equal(expectedUtc, restored.CompleteTime);
+            Assert.Equal(DateTimeKind.Utc, restored.CompleteTime?.Kind);
+            Assert.Equal(expectedUtc, pointer.SleepUntil);
+            Assert.Equal(DateTimeKind.Utc, pointer.SleepUntil?.Kind);
+            Assert.Equal(expectedUtc, pointer.StartTime);
+            Assert.Equal(DateTimeKind.Utc, pointer.StartTime?.Kind);
+            Assert.Equal(expectedUtc, pointer.EndTime);
+            Assert.Equal(DateTimeKind.Utc, pointer.EndTime?.Kind);
+        }
+
+        [Fact]
+        public async Task WorkflowControlTimes_AreNormalizedToUtcBeforePersistence()
+        {
+            var expectedUtc = new DateTime(2026, 8, 13, 3, 3, 43, DateTimeKind.Utc);
+            var legacyLocal = expectedUtc.ToLocalTime();
+            var workflow = new WorkflowInstance
+            {
+                Id = Guid.NewGuid().ToString(),
+                WorkflowDefinitionId = Guid.NewGuid().ToString(),
+                Version = 1,
+                Description = "workflow",
+                Reference = "reference",
+                Status = WorkflowStatus.Runnable,
+                Data = null,
+                CreateTime = legacyLocal,
+                CompleteTime = legacyLocal,
+                ExecutionPointers = new ExecutionPointerCollection(1)
+            };
+            var pointer = new ExecutionPointer
+            {
+                Id = Guid.NewGuid().ToString(),
+                StepId = 1,
+                Active = true,
+                SleepUntil = legacyLocal,
+                StartTime = legacyLocal,
+                EndTime = legacyLocal,
+                EventName = "WorkflowCore.Activity",
+                EventKey = "activity",
+                StepName = "review",
+                Status = PointerStatus.Running,
+                Children = [],
+                Scope = []
+            };
+            pointer.ExtensionAttributes["CommitmentDeadline"] = legacyLocal;
+            workflow.ExecutionPointers.Add(pointer);
+
+            var persisted = await workflow.ToPersistable();
+            var persistedPointer = Assert.Single(persisted.ExecutionPointers);
+
+            Assert.Equal(expectedUtc, persisted.CreateTime);
+            Assert.Equal(DateTimeKind.Utc, persisted.CreateTime.Kind);
+            Assert.Equal(expectedUtc, persisted.CompleteTime);
+            Assert.Equal(DateTimeKind.Utc, persisted.CompleteTime?.Kind);
+            Assert.Equal(expectedUtc, persistedPointer.SleepUntil);
+            Assert.Equal(DateTimeKind.Utc, persistedPointer.SleepUntil?.Kind);
+            Assert.Equal(expectedUtc, persistedPointer.StartTime);
+            Assert.Equal(DateTimeKind.Utc, persistedPointer.StartTime?.Kind);
+            Assert.Equal(expectedUtc, persistedPointer.EndTime);
+            Assert.Equal(DateTimeKind.Utc, persistedPointer.EndTime?.Kind);
+            Assert.Equal(expectedUtc, persistedPointer.CommitmentDeadline);
+            Assert.Equal(DateTimeKind.Utc, persistedPointer.CommitmentDeadline?.Kind);
         }
 
         [Fact]

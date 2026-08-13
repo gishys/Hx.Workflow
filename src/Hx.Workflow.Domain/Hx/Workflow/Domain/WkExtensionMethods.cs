@@ -20,7 +20,7 @@ namespace Hx.Workflow.Domain
             return new WkExecutionError(
                 new Guid(instance.WorkflowId),
                 new Guid(instance.ExecutionPointerId),
-                instance.ErrorTime,
+                WorkflowDateTime.NormalizeUtc(instance.ErrorTime),
                 instance.Message);
         }
         internal static WorkflowInstance ToWorkflowInstance(this WkInstance instance)
@@ -35,8 +35,8 @@ namespace Hx.Workflow.Domain
                 Version = instance.Version,
                 WorkflowDefinitionId = instance.WkDifinitionId.ToString(),
                 Status = instance.Status,
-                CreateTime = instance.CreateTime,
-                CompleteTime = instance.CompleteTime,
+                CreateTime = WorkflowDateTime.NormalizeUtc(instance.CreateTime),
+                CompleteTime = WorkflowDateTime.NormalizeUtc(instance.CompleteTime),
                 ExecutionPointers = new ExecutionPointerCollection(instance.ExecutionPointers.Count + 8)
             };
 
@@ -47,11 +47,11 @@ namespace Hx.Workflow.Domain
                     Id = ep.Id.ToString(),
                     StepId = ep.StepId,
                     Active = ep.Active,
-                    SleepUntil = ep.SleepUntil,
+                    SleepUntil = WorkflowDateTime.NormalizeUtc(ep.SleepUntil),
 
                     PersistenceData = ep.PersistenceData.SafeDeserialize<Dictionary<string, object>>(SerializerSettings),
-                    StartTime = ep.StartTime,
-                    EndTime = ep.EndTime,
+                    StartTime = WorkflowDateTime.NormalizeUtc(ep.StartTime),
+                    EndTime = WorkflowDateTime.NormalizeUtc(ep.EndTime),
                     StepName = ep.StepName,
 
                     RetryCount = ep.RetryCount,
@@ -95,7 +95,7 @@ namespace Hx.Workflow.Domain
                 EventKey = instance.Key,
                 EventName = instance.Name
             };
-            result.EventTime = instance.Time;
+            result.EventTime = WorkflowDateTime.NormalizeUtc(instance.Time);
             result.IsProcessed = instance.IsProcessed;
             result.EventData = JsonConvert.DeserializeObject(instance.Data, SerializerSettings);
             return result;
@@ -118,7 +118,7 @@ namespace Hx.Workflow.Domain
                     instance.EventName,
                     instance.EventKey,
                     JsonConvert.SerializeObject(eventData, SerializerSettings),
-                    instance.EventTime,
+                    WorkflowDateTime.NormalizeUtc(instance.EventTime),
                     instance.IsProcessed
                     );
         }
@@ -167,11 +167,11 @@ namespace Hx.Workflow.Domain
                 new Guid(instance.ExecutionPointerId),
                 instance.EventName,
                 instance.EventKey,
-                instance.SubscribeAsOf,
+                WorkflowDateTime.NormalizeUtc(instance.SubscribeAsOf),
                 JsonConvert.SerializeObject(instance.SubscriptionData, SerializerSettings),
                 instance.ExternalToken,
                 instance.ExternalWorkerId,
-                instance.ExternalTokenExpiry
+                WorkflowDateTime.NormalizeUtc(instance.ExternalTokenExpiry)
                 );
         }
         internal static EventSubscription ToEventSubscription(this WkSubscription instance)
@@ -185,10 +185,10 @@ namespace Hx.Workflow.Domain
                 ExecutionPointerId = instance.ExecutionPointerId.ToString(),
                 WorkflowId = instance.WorkflowId.ToString()
             };
-            result.SubscribeAsOf = instance.SubscribeAsOf;
+            result.SubscribeAsOf = WorkflowDateTime.NormalizeUtc(instance.SubscribeAsOf);
             result.SubscriptionData = JsonConvert.DeserializeObject(instance.SubscriptionData ?? string.Empty, SerializerSettings);
             result.ExternalToken = instance.ExternalToken;
-            result.ExternalTokenExpiry = instance.ExternalTokenExpiry;
+            result.ExternalTokenExpiry = WorkflowDateTime.NormalizeUtc(instance.ExternalTokenExpiry);
             result.ExternalWorkerId = instance.ExternalWorkerId;
             return result;
         }
@@ -205,8 +205,8 @@ namespace Hx.Workflow.Domain
                     instance.NextExecution,
                     instance.Status,
                     JsonConvert.SerializeObject(instance.Data, SerializerSettings),
-                    instance.CreateTime,
-                    instance.CompleteTime);
+                    WorkflowDateTime.NormalizeUtc(instance.CreateTime),
+                    WorkflowDateTime.NormalizeUtc(instance.CompleteTime));
             }
             else
             {
@@ -215,8 +215,8 @@ namespace Hx.Workflow.Domain
                 await persistable.SetNextExecution(instance.NextExecution);
                 await persistable.SetStatus(instance.Status);
                 await persistable.SetData(JsonConvert.SerializeObject(instance.Data, SerializerSettings));
-                await persistable.SetCreateTime(instance.CreateTime);
-                await persistable.SetCompleteTime(instance.CompleteTime);
+                await persistable.SetCreateTime(WorkflowDateTime.NormalizeUtc(instance.CreateTime));
+                await persistable.SetCompleteTime(WorkflowDateTime.NormalizeUtc(instance.CompleteTime));
             }
 
             foreach (var exe in instance.ExecutionPointers)
@@ -228,10 +228,10 @@ namespace Hx.Workflow.Domain
                     epTemp = new WkExecutionPointer(
                         exe.StepId,
                         exe.Active,
-                        exe.SleepUntil,
+                        WorkflowDateTime.NormalizeUtc(exe.SleepUntil),
                         JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings),
-                        exe.StartTime,
-                        exe.EndTime,
+                        WorkflowDateTime.NormalizeUtc(exe.StartTime),
+                        WorkflowDateTime.NormalizeUtc(exe.EndTime),
                         exe.EventName,
                         exe.EventKey,
                         exe.EventPublished,
@@ -244,19 +244,19 @@ namespace Hx.Workflow.Domain
                         JsonConvert.SerializeObject(exe.Outcome, SerializerSettings),
                         exe.Status,
                         string.Join(';', exe.Scope),
-                        eventPointerEventData?.CommitmentDeadline);
+                        WorkflowDateTime.NormalizeUtc(eventPointerEventData?.CommitmentDeadline));
                     await persistable.AddExecutionPointer(epTemp);
                 }
                 else
                 {
                     await epTemp.SetStepId(exe.StepId);
                     await epTemp.SetActive(exe.Active);
-                    await epTemp.SetSleepUntil(exe.SleepUntil);
+                    await epTemp.SetSleepUntil(WorkflowDateTime.NormalizeUtc(exe.SleepUntil));
                     await epTemp.SetPersistenceData(exe.PersistenceData != null
                         ? JsonConvert.SerializeObject(exe.PersistenceData, SerializerSettings)
                         : null);
-                    await epTemp.SetStartTime(exe.StartTime);
-                    await epTemp.SetEndTime(exe.EndTime);
+                    await epTemp.SetStartTime(WorkflowDateTime.NormalizeUtc(exe.StartTime));
+                    await epTemp.SetEndTime(WorkflowDateTime.NormalizeUtc(exe.EndTime));
                     await epTemp.SetEventName(exe.EventName);
                     await epTemp.SetEventKey(exe.EventKey);
                     await epTemp.SetEventPublished(exe.EventPublished);
@@ -270,7 +270,8 @@ namespace Hx.Workflow.Domain
                     await epTemp.SetStatus(exe.Status);
                     await epTemp.SetScope(string.Join(';', exe.Scope));
                     var eventData = exe.EventData as ActivityResult;
-                    await epTemp.SetCommitmentDeadline(eventPointerEventData?.CommitmentDeadline);
+                    await epTemp.SetCommitmentDeadline(
+                        WorkflowDateTime.NormalizeUtc(eventPointerEventData?.CommitmentDeadline));
                 }
                 if (exe.ExtensionAttributes != null)
                 {

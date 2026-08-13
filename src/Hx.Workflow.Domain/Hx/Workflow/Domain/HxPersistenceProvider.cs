@@ -201,7 +201,7 @@ namespace Hx.Workflow.Domain
         public async Task<IEnumerable<string>> GetEvents(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
             var raw = await _wkEventRepository
-                .GetEventsAsync(eventName, eventKey, asOf);
+                .GetEventsAsync(eventName, eventKey, WorkflowDateTime.NormalizeUtc(asOf));
             var result = new List<string>();
             foreach (var s in raw)
                 result.Add(s.Id.ToString());
@@ -209,7 +209,8 @@ namespace Hx.Workflow.Domain
         }
         public async Task<EventSubscription> GetFirstOpenSubscription(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            var raw = await _wkSubscriptionRepository.GetOpenSubscriptionsAsync(eventName, eventKey, asOf);
+            var raw = await _wkSubscriptionRepository.GetOpenSubscriptionsAsync(
+                eventName, eventKey, WorkflowDateTime.NormalizeUtc(asOf));
             if (raw.Count <= 0)
                 return null!;
             return raw.First().ToEventSubscription();
@@ -228,14 +229,14 @@ namespace Hx.Workflow.Domain
         //}
         public async Task<IEnumerable<string>> GetRunnableEvents(DateTime asAt, CancellationToken cancellationToken = default)
         {
-            DateTime asAtTime = asAt;
+            DateTime asAtTime = WorkflowDateTime.NormalizeUtc(asAt);
             return from p in await
                    _wkEventRepository.GetRunnableEventsAsync(asAtTime)
                    select p.ToString();
         }
         public async Task<IEnumerable<string>> GetRunnableInstances(DateTime asAt, CancellationToken cancellationToken = default)
         {
-            DateTime asAtTime = asAt;
+            DateTime asAtTime = WorkflowDateTime.NormalizeUtc(asAt);
             return from p in await
                    _wkInstanceRepository.GetRunnableInstancesAsync(asAtTime)
                    select p.ToString();
@@ -248,7 +249,7 @@ namespace Hx.Workflow.Domain
                 var workflowEvent = await _wkEventRepository.GetByEventKeyAsync(raw.EventKey);
                 if (workflowEvent != null)
                 {
-                    await raw.SetSubscribeAsOf(workflowEvent.Time);
+                    await raw.SetSubscribeAsOf(WorkflowDateTime.NormalizeUtc(workflowEvent.Time));
                     await _wkSubscriptionRepository.UpdateAsync(raw, true, cancellationToken);
                 }
             }
@@ -256,7 +257,8 @@ namespace Hx.Workflow.Domain
         }
         public async Task<IEnumerable<EventSubscription>> GetSubscriptions(string eventName, string eventKey, DateTime asOf, CancellationToken cancellationToken = default)
         {
-            var subs = await _wkSubscriptionRepository.GetSubscriptionsAsync(eventName, eventKey, asOf);
+            var subs = await _wkSubscriptionRepository.GetSubscriptionsAsync(
+                eventName, eventKey, WorkflowDateTime.NormalizeUtc(asOf));
             return from x in subs select x.ToEventSubscription();
         }
         public async Task<WorkflowInstance> GetWorkflowInstance(string Id, CancellationToken cancellationToken = default)
@@ -382,8 +384,9 @@ namespace Hx.Workflow.Domain
         {
             _ = await _wkInstanceRepository.FindAsync(new Guid(workerId), true, cancellationToken) ?? throw new UserFriendlyException(message: $"[{workerId}]流程实例不存在！");
             var uid = new Guid(eventSubscriptionId);
+            expiry = WorkflowDateTime.NormalizeUtc(expiry);
             if (expiry > new DateTime(9999, 12, 31))
-                expiry = new DateTime(9999, 12, 31);
+                expiry = DateTime.SpecifyKind(new DateTime(9999, 12, 31), DateTimeKind.Utc);
             return await _wkSubscriptionRepository.TrySetTokenAsync(
                 uid, token, workerId, expiry, DateTime.UtcNow, cancellationToken);
         }
