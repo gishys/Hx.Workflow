@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +31,13 @@ namespace Hx.Workflow.Domain
             {
                 return;
             }
+
+            var logger = context.ServiceProvider
+                .GetRequiredService<ILogger<HxWorkflowDomainModule>>();
+            logger.LogInformation(
+                "Starting the WorkflowCore host. Do not resolve IBackgroundTask services " +
+                "from child scopes; WorkflowCore 3.10 exposes a disposable singleton " +
+                "publisher through that service type.");
 
             var manager = context.ServiceProvider.GetRequiredService<HxWorkflowManager>();
             await manager.Initialize();

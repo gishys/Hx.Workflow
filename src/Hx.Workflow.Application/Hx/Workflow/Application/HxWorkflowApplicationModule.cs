@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application;
 using Volo.Abp.AutoMapper;
@@ -38,7 +39,7 @@ namespace Hx.Workflow.Application
                 options.AddProfile<HxWorkflowAutoMapperProfile>(validate: true);
             });
         }
-        public async override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
         {
             using var scope = context.ServiceProvider.CreateScope();
             var stepbodyRespository = scope.ServiceProvider.GetService<IWkStepBodyRespository>() ?? throw new UserFriendlyException(message: "IWkStepBodyRespository服务依赖注入失败！");

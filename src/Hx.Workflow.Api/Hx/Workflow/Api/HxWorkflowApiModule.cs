@@ -69,7 +69,7 @@ namespace Hx.Workflow.Api
             context.Services.AddWorkflow(
                 options =>
                 {
-                    options.UsePersistence(sp => sp.GetService<HxPersistenceProvider>());
+                    options.UsePersistence(sp => sp.GetRequiredService<HxPersistenceProvider>());
                 });
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {

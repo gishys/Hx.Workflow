@@ -55,11 +55,13 @@ namespace Hx.Workflow.Domain
         }
         public async Task<string> CreateEvent(Event newEvent, CancellationToken cancellationToken = default)
         {
-            using var uow = _unitOfWorkManager.Begin();
+            // WorkflowCore queues the event as soon as this method returns. Commit it in
+            // an independent transaction first so consumers cannot see an uncommitted ID.
+            using var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
             newEvent.Id = _guidGenerator.Create().ToString();
             var persistable = newEvent.ToPersistable();
             var entity = await _wkEventRepository.InsertAsync(persistable, false, cancellationToken);
-            await uow.SaveChangesAsync(cancellationToken);
+            await uow.CompleteAsync(cancellationToken);
             return entity.Id.ToString();
         }
         public async Task<string> CreateEventSubscription(EventSubscription subscription, CancellationToken cancellationToken = default)
@@ -70,6 +72,9 @@ namespace Hx.Workflow.Domain
         }
         public async Task<string> CreateNewWorkflow(WorkflowInstance workflow, CancellationToken cancellationToken = default)
         {
+            // StartWorkflow enqueues the returned ID immediately. A requires-new UOW
+            // guarantees that the instance is committed before it becomes consumable.
+            using var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
             workflow.Id = _guidGenerator.Create().ToString();
             // 如果工作流数据中包含 Reference（来自启动入参的 Inputs["Reference"]），优先使用该值
             if (string.IsNullOrWhiteSpace(workflow.Reference) && workflow.Data is IDictionary<string, object> data
@@ -107,7 +112,9 @@ namespace Hx.Workflow.Domain
                     }
                 }
             }
-            return (await _wkInstanceRepository.InsertAsync(wkInstance, false, cancellationToken)).Id.ToString();
+            var entity = await _wkInstanceRepository.InsertAsync(wkInstance, false, cancellationToken);
+            await uow.CompleteAsync(cancellationToken);
+            return entity.Id.ToString();
         }
         private static WkExecutionPointerMaterials CreateExePointerMaterials(WkNodeMaterials materials, string reference)
         {
@@ -326,7 +333,7 @@ namespace Hx.Workflow.Domain
             await _wkInstanceRepository.UpdateAsync(persistable, false, cancellationToken);
             await uow.CompleteAsync(cancellationToken);
         }
-        public async Task PersistWorkflow(WorkflowInstance workflow, List<EventSubscription> subscriptions, CancellationToken cancellationToken = default)
+        public async Task PersistWorkflow(WorkflowInstance workflow, List<EventSubscription>? subscriptions, CancellationToken cancellationToken = default)
         {
             using var uow = _unitOfWorkManager.Begin();
             var uid = new Guid(workflow.Id);
@@ -338,7 +345,9 @@ namespace Hx.Workflow.Domain
             existingEntity = await CreateExePointerMaterials(existingEntity, new Guid(workflow.WorkflowDefinitionId), workflow.Version, workflow.Reference);
             await _wkInstanceRepository.UpdateAsync(persistable, false, cancellationToken);
             //需要确认
-            foreach (var subscription in subscriptions)
+            // WorkflowCore passes result?.Subscriptions from a finally block. When the
+            // executor fails before producing a result this value is legitimately null.
+            foreach (var subscription in subscriptions ?? [])
             {
                 if (!string.IsNullOrEmpty(subscription.Id))
                 {
