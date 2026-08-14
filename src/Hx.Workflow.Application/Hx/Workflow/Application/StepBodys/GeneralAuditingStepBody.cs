@@ -101,7 +101,7 @@ namespace Hx.Workflow.Application.StepBodys
                         "CommitmentDeadline",
                         DateTime.UtcNow.AddMinutes((double)pointer.LimitTime));
                 }
-                if (!executionPointer.EventPublished)
+                if (!context.ExecutionPointer.EventPublished)
                 {
                     if (definition == null)
                         throw new UserFriendlyException(message: "获取实例流程模板失败！");
@@ -205,7 +205,17 @@ namespace Hx.Workflow.Application.StepBodys
                     var step = instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                     if (!string.IsNullOrEmpty(eventPointerEventData.Candidates))
                         NextCandidates = eventPointerEventData.Candidates;
-                    if (step.StepNodeType != StepNodeType.End)
+                    if (!eventPointerEventData.ExecutionType.HasValue ||
+                        !Enum.IsDefined(
+                            typeof(StepExecutionType),
+                            eventPointerEventData.ExecutionType.Value))
+                    {
+                        throw new UserFriendlyException(message: "事件数据中的ExecutionType无效！");
+                    }
+
+                    var executionType = eventPointerEventData.ExecutionType.Value;
+                    if (executionType == StepExecutionType.Forward &&
+                        step.StepNodeType != StepNodeType.End)
                     {
                         if (!BranchDecisionValidator.CanTransition(step, eventPointerEventData.DecideBranching))
                         {
@@ -214,7 +224,7 @@ namespace Hx.Workflow.Application.StepBodys
                         }
                     }
                     EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;
-                    if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
+                    if (executionType == StepExecutionType.Forward)
                     {
                         auditStatus = EnumAuditStatus.Pass;
                     }
@@ -229,27 +239,14 @@ namespace Hx.Workflow.Application.StepBodys
                     var candidateId = await ResolveAuditCandidateIdAsync(context, executionPointer, candidateIdsForAudit);
 
                     await Audit(eventData.Data, instance.Id, executionPointer, candidateId, auditStatus);
-                    var candidateIdSet = candidateIdsForAudit.Count > 0
-                        ? candidateIdsForAudit.ToHashSet()
-                        : new HashSet<Guid> { candidateId };
-                    foreach (var item in executionPointer.WkCandidates.Where(d => candidateIdSet.Contains(d.CandidateId)))
-                    {
-                        if (eventPointerEventData.ExecutionType == StepExecutionType.Forward)
-                        {
-                            item.SetParentState(ExeCandidateState.Completed);
-                        }
-                        else
-                        {
-                            item.SetParentState(ExeCandidateState.BeRolledBack);
-                        }
-                    }
+                    var shouldWaitForMoreCandidates =
+                        ActivityCandidateCompletionPolicy.ApplyDecisionAndShouldWait(
+                            executionPointer.WkCandidates,
+                            candidateId,
+                            executionType);
+
                     await _wkInstance.UpdateAsync(instance);
-                    if (executionPointer.WkCandidates.Any(d =>
-                    (d.ExeOperateType == ExePersonnelOperateType.Countersign ||
-                    d.ExeOperateType == ExePersonnelOperateType.Host) &&
-                    (d.ParentState == ExeCandidateState.Pending ||
-                    d.ParentState == ExeCandidateState.Waiting ||
-                    d.ParentState == ExeCandidateState.WaitingReceipt)))
+                    if (shouldWaitForMoreCandidates)
                     {
                         var effectiveData = DateTime.MinValue;
                         var executionResult = ExecutionResult.WaitForActivity(

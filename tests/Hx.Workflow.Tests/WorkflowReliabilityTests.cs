@@ -341,6 +341,74 @@ namespace Hx.Workflow.Tests
         }
 
         [Fact]
+        public void HostDecision_CompletesActorAndRemovesUnclaimedAlternatives()
+        {
+            var actor = Candidate(
+                ExePersonnelOperateType.Host,
+                ExeCandidateState.WaitingReceipt);
+            var alternative = Candidate(
+                ExePersonnelOperateType.Host,
+                ExeCandidateState.WaitingReceipt);
+            ICollection<ExePointerCandidate> candidates = [actor, alternative];
+
+            var shouldWait = ActivityCandidateCompletionPolicy
+                .ApplyDecisionAndShouldWait(
+                    candidates,
+                    actor.CandidateId,
+                    StepExecutionType.Forward);
+
+            Assert.False(shouldWait);
+            Assert.Equal(ExeCandidateState.Completed, actor.ParentState);
+            Assert.DoesNotContain(alternative, candidates);
+            Assert.Single(candidates);
+        }
+
+        [Fact]
+        public void CountersignDecision_WaitsForRemainingCountersignCandidate()
+        {
+            var actor = Candidate(
+                ExePersonnelOperateType.Countersign,
+                ExeCandidateState.Pending);
+            var remaining = Candidate(
+                ExePersonnelOperateType.Countersign,
+                ExeCandidateState.WaitingReceipt);
+            ICollection<ExePointerCandidate> candidates = [actor, remaining];
+
+            var shouldWait = ActivityCandidateCompletionPolicy
+                .ApplyDecisionAndShouldWait(
+                    candidates,
+                    actor.CandidateId,
+                    StepExecutionType.Forward);
+
+            Assert.True(shouldWait);
+            Assert.Equal(ExeCandidateState.Completed, actor.ParentState);
+            Assert.Contains(remaining, candidates);
+        }
+
+        [Fact]
+        public void RollbackDecision_DoesNotWaitForOtherCandidates()
+        {
+            var actor = Candidate(
+                ExePersonnelOperateType.Host,
+                ExeCandidateState.Pending);
+            var countersign = Candidate(
+                ExePersonnelOperateType.Countersign,
+                ExeCandidateState.WaitingReceipt);
+            ICollection<ExePointerCandidate> candidates = [actor, countersign];
+
+            var shouldWait = ActivityCandidateCompletionPolicy
+                .ApplyDecisionAndShouldWait(
+                    candidates,
+                    actor.CandidateId,
+                    StepExecutionType.RolledBack);
+
+            Assert.False(shouldWait);
+            Assert.Equal(ExeCandidateState.BeRolledBack, actor.ParentState);
+            Assert.DoesNotContain(countersign, candidates);
+            Assert.Single(candidates);
+        }
+
+        [Fact]
         public void NullTenantId_UsesTypedPostgreSqlUuidParameter()
         {
             var parameter = WkActivitySubmissionParameterFactory.GetTenantParameterSpecification(null);
@@ -536,6 +604,17 @@ namespace Hx.Workflow.Tests
         private static WkDefinition Definition()
             => new(
                 Guid.NewGuid(), "test", 1, null, "test", "test");
+
+        private static ExePointerCandidate Candidate(
+            ExePersonnelOperateType operateType,
+            ExeCandidateState state)
+            => new(
+                Guid.NewGuid(),
+                "user",
+                "User",
+                operateType,
+                state,
+                WkParticipantType.Worker);
 
         private sealed class BackgroundTaskState
         {
