@@ -1,4 +1,6 @@
+using Hx.Workflow.Application.StepBodys;
 using Hx.Workflow.Domain;
+using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
@@ -87,21 +89,58 @@ namespace Hx.Workflow.Application
                 using (currentTenant.Change(submission.TenantId))
                 {
                     var eventRepository = scope.ServiceProvider.GetRequiredService<IWkEventRepository>();
+                    var instanceRepository = scope.ServiceProvider.GetRequiredService<IWkInstanceRepository>();
+                    var definitionRepository = scope.ServiceProvider.GetRequiredService<IWkDefinitionRespository>();
                     var manager = scope.ServiceProvider.GetRequiredService<HxWorkflowManager>();
                     var uowManager = scope.ServiceProvider.GetRequiredService<IUnitOfWorkManager>();
+                    Dictionary<string, object> data;
 
                     using (var readUow = uowManager.Begin(requiresNew: true, isTransactional: false))
                     {
+                        // Publishing may have succeeded before the outbox status was saved.
+                        // Reconcile that case before checking the pointer's current state.
                         var existingEvent = await eventRepository.GetByEventKeyAsync(submission.ActivityName);
-                        await readUow.CompleteAsync(cancellationToken);
                         if (!WkActivitySubmissionPolicies.ShouldPublishEvent(existingEvent))
                         {
+                            await readUow.CompleteAsync(cancellationToken);
                             await MarkEventPublishedAsync(submission, cancellationToken);
                             return;
                         }
+
+                        // Accepted submissions can outlive the request-time state, so validate again at publish time.
+                        var payload = DeserializePayload(submission.Payload);
+                        data = payload.Data;
+                        var pointer = await manager.ValidateActivityOwnershipAsync(
+                            submission.ActivityName,
+                            submission.WorkflowId.ToString());
+                        var instance = await instanceRepository.FindNoTrackAsync(
+                            submission.WorkflowId,
+                            false,
+                            cancellationToken)
+                            ?? throw new BusinessException(
+                                "Workflow.InstanceNotFound",
+                                $"流程实例 [{submission.WorkflowId}] 不存在。");
+                        var definition = await definitionRepository.GetDefinitionAsync(
+                            instance.WkDifinitionId,
+                            instance.Version,
+                            cancellationToken)
+                            ?? throw new BusinessException(
+                                "Workflow.DefinitionNotFound",
+                                $"流程模板 [{instance.WkDifinitionId}] 版本 [{instance.Version}] 不存在。");
+                        var validationError = ActivitySubmissionValidator.Validate(
+                            payload.EventData,
+                            pointer.StepName,
+                            definition);
+                        if (validationError != null)
+                        {
+                            throw new BusinessException(
+                                "Workflow.InvalidActivitySubmission",
+                                validationError);
+                        }
+
+                        await readUow.CompleteAsync(cancellationToken);
                     }
 
-                    var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(submission.Payload);
                     await manager.StartActivityAsync(
                         submission.ActivityName,
                         submission.WorkflowId.ToString(),
@@ -111,6 +150,10 @@ namespace Hx.Workflow.Application
             }
             catch (BusinessException ex)
             {
+                logger.LogWarning(
+                    "Rejected workflow activity submission {SubmissionId}: {Reason}",
+                    submission.Id,
+                    ex.Message);
                 await MarkRejectedAsync(submission, ex.Message, cancellationToken);
             }
             catch (Exception ex)
@@ -127,6 +170,39 @@ namespace Hx.Workflow.Application
                 {
                     await ReleaseForRetryAsync(submission, ex.Message, cancellationToken);
                 }
+            }
+        }
+
+        private static (Dictionary<string, object> Data, WkPointerEventData EventData) DeserializePayload(
+            string payload)
+        {
+            if (string.IsNullOrWhiteSpace(payload))
+            {
+                throw new BusinessException(
+                    "Workflow.InvalidActivityPayload",
+                    "活动提交数据不能为空。");
+            }
+
+            try
+            {
+                var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(payload);
+                var eventData = System.Text.Json.JsonSerializer.Deserialize<WkPointerEventData>(payload);
+                if (data == null || eventData == null)
+                {
+                    throw new BusinessException(
+                        "Workflow.InvalidActivityPayload",
+                        "活动提交数据必须是 JSON 对象。");
+                }
+
+                return (data, eventData);
+            }
+            catch (Exception ex) when (
+                ex is JsonException ||
+                ex is System.Text.Json.JsonException)
+            {
+                throw new BusinessException(
+                    "Workflow.InvalidActivityPayload",
+                    $"活动提交数据无法解析：{ex.Message}");
             }
         }
 

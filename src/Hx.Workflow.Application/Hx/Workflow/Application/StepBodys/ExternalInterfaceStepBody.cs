@@ -60,7 +60,8 @@ namespace Hx.Workflow.Application.StepBodys
                 if (!BranchDecisionValidator.CanTransition(step, nextStepName))
                 {
                     throw new UserFriendlyException(
-                        message: $"分支值“{nextStepName}”无法从节点“{step.Name}”到达下一节点。");
+                        message: $"分支值“{nextStepName}”无法从节点“{step.Name}”到达下一节点。" +
+                            $"{BranchDecisionValidator.DescribeAllowedForwardDecisions(step)}。");
                 }
             }
             await _wkInstance.UpdateCandidateAsync(instance.Id, executionPointer.Id, ExeCandidateState.Completed);

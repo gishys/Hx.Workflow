@@ -220,7 +220,8 @@ namespace Hx.Workflow.Application.StepBodys
                         if (!BranchDecisionValidator.CanTransition(step, eventPointerEventData.DecideBranching))
                         {
                             throw new UserFriendlyException(
-                                message: $"分支值“{eventPointerEventData.DecideBranching}”无法从节点“{step.Name}”到达下一节点。");
+                                message: $"分支值“{eventPointerEventData.DecideBranching}”无法从节点“{step.Name}”到达下一节点。" +
+                                    $"{BranchDecisionValidator.DescribeAllowedForwardDecisions(step)}。");
                         }
                     }
                     EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;

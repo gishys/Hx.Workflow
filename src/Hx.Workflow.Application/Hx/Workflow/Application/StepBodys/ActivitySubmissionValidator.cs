@@ -36,7 +36,8 @@ namespace Hx.Workflow.Application.StepBodys
                 currentNode.StepNodeType != StepNodeType.End &&
                 !BranchDecisionValidator.CanTransition(currentNode, input.DecideBranching))
             {
-                return $"分支值“{input.DecideBranching}”无法从当前节点“{currentStepName}”到达下一节点。";
+                return $"分支值“{input.DecideBranching}”无法从当前节点“{currentStepName}”到达下一节点。" +
+                    $"{BranchDecisionValidator.DescribeAllowedForwardDecisions(currentNode)}。";
             }
 
             return null;

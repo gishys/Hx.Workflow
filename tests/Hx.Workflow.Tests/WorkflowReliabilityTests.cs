@@ -292,6 +292,25 @@ namespace Hx.Workflow.Tests
 
             Assert.True(BranchDecisionValidator.CanTransition(step, "登簿"));
             Assert.False(BranchDecisionValidator.CanTransition(step, "缮证"));
+            Assert.Equal(["登簿"], BranchDecisionValidator.GetAllowedForwardDecisions(step));
+        }
+
+        [Fact]
+        public async Task AllowedForwardDecisions_UseDecisionRulesAndExcludeRollbackEdges()
+        {
+            var step = new WkNode("核定", "核定", StepNodeType.Activity, 1);
+            var forward = new WkNodeRelation("登簿", WkRoleNodeType.Forward);
+            await forward.AddConNodeCondition(
+                new WkNodeRelationRule("DecideBranching", "==", "登簿"));
+            var rollback = new WkNodeRelation("复审", WkRoleNodeType.RolledBack);
+            await rollback.AddConNodeCondition(
+                new WkNodeRelationRule("DecideBranching", "==", "复审"));
+            await step.AddNextNode(forward);
+            await step.AddNextNode(rollback);
+
+            Assert.Equal(["登簿"], BranchDecisionValidator.GetAllowedForwardDecisions(step));
+            Assert.True(BranchDecisionValidator.CanTransition(step, "登簿"));
+            Assert.False(BranchDecisionValidator.CanTransition(step, "复审"));
         }
 
         [Fact]
@@ -338,6 +357,7 @@ namespace Hx.Workflow.Tests
             Assert.NotNull(error);
             Assert.Contains("wrong-next", error);
             Assert.Contains("current", error);
+            Assert.Contains("允许的向前分支：next", error);
         }
 
         [Fact]
