@@ -54,5 +54,20 @@ namespace Hx.Workflow.Domain.StepBodys
             Remark = remark;
             return Task.CompletedTask;
         }
+
+        /// <summary>
+        /// Completes an audit decision as one domain operation so an existing placeholder record
+        /// cannot retain a stale status, audit time, or remark from an earlier workflow state.
+        /// </summary>
+        public virtual Task Audit(
+            EnumAuditStatus status,
+            DateTime auditTime,
+            string? remark)
+        {
+            Status = status;
+            AuditTime = auditTime;
+            Remark = remark;
+            return Task.CompletedTask;
+        }
     }
 }

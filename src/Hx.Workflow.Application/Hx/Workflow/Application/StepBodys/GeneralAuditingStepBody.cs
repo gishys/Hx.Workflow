@@ -205,25 +205,17 @@ namespace Hx.Workflow.Application.StepBodys
                     var step = instance.WkDefinition.Nodes.FirstOrDefault(d => d.Name == executionPointer.StepName) ?? throw new UserFriendlyException(message: $"在流程({instance.Id})中未找到名称为({executionPointer.StepName})的节点！");
                     if (!string.IsNullOrEmpty(eventPointerEventData.Candidates))
                         NextCandidates = eventPointerEventData.Candidates;
-                    if (!eventPointerEventData.ExecutionType.HasValue ||
-                        !Enum.IsDefined(
-                            typeof(StepExecutionType),
-                            eventPointerEventData.ExecutionType.Value))
+                    var deterministicValidationError =
+                        ActivityRuntimeFailurePolicy.ValidateAndSuspendIfInvalid(
+                            context.Workflow,
+                            eventPointerEventData,
+                            step);
+                    if (deterministicValidationError != null)
                     {
-                        throw new UserFriendlyException(message: "事件数据中的ExecutionType无效！");
+                        throw new UserFriendlyException(message: deterministicValidationError);
                     }
 
-                    var executionType = eventPointerEventData.ExecutionType.Value;
-                    if (executionType == StepExecutionType.Forward &&
-                        step.StepNodeType != StepNodeType.End)
-                    {
-                        if (!BranchDecisionValidator.CanTransition(step, eventPointerEventData.DecideBranching))
-                        {
-                            throw new UserFriendlyException(
-                                message: $"分支值“{eventPointerEventData.DecideBranching}”无法从节点“{step.Name}”到达下一节点。" +
-                                    $"{BranchDecisionValidator.DescribeAllowedForwardDecisions(step)}。");
-                        }
-                    }
+                    var executionType = eventPointerEventData.ExecutionType!.Value;
                     EnumAuditStatus auditStatus = EnumAuditStatus.Unapprove;
                     if (executionType == StepExecutionType.Forward)
                     {
@@ -308,6 +300,7 @@ namespace Hx.Workflow.Application.StepBodys
             }
             await execution.SetSubmitterInfo(user.UserName, user.CandidateId);
             var entity = await _wkAuditor.GetAuditorAsync(execution.Id, user.CandidateId);
+            var auditTime = DateTime.UtcNow;
             if (entity == null)
             {
                 var auditorInstance = new WkAuditor(
@@ -316,13 +309,12 @@ namespace Hx.Workflow.Application.StepBodys
                     user.UserName,
                     userId: user.CandidateId,
                     status: auditStatus);
-                if (!string.IsNullOrEmpty(Remark))
-                    await auditorInstance.Audit(DateTime.Now, remark: Remark);
+                await auditorInstance.Audit(auditStatus, auditTime, Remark);
                 await _wkAuditor.InsertAsync(auditorInstance);
             }
             else
             {
-                await entity.Audit(auditStatus);
+                await entity.Audit(auditStatus, auditTime, Remark);
                 await _wkAuditor.UpdateAsync(entity);
             }
         }

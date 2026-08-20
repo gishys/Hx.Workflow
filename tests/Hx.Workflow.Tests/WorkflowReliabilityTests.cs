@@ -6,6 +6,7 @@ using Hx.Workflow.Domain.BusinessModule;
 using Hx.Workflow.Domain.Persistence;
 using Hx.Workflow.Domain.Repositories;
 using Hx.Workflow.Domain.Shared;
+using Hx.Workflow.Domain.StepBodys;
 using Hx.Workflow.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -358,6 +359,96 @@ namespace Hx.Workflow.Tests
             Assert.Contains("wrong-next", error);
             Assert.Contains("current", error);
             Assert.Contains("允许的向前分支：next", error);
+        }
+
+        [Fact]
+        public void InvalidRuntimeExecutionType_SuspendsWorkflow()
+        {
+            var workflow = new WorkflowInstance
+            {
+                Status = WorkflowStatus.Runnable
+            };
+            var step = new WkNode("核定", "核定", StepNodeType.Activity, 1);
+
+            var error = ActivityRuntimeFailurePolicy.ValidateAndSuspendIfInvalid(
+                workflow,
+                new WkPointerEventData
+                {
+                    ExecutionType = (StepExecutionType)999
+                },
+                step);
+
+            Assert.Equal("事件数据中的ExecutionType无效！", error);
+            Assert.Equal(WorkflowStatus.Suspended, workflow.Status);
+        }
+
+        [Fact]
+        public async Task InvalidRuntimeForwardBranch_SuspendsWorkflow()
+        {
+            var workflow = new WorkflowInstance
+            {
+                Status = WorkflowStatus.Runnable
+            };
+            var step = new WkNode("核定", "核定", StepNodeType.Activity, 1);
+            await step.AddNextNode(new WkNodeRelation("登簿", WkRoleNodeType.Forward));
+
+            var error = ActivityRuntimeFailurePolicy.ValidateAndSuspendIfInvalid(
+                workflow,
+                new WkPointerEventData
+                {
+                    DecideBranching = "缮证",
+                    ExecutionType = StepExecutionType.Forward
+                },
+                step);
+
+            Assert.Equal(
+                "分支值“缮证”无法从节点“核定”到达下一节点。允许的向前分支：登簿。",
+                error);
+            Assert.Equal(WorkflowStatus.Suspended, workflow.Status);
+        }
+
+        [Fact]
+        public async Task ValidRuntimeForwardBranch_LeavesWorkflowRunnable()
+        {
+            var workflow = new WorkflowInstance
+            {
+                Status = WorkflowStatus.Runnable
+            };
+            var step = new WkNode("核定", "核定", StepNodeType.Activity, 1);
+            await step.AddNextNode(new WkNodeRelation("登簿", WkRoleNodeType.Forward));
+
+            var error = ActivityRuntimeFailurePolicy.ValidateAndSuspendIfInvalid(
+                workflow,
+                new WkPointerEventData
+                {
+                    DecideBranching = "登簿",
+                    ExecutionType = StepExecutionType.Forward
+                },
+                step);
+
+            Assert.Null(error);
+            Assert.Equal(WorkflowStatus.Runnable, workflow.Status);
+        }
+
+        [Fact]
+        public async Task ExistingAuditorDecision_UpdatesStatusTimeAndRemarkTogether()
+        {
+            var auditor = new WkAuditor(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "测试审核人",
+                Guid.NewGuid(),
+                EnumAuditStatus.UnAudited);
+            var auditTime = new DateTime(2026, 8, 20, 1, 30, 0, DateTimeKind.Utc);
+
+            await auditor.Audit(
+                EnumAuditStatus.Pass,
+                auditTime,
+                "登记平台已核定");
+
+            Assert.Equal(EnumAuditStatus.Pass, auditor.Status);
+            Assert.Equal(auditTime, auditor.AuditTime);
+            Assert.Equal("登记平台已核定", auditor.Remark);
         }
 
         [Fact]
